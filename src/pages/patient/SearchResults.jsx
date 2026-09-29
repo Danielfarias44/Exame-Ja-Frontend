@@ -20,7 +20,6 @@ export default function SearchResults() {
         setStatus("success");
       })
       .catch(() => setStatus("error"));
-    // TODO: quando a Leticia expor GET /exams/search, cruzar exam + establishments aqui
   }, [query, filters]);
 
   const sorted = [...establishments].sort((a, b) => {
@@ -30,7 +29,7 @@ export default function SearchResults() {
 
   return (
     <section>
-      <h1>Resultados para “{query}”</h1>
+      <h1 style={{color: "black"}}>Resultados para “{query}”</h1>
 
       <div aria-label="Filtros" style={{ display: "flex", gap: "1rem", flexWrap: "wrap", margin: "1rem 0" }}>
         <select
@@ -63,7 +62,7 @@ export default function SearchResults() {
       {status === "success" && sorted.length === 0 && <p>Nenhum resultado encontrado.</p>}
 
       {status === "success" && (
-        <div style={{ display: "grid", gap: "1rem" }}>
+        <div style={{ display: "grid", gap: "1rem", color: 'black'}}>
           {sorted.map((establishment) => (
             <EstablishmentCard key={establishment.id} establishment={establishment} />
           ))}

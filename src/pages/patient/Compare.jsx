@@ -4,7 +4,7 @@ import { compareEstablishments } from "../../services/api";
 
 export default function Compare() {
   const [searchParams] = useSearchParams();
-  const ids = (searchParams.get("ids") ?? "1,2").split(",");
+  const ids = (searchParams.get("ids") ?? "1,2,3").split(",");
   const [establishments, setEstablishments] = useState([]);
   const [status, setStatus] = useState("loading");
 
@@ -23,9 +23,9 @@ export default function Compare() {
 
   return (
     <section>
-      <h1>Comparar estabelecimentos</h1>
+      <h1 style={{color: "black"}}>Comparar estabelecimentos</h1>
       <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", color:"black"}}>
           <thead>
             <tr>
               <th align="left">Estabelecimento</th>
@@ -36,7 +36,7 @@ export default function Compare() {
           </thead>
           <tbody>
             {establishments.map((e) => (
-              <tr key={e.id} style={{ borderTop: "1px solid #e2e8f0" }}>
+              <tr key={e.id} style={{ borderTop: "1px solid #38424e", color: "black" }}>
                 <td>{e.name}</td>
                 <td>R$ {e.price.toFixed(2)}</td>
                 <td>⭐ {e.rating}</td>

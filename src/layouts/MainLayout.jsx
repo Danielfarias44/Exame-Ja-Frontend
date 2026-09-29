@@ -5,7 +5,9 @@ export default function MainLayout() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <Link to="/" className="app-logo">
+        <Link to="/" className="app-logo" style={{gap: '5px'}}>
+        <img src="src/assets/logo.png" />
+        
           Exame Já
         </Link>
         <nav className="app-nav">

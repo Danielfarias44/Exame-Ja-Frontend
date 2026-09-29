@@ -1,7 +1,3 @@
-// Mocks usados enquanto a API da Leticia (back-end) não está pronta.
-// Formato pensado para bater com os endpoints do contrato do PDF:
-// GET /exams, GET /exams/search, GET /establishments, GET /establishments/:id
-
 export const mockExams = [
   { id: "1", name: "Hemograma completo", specialty: "Análises clínicas" },
   { id: "2", name: "Ressonância magnética", specialty: "Imagem" },

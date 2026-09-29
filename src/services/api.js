@@ -1,7 +1,6 @@
 import { mockExams, mockEstablishments, mockReviews } from "./mocks";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-// Enquanto a API da Leticia não está pronta, deixe VITE_USE_MOCKS=true no .env
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
 
 async function request(path) {
