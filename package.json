@@ -1,5 +1,5 @@
 {
-  "name": "exame-ja",
+  "name": "exame-ja-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^6.26.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
