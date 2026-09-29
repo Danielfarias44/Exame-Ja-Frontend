@@ -8,7 +8,7 @@
     <title>Entrar | Exame Já</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="stylesheet" href="./login/login.css" />
-    <script src="./login/login.js" defer></script>
+    <script type="module" src="./login/login.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#email">Pular para o login</a>
@@ -18,7 +18,7 @@
     </header>
     <main class="login-layout">
       <section class="welcome" aria-labelledby="welcome-title">
-        <span class="eyebrow">MAIS FACILIDADE PARA CUIDAR DE VOCÊ</span>
+        <span class="eyebrow">Mais facilidade para cuidar de você</span>
         <h2 id="welcome-title">Seu próximo exame,<br /><span>um passo mais perto.</span></h2>
         <p>Um só lugar para organizar seus agendamentos e conversar com a equipe de atendimento.</p>
         <ul class="benefits">
@@ -30,7 +30,7 @@
       </section>
       <section class="login-panel" aria-labelledby="login-title">
         <div class="form-heading"><span class="section-label">BEM-VINDO AO EXAME JÁ</span><h1 id="login-title">Entre na sua conta</h1><p>Use seu e-mail e sua senha para continuar.</p></div>
-        <p class="demo-notice"><strong>Tela de demonstração.</strong> Não use sua senha real. Os dados não são enviados nem salvos.</p>
+        <p class="demo-notice">Entre com uma conta já cadastrada no Exame Já. Sua senha não será salva neste navegador.</p>
         <form id="login-form" method="post">
           <div class="field">
             <label for="email">E-mail</label>
@@ -42,12 +42,12 @@
             <div class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" required aria-describedby="password-error" /><button id="toggle-password" type="button" aria-controls="password" aria-pressed="false" hidden>Mostrar senha</button></div>
             <p id="password-error" class="field-error" hidden></p>
           </div>
-          <details class="support-details"><summary>Esqueci minha senha</summary><p>A recuperação de senha ainda não está disponível nesta demonstração. Nenhum e-mail será enviado.</p></details>
+          <details class="support-details"><summary>Esqueci minha senha</summary><p>A recuperação de senha ainda não está disponível. Nenhum e-mail será enviado por esta tela.</p></details>
           <button id="submit-login" class="primary-button" type="submit" disabled>Entrar <span aria-hidden="true">→</span></button>
           <noscript><p class="field-error">Ative o JavaScript no navegador para testar este formulário.</p></noscript>
           <div id="form-feedback" class="form-feedback" role="status" aria-live="polite" aria-atomic="true"></div>
         </form>
-        <div class="signup"><span>Ainda não tem uma conta?</span><details class="support-details"><summary>Como criar minha conta?</summary><p>O cadastro ainda não está conectado. Nesta demonstração, você pode conhecer a interface de atendimento pelo link abaixo.</p></details></div>
+        <div class="signup"><span>Ainda não tem uma conta?</span><details class="support-details"><summary>Como criar minha conta?</summary><p>A tela de cadastro ainda não está disponível. Para entrar, use uma conta já cadastrada. Você também pode conhecer o atendimento demonstrativo pelo link abaixo.</p></details></div>
         <a class="preview-link" href="./index.html">Conhecer o atendimento de demonstração <span aria-hidden="true">→</span></a>
       </section>
     </main>

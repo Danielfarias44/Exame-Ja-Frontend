@@ -165,3 +165,8 @@ h2 { font-size: 16px; font-weight: 600; }
   .message-row > .avatar { display: none; }
   .message-wrap { max-width: 94%; }
 }
+
+.account-action { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 14px; border: 1px solid var(--blue); border-radius: 7px; color: var(--navy); background: var(--blue-soft); font-size: 14px; text-decoration: none; }
+.account-notice { padding: 12px; margin-bottom: 16px; background: var(--blue-soft); border-left: 3px solid var(--purple); }
+.account-notice a { color: var(--navy); }
+.profile strong { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
