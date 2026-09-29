@@ -2,6 +2,8 @@
   --gray: #D9D9D9;
   --navy: #2B3D4F;
   --blue: #2980BA;
+  --blue-soft: #D4E8F4;
+  --blue-soft-hover: #BDDBEE;
   --muted: #7E8A8B;
   --purple: #795499;
   --text: var(--navy);
@@ -26,10 +28,10 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; }
-button, input { font: inherit; }
+button, input, textarea { font: inherit; }
 button { cursor: pointer; }
-button, a, input { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid var(--accent-border); outline-offset: 4px; }
+button, a, input, textarea { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--purple); outline-offset: 4px; }
 button { color: inherit; }
 button:disabled { cursor: default; }
 h1, h2, p { margin: 0; }
