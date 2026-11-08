@@ -1,0 +1,148 @@
+/* Configs globais básicas para toda tela.
+   Se for modificar, utilize os tokens. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Evita o aumento automático da fonte no mobile, sem bloquear o zoom do usuário */
+html {
+  -moz-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Zera as margens padrão do navegador: o espaçamento vem dos tokens (gap, padding) */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Remove marcadores só das listas com role="list" (listas de navegação, por exemplo) */
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+
+/* Imagens e mídia nunca estouram o container */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Formulários herdam a fonte e a altura de linha do body */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Textarea sem rows não fica minúsculo */
+textarea:not([rows]) {
+  min-height: 10em;
+}
+
+/* Palavras longas quebram em vez de estourar o card no celular */
+p,
+h1,
+h2,
+h3,
+h4 {
+  overflow-wrap: break-word;
+}
+
+/* Âncoras ganham margem extra ao rolar (ajustar se a Navbar fixa cobrir o título) */
+:target {
+  scroll-margin-block: 5ex;
+}
+
+/* Base (usa tokens) */
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-3xl);
+}
+h2 {
+  font-size: var(--text-2xl);
+}
+h3 {
+  font-size: var(--text-xl);
+}
+h4 {
+  font-size: var(--text-lg);
+}
+
+/* Links sem classe: cor primária + sublinhado (identifica o que é clicável) */
+a:not([class]) {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-skip-ink: auto;
+}
+
+a:not([class]):hover {
+  color: var(--color-primary-hover);
+}
+
+/* Foco visível para navegação por teclado */
+:focus-visible {
+  outline: var(--border-width-strong) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Respeita quem pede menos movimento no sistema */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Texto visível só para leitor de tela (ex.: botão só com ícone) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -13,6 +13,8 @@ export default function MainLayout() {
         <nav className="app-nav">
           <Link to="/busca">Buscar exames</Link>
           <Link to="/comparar">Comparar</Link>
+          <Link to="/login">Login</Link>
+          <Link to="/cadastro">Cadastro</Link>
         </nav>
       </header>
 

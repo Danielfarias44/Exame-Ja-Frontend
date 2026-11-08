@@ -116,26 +116,3 @@
 /* Breakpoints (variáveis CSS não funcionam em @media; use estes valores):
    mobile: até 639px | tablet: 640px a 1023px | desktop: 1024px+ */
 
-/* ---------- Estilos globais mínimos ---------- */
-body {
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
-}
-
-h1, h2, h3, h4 {
-  font-family: var(--font-heading);
-  line-height: var(--leading-tight);
-  font-weight: var(--weight-bold);
-}
-
-:focus-visible {
-  outline: var(--border-width-strong) solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
-}
