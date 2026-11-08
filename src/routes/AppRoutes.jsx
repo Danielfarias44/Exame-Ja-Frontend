@@ -1,9 +1,10 @@
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import Home from "../pages/patient/Home";
-import SearchResults from "../pages/patient/SearchResults";
-import EstablishmentDetails from "../pages/patient/EstablishmentDetails";
-import Compare from "../pages/patient/Compare";
+import Home from "../pages/paciente_deslogado/Home";
+import SearchResults from "../pages/paciente_deslogado/SearchResults";
+import EstablishmentDetails from "../pages/paciente_deslogado/EstablishmentDetails";
+import Compare from "../pages/paciente_deslogado/Compare";
+import TelaDeCadastro from "../pages/paciente_deslogado/TelaDeCadastro.tsx";
 
 export default function AppRoutes() {
   return (
@@ -13,6 +14,7 @@ export default function AppRoutes() {
         <Route path="/busca" element={<SearchResults />} />
         <Route path="/estabelecimento/:id" element={<EstablishmentDetails />} />
         <Route path="/comparar" element={<Compare />} />
+        <Route path="/cadastro" element={<TelaDeCadastro />} />
       </Route>
     </Routes>
   );

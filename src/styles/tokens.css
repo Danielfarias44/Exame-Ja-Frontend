@@ -1,0 +1,141 @@
+@import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600;700&family=Intel+One+Mono:wght@400;500;700&display=swap");
+
+:root {
+  /* ---------- 1. CORES: paleta base (valores brutos, não usar direto nos componentes) ---------- */
+  --blue-500: #2980ba;   /* marca */
+  --blue-700: #1f6a9a;   /* versão escura: texto/botão com contraste AA */
+  --blue-100: #d6e8f4;   /*  fundo suave */
+
+  --navy-900: #2b3d4f;   /* marca: texto principal, rodapé */
+  --navy-700: #3f5469;  
+
+  --gray-50:  #edf1f2;   /* marca: fundo da página */
+  --gray-500: #7e8b8c;   /* marca: bordas, ícones, desabilitado (NÃO usar para texto) */
+  --gray-700: #5b6869;   /* texto secundário com contraste AA */
+  --white:    #ffffff;
+
+  --purple-500: #795499; /* marca: destaque / acento */
+  --purple-100: #ece4f2; /* fundo suave */
+
+  /* ---------- 2. CORES: semânticas (é o que os componentes usam) ---------- */
+  --color-primary:        var(--blue-700);
+  --color-primary-hover:  #185a85;           
+  --color-primary-soft:   var(--blue-100);
+  --color-accent:         var(--purple-500);
+  --color-accent-soft:    var(--purple-100);
+
+  --color-bg:             var(--gray-50);
+  --color-surface:        var(--white);
+  --color-border:         var(--gray-500);
+  --color-border-soft:    #d3dadb;          
+
+  --color-text:           var(--navy-900);
+  --color-text-muted:     var(--gray-700);
+  --color-text-on-primary: var(--white);
+  --color-disabled:       var(--gray-500);
+
+  --color-focus:          var(--purple-500);  /* anel de foco visível (acessibilidade) */
+
+  --color-success:        #1e7a4c;
+  --color-success-soft:   #dcf2e6;
+  --color-warning:        #8a5a00;
+  --color-warning-soft:   #fdf0d2;
+  --color-error:          #b3261e;
+  --color-error-soft:     #fbe3e1;
+  --color-info:           var(--blue-700);
+  --color-info-soft:      var(--blue-100);
+
+   /* cor do preço */
+  --price-low:            var(--color-success);
+
+  /* status de agendamento; sempre com ícone ou texto, nunca só cor */
+  --status-scheduled:     var(--blue-700);
+  --status-confirmed:     var(--color-success);
+  --status-cancelled:     var(--color-error);
+  --status-done:          var(--gray-700);
+
+  /* ---------- 3. TIPOGRAFIA ---------- */
+  --font-heading: "Josefin Sans", system-ui, sans-serif;
+  --font-body:    "Intel One Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --text-xs:   0.875rem;  /* 14px (mínimo; evite abaixo disso) */
+  --text-sm:   1rem;      /* 16px */
+  --text-base: 1.125rem;  /* 18px: corpo padrão (público com idosos) */
+  --text-lg:   1.25rem;   /* 20px */
+  --text-xl:   1.5rem;    /* 24px */
+  --text-2xl:  2rem;      /* 32px */
+  --text-3xl:  2.5rem;    /* 40px */
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-bold:    700;
+
+  --leading-tight:   1.2;   /* títulos */
+  --leading-normal:  1.6;   /* corpo */
+
+  /* ---------- 4. ESPAÇAMENTO (escala de 4px) ---------- */
+  --space-1:  0.25rem;  /* 4  */
+  --space-2:  0.5rem;   /* 8  */
+  --space-3:  0.75rem;  /* 12 */
+  --space-4:  1rem;     /* 16 */
+  --space-6:  1.5rem;   /* 24 */
+  --space-8:  2rem;     /* 32 */
+  --space-12: 3rem;     /* 48 */
+  --space-16: 4rem;     /* 64 */
+
+  /* ---------- 5. BORDAS ---------- */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   16px;
+  --radius-full: 9999px;
+  --border-width: 1px;
+  --border-width-strong: 2px;
+
+  /* ---------- 6. SOMBRAS (elevação) ---------- */
+  --shadow-sm: 0 1px 2px rgb(43 61 79 / 0.10);
+  --shadow-md: 0 4px 12px rgb(43 61 79 / 0.12);  /* cards */
+  --shadow-lg: 0 12px 32px rgb(43 61 79 / 0.18); /* modais, dropdowns */
+
+  /* ---------- 7. Z-INDEX ---------- */
+  --z-base:     0;
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-modal:    300;
+  --z-toast:    400;
+
+  /* ---------- 8. TRANSIÇÕES ---------- */
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ---------- 9. LAYOUT ---------- */
+  --container-max: 1200px;
+  --touch-target-min: 44px;  /* tamanho mínimo de botões/links clicáveis */
+}
+
+/* Breakpoints (variáveis CSS não funcionam em @media; use estes valores):
+   mobile: até 639px | tablet: 640px a 1023px | desktop: 1024px+ */
+
+/* ---------- Estilos globais mínimos ---------- */
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-bold);
+}
+
+:focus-visible {
+  outline: var(--border-width-strong) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}

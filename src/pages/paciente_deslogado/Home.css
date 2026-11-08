@@ -75,18 +75,19 @@
 }
 
 .search-form button {
-  padding: 0 1.5rem;
-  border: none;
-  border-radius: 999px;
+  min-height: var(--touch-target-min);
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: var(--weight-bold);
   background: var(--color-primary);
-  color: #fff;
-  font-weight: 600;
-  color: black;
+  color: var(--color-text-on-primary);
+  transition: background var(--duration-fast) var(--ease-standard);
 }
 
 .search-form button:hover,
 .search-form button:focus-visible {
-  background: var(--color-primary-dark);
+  background: var(--color-primary-hover); 
 }
 
 .hero-image {
