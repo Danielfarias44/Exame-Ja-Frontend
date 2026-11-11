@@ -4,7 +4,7 @@ import "./MainLayout.css";
 export default function MainLayout() {
   return (
     <div className="app-shell">
-      <header className="app-header">
+      <header className="app-header" style={{backgroundColor: "var(--color-primary)"}}>
         <Link to="/" className="app-logo" style={{gap: '5px'}}>
         <img src="src/assets/logo.png" />
         
