@@ -15,6 +15,8 @@ export const mockEstablishments = [
     reviewsCount: 128,
     lat: -1.4558,
     lng: -48.4902,
+    exam: "Hemograma completo",
+    distanceKm: 1.2,
   },
   {
     id: "2",
@@ -26,6 +28,8 @@ export const mockEstablishments = [
     reviewsCount: 54,
     lat: -1.4502,
     lng: -48.4841,
+    exam: "Hemograma completo",
+    distanceKm: 2.8,
   },
   {
     id: "3",
@@ -37,6 +41,8 @@ export const mockEstablishments = [
     reviewsCount: 201,
     lat: -1.4433,
     lng: -48.4776,
+    exam: "Hemograma completo",
+    distanceKm: 4.5,
   },
 ];
 
@@ -44,3 +50,60 @@ export const mockReviews = [
   { id: "1", author: "Ana P.", rating: 5, comment: "Atendimento rápido e organizado." },
   { id: "2", author: "Carlos M.", rating: 4, comment: "Bom preço, mas demorou um pouco." },
 ];
+
+export const mockEdgeCaseEstablishments = [
+  {
+    id: "e1",
+    name: "Clínica Sem Preço",
+    address: "Av. Nazaré, 100 - Belém, PA",
+    price: null,
+    insurances: ["Unimed"],
+    rating: 4.1,
+    reviewsCount: 12,
+    lat: -1.4521,
+    lng: -48.4802,
+    exam: "Hemograma completo",
+    distanceKm: 3.1,
+  },
+  {
+    id: "e2",
+    name: "Laboratório Novo (sem avaliações)",
+    address: "Rua Boaventura da Silva, 45 - Belém, PA",
+    price: 52.9,
+    insurances: [],
+    rating: null,
+    reviewsCount: 0,
+    lat: -1.4601,
+    lng: -48.4911,
+    exam: "Hemograma completo",
+    distanceKm: 0.8,
+  },
+  {
+    id: "e3",
+    name: "Clínica Sem Localização no Mapa",
+    address: "Endereço em atualização",
+    price: 70,
+    insurances: ["SUS"],
+    rating: 3.9,
+    reviewsCount: 1,
+    lat: null,
+    lng: null,
+    exam: "Hemograma completo",
+    distanceKm: null,
+  },
+  {
+    id: "e4",
+    name: "Centro de Diagnóstico por Imagem e Medicina Laboratorial Doutor Antônio Carlos de Albuquerque Neto",
+    address: "Travessa Dom Romualdo de Seixas, 1500, Edifício Medical Center, 3º andar, Umarizal - Belém, PA",
+    price: 1250.5,
+    insurances: ["Unimed", "Hapvida", "Bradesco Saúde", "SulAmérica", "Amil", "Cassi", "Particular"],
+    rating: 4.9,
+    reviewsCount: 1034,
+    lat: -1.4478,
+    lng: -48.4885,
+    exam: "Ressonância magnética",
+    distanceKm: 12.34,
+  },
+];
+
+export const mockConvenios = ["Unimed", "Hapvida", "Bradesco Saúde", "SulAmérica", "Amil", "SUS"];

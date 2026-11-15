@@ -6,6 +6,7 @@ import EstablishmentDetails from "@/pages/paciente_deslogado/EstablishmentDetail
 import Compare from "@/pages/paciente_deslogado/Compare";
 import TelaDeCadastro from "@/pages/paciente_deslogado/TelaDeCadastro.jsx";
 import TelaDeLogin from "@/pages/paciente_deslogado/TelaDeLogin.jsx";
+import Styleguide from "@/pages/Styleguide.jsx";
 
 export default function AppRoutes() {
   return (
@@ -17,6 +18,7 @@ export default function AppRoutes() {
         <Route path="/comparar" element={<Compare />} />
         <Route path="/cadastro" element={<TelaDeCadastro />} />
         <Route path="/login" element={<TelaDeLogin />} />
+        <Route path="/styleguide" element={<Styleguide />} />
       </Route>
     </Routes>
   );

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { testimonials } from "../../data/testimonials";
+import Button from "@/components/ui/Button";
 import "./Home.css";
 
 const steps = [
@@ -50,7 +51,7 @@ export default function Home() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar exames ou clínicas..."
             />
-            <button type="submit">Buscar</button>
+            <Button type="submit">Buscar</Button>
           </form>
         </div>
 

@@ -1,29 +1,34 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, NavLink } from "react-router-dom";
+import logo from "@/assets/logo.png";
 import "./MainLayout.css";
 
 export default function MainLayout() {
   return (
     <div className="app-shell">
-      <header className="app-header" style={{backgroundColor: "var(--color-primary)"}}>
-        <Link to="/" className="app-logo" style={{gap: '5px'}}>
-        <img src="src/assets/logo.png" />
-        
-          Exame Já
+      <a href="#conteudo" className="skip-link">
+        Pular para o conteúdo
+      </a>
+
+      <header className="app-header">
+        <Link to="/" className="app-logo">
+          <img src={logo} alt="" width={36} height={42} />
+          <span>Exame Já</span>
         </Link>
-        <nav className="app-nav">
-          <Link to="/busca">Buscar exames</Link>
-          <Link to="/comparar">Comparar</Link>
-          <Link to="/login">Login</Link>
-          <Link to="/cadastro">Cadastro</Link>
+
+        <nav className="app-nav" aria-label="Navegação principal">
+          <NavLink to="/busca">Buscar exames</NavLink>
+          <NavLink to="/comparar">Comparar</NavLink>
+          <NavLink to="/login">Login</NavLink>
+          <NavLink to="/cadastro">Cadastro</NavLink>
         </nav>
       </header>
 
-      <main className="app-content">
+      <main id="conteudo" className="app-content" tabIndex={-1}>
         <Outlet />
       </main>
 
       <footer className="app-footer">
-        <p>Exame Já — Projeto SuperNova (Sebrae)</p>
+        <p>Exame Já </p>
       </footer>
     </div>
   );
