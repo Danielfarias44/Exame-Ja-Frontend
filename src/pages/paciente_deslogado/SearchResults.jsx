@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { searchEstablishments } from "../../services/api";
+import { Stack } from "@chakra-ui/react";
 import EstablishmentCard from "../../components/establishment/EstablishmentCard";
 import SearchFilters from "@/components/establishment/SearchFilters";
+import EmptyState from "@/components/ui/EmptyState";
 
 export default function SearchResults() {
   const [searchParams] = useSearchParams();
@@ -16,6 +18,7 @@ export default function SearchResults() {
   
 
   useEffect(() => {
+    if (!exame){ return }
     setStatus("loading");
     searchEstablishments({exame, convenio, raio, ordenar})
       .then((data) => {
@@ -23,15 +26,25 @@ export default function SearchResults() {
         setStatus("success");
       })
       .catch(() => setStatus("error"));
-  }, [exame, convenio, raio, ordenar]);
+  } , [exame, convenio, raio, ordenar]);
+
 
   const sorted = [...establishments].sort((a, b) => {
     if (ordenar === 'preco') return a.price - b.price;
     return b.rating - a.rating;
   });
 
+  if (!exame){
+    return (
+      <Stack gap="var(--space-6)" as='section'>
+        <SearchFilters key={searchParams.toString()}/>
+        <EmptyState title="Comece escolhendo um exame" description='Use os filtros para achar a melhor clínica para você'/>
+      </Stack>
+    );
+  }
+
   return (
-    <section>
+    <Stack gap="var(--space-6)" as='section'>
       <SearchFilters key={searchParams.toString()}/>
       {status === "loading" && <p>Carregando resultados...</p>}
       {status === "error" && <p role="alert">Não foi possível carregar os resultados. Tente novamente.</p>}
@@ -44,6 +57,6 @@ export default function SearchResults() {
           ))}
         </div>
       )}
-    </section>
+    </Stack>
   );
 }
