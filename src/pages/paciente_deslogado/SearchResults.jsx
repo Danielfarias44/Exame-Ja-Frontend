@@ -30,8 +30,37 @@ export default function SearchResults() {
 
 
   const sorted = [...establishments].sort((a, b) => {
-    if (ordenar === 'preco') return a.price - b.price;
-    return b.rating - a.rating;
+    let valorA;
+    let valorB;
+    if (ordenar === 'avaliacao'){
+      valorA = a.rating
+      valorB = b.rating
+    } else if (ordenar === 'preco') {
+      valorA = a.price
+      valorB = b.price
+    } else {
+      valorA = a.distanceKm
+      valorB = b.distanceKm
+    }
+
+    if (valorA == null && valorB == null) {
+      return 0;
+    }
+
+    if (valorA == null && valorB != null){
+      return 1;
+    }
+
+    if (valorA != null && valorB == null) {
+      return -1;
+    }
+
+    if (ordenar === 'avaliacao'){
+      return valorB - valorA;
+    } else {
+      return valorA - valorB;
+    }
+    
   });
 
   if (!exame){
