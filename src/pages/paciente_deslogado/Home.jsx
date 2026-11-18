@@ -2,7 +2,33 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { testimonials } from "../../data/testimonials";
 import Button from "@/components/ui/Button";
+import LoginPrompt from "@/components/LoginPrompt";
 import "./Home.css";
+import Select from "@/components/ui/Select";
+import { Flex, Heading, Stack, Text } from "@chakra-ui/react";
+import { mockConvenios, mockEdgeCaseEstablishments, mockEstablishments } from "@/services/mocks";
+import { exameCategorias } from "@/services/mocksExames";
+
+
+const gruposDeExames = exameCategorias.map((categoria) => ({
+  label: categoria.nome,
+  options: categoria.exames.map((exame) => ({ value: exame.id, label: exame.nome })),
+}));
+
+const opcoesRaio = [1, 3, 5, 10, 20].map((km) => ({ value: String(km), label: `${km} km` }));
+const opcoesConvenio = mockConvenios.map((nome) => ({ value: nome, label: nome }));
+
+function Section({ title, children }) {
+  return (
+    <Stack as="section" gap="var(--space-3)">
+      <Heading as="h2" fontFamily="var(--font-heading)" fontSize="var(--text-xl)">
+        {title}
+      </Heading>
+      {children}
+    </Stack>
+  );
+}
+
 
 const steps = [
   {
@@ -40,19 +66,7 @@ export default function Home() {
             perto de você, com preço e prazo claros antes de agendar.
           </p>
 
-          <form className="search-form" onSubmit={handleSubmit} role="search" aria-label="Buscar exame ou clínica">
-            <label htmlFor="home-search" className="sr-only">
-              Buscar exames ou clínicas
-            </label>
-            <input
-              id="home-search"
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar exames ou clínicas..."
-            />
-            <Button type="submit">Buscar</Button>
-          </form>
+          
         </div>
 
         <div className="hero-image" aria-hidden="true">
@@ -75,6 +89,31 @@ export default function Home() {
         </ol>
       </section>
 
+     <Section>
+      <Stack>
+          <Select
+            label="Tipo de exame"
+            placeholder="Escolha um exame"
+            groups={gruposDeExames}
+            helperText="Lista agrupada por categoria"
+            required
+            />
+            <Select
+            label="Convênio"
+            placeholder="Escolha um Convênio"
+            options={opcoesConvenio}
+            helperText="Lista agrupada por categoria"
+            
+            />
+            <Select
+            label="Proximidade"
+            options={opcoesRaio}
+            DefaultValue="5"
+            />
+      </Stack>
+      <Button maxWidth="150px">Pesquisar</Button>
+     </Section>
+
       <section className="testimonials">
         <div className="testimonials-grid">
           {testimonials.map((t) => (
@@ -89,12 +128,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="cta-banner">
-        <p>Comece a agilizar seus exames a partir de agora, é simples e rápido.</p>
-        {/* TODO: /cadastro é a tela de cadastro do Bruno (conta/agendamento) */}
-        <button type="button" onClick={() => navigate("/cadastro")}>
-          Criar conta
-        </button>
+      <section title="Aviso de login">
+          <LoginPrompt action="conversar com a clínica" />
       </section>
     </div>
   );

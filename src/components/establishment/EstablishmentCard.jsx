@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import { Flex, Heading, Text } from "@chakra-ui/react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import RatingSummary from "@/components/RatingSummary";
-import PriceTag from "@/components/PriceTag";
-import InsuranceBadges from "@/components/InsuranceBadges";
+import RatingSummary from "@/components/establishment/RatingSummary";
+import PriceTag from "@/components/establishment/PriceTag";
+import InsuranceBadges from "@/components/establishment/InsuranceBadges";
 // Cartão do estabelecimento
 function formatDistance(km) {
   return km.toLocaleString("pt-BR", { maximumFractionDigits: 1 });

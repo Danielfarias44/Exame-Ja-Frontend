@@ -1,3 +1,5 @@
+
+//descartar dps
 export const mockExams = [
   { id: "1", name: "Hemograma completo", specialty: "Análises clínicas" },
   { id: "2", name: "Ressonância magnética", specialty: "Imagem" },

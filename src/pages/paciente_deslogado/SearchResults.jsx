@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { searchEstablishments } from "../../services/api";
-import EstablishmentCard from "../../components/EstablishmentCard";
+import EstablishmentCard from "../../components/establishment/EstablishmentCard";
 
 export default function SearchResults() {
   const [searchParams] = useSearchParams();

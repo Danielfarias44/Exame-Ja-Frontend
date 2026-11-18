@@ -1,3 +1,5 @@
+// Catálogo de tudo que já existe no design system. Serve para conferir o visual dos
+// componentes em todas as variações. Rota: /styleguide
 import { Flex, Heading, Stack, Text } from "@chakra-ui/react";
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
@@ -5,13 +7,23 @@ import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import ListSkeleton from "@/components/ui/Skeleton";
-import EstablishmentCard from "@/components/EstablishmentCard";
-import InsuranceBadges from "@/components/InsuranceBadges";
+import Select from "@/components/ui/Select";
+import EstablishmentCard from "@/components/establishment/EstablishmentCard";
+import InsuranceBadges from "@/components/establishment/InsuranceBadges";
 import LoginPrompt from "@/components/LoginPrompt";
-import PriceTag from "@/components/PriceTag";
-import RatingSummary from "@/components/RatingSummary";
-import { mockEdgeCaseEstablishments, mockEstablishments } from "@/services/mocks";
-// Tutorial visual de como aplicar os componentes
+import PriceTag from "@/components/establishment/PriceTag";
+import RatingSummary from "@/components/establishment/RatingSummary";
+import { mockConvenios, mockEdgeCaseEstablishments, mockEstablishments } from "@/services/mocks";
+import { exameCategorias } from "@/services/mocksExames";
+
+const gruposDeExames = exameCategorias.map((categoria) => ({
+  label: categoria.nome,
+  options: categoria.exames.map((exame) => ({ value: exame.id, label: exame.nome })),
+}));
+
+const opcoesRaio = [1, 3, 5, 10, 20].map((km) => ({ value: String(km), label: `${km} km` }));
+const opcoesConvenio = mockConvenios.map((nome) => ({ value: nome, label: nome }));
+
 function Section({ title, children }) {
   return (
     <Stack as="section" gap="var(--space-3)">
@@ -38,6 +50,31 @@ export default function Styleguide() {
             Carregando
           </Button>
         </Flex>
+      </Section>
+
+      <Section title="Seleção">
+        <Stack gap="var(--space-4)" maxW="420px">
+          <Select
+            label="Tipo de exame"
+            placeholder="Escolha um exame"
+            groups={gruposDeExames}
+            helperText="Lista agrupada por categoria"
+            required
+          />
+          <Select label="Raio de distância" options={opcoesRaio} defaultValue="5" />
+          <Select
+            label="Convênio"
+            placeholder="Qualquer convênio"
+            options={opcoesConvenio}
+          />
+          <Select
+            label="Tipo de exame (com erro)"
+            placeholder="Escolha um exame"
+            groups={gruposDeExames}
+            error="Escolha um exame para continuar"
+            required
+          />
+        </Stack>
       </Section>
 
       <Section title="Alertas">
