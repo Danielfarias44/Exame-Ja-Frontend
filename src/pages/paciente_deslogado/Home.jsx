@@ -1,34 +1,7 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { testimonials } from "../../data/testimonials";
-import Button from "@/components/ui/Button";
 import LoginPrompt from "@/components/LoginPrompt";
+import SearchFilters from "@/components/establishment/SearchFilters";
 import "./Home.css";
-import Select from "@/components/ui/Select";
-import { Flex, Heading, Stack, Text } from "@chakra-ui/react";
-import { mockConvenios, mockEdgeCaseEstablishments, mockEstablishments } from "@/services/mocks";
-import { exameCategorias } from "@/services/mocksExames";
-
-
-const gruposDeExames = exameCategorias.map((categoria) => ({
-  label: categoria.nome,
-  options: categoria.exames.map((exame) => ({ value: exame.id, label: exame.nome })),
-}));
-
-const opcoesRaio = [1, 3, 5, 10, 20].map((km) => ({ value: String(km), label: `${km} km` }));
-const opcoesConvenio = mockConvenios.map((nome) => ({ value: nome, label: nome }));
-
-function Section({ title, children }) {
-  return (
-    <Stack as="section" gap="var(--space-3)">
-      <Heading as="h2" fontFamily="var(--font-heading)" fontSize="var(--text-xl)">
-        {title}
-      </Heading>
-      {children}
-    </Stack>
-  );
-}
-
 
 const steps = [
   {
@@ -46,14 +19,6 @@ const steps = [
 ];
 
 export default function Home() {
-  const [query, setQuery] = useState("");
-  const navigate = useNavigate();
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    navigate(`/busca?q=${encodeURIComponent(query)}`);
-  }
-
   return (
     <div className="home">
       <section className="hero">
@@ -89,30 +54,9 @@ export default function Home() {
         </ol>
       </section>
 
-     <Section>
-      <Stack>
-          <Select
-            label="Tipo de exame"
-            placeholder="Escolha um exame"
-            groups={gruposDeExames}
-            helperText="Lista agrupada por categoria"
-            required
-            />
-            <Select
-            label="Convênio"
-            placeholder="Escolha um Convênio"
-            options={opcoesConvenio}
-            helperText="Lista agrupada por categoria"
-            
-            />
-            <Select
-            label="Proximidade"
-            options={opcoesRaio}
-            DefaultValue="5"
-            />
-      </Stack>
-      <Button maxWidth="150px">Pesquisar</Button>
-     </Section>
+      <section className="search" aria-label="Busca de exames">
+        <SearchFilters />
+      </section>
 
       <section className="testimonials">
         <div className="testimonials-grid">

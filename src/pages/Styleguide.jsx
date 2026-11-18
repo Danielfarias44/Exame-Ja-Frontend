@@ -13,6 +13,7 @@ import InsuranceBadges from "@/components/establishment/InsuranceBadges";
 import LoginPrompt from "@/components/LoginPrompt";
 import PriceTag from "@/components/establishment/PriceTag";
 import RatingSummary from "@/components/establishment/RatingSummary";
+import SearchFilters from "@/components/establishment/SearchFilters";
 import { mockConvenios, mockEdgeCaseEstablishments, mockEstablishments } from "@/services/mocks";
 import { exameCategorias } from "@/services/mocksExames";
 
@@ -50,6 +51,10 @@ export default function Styleguide() {
             Carregando
           </Button>
         </Flex>
+      </Section>
+
+      <Section title="Busca por filtros">
+        <SearchFilters />
       </Section>
 
       <Section title="Seleção">
