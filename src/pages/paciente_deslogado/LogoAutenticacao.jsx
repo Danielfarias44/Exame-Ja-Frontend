@@ -1,0 +1,64 @@
+import { useEffect, useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
+import { Box, Flex, Image } from "@chakra-ui/react";
+import logoClaro from "@/assets/exame-ja_horizontal.png";
+import logoEscuro from "@/assets/exame-ja_negativa.png";
+
+function verificarTemaEscuro() {
+  if (typeof document === "undefined") return false;
+  const html = document.documentElement;
+  const body = document.body;
+  return (
+    html.getAttribute("data-theme") === "dark" ||
+    html.classList.contains("dark") ||
+    body?.getAttribute("data-theme") === "dark" ||
+    body?.classList.contains("dark")
+  );
+}
+
+export default function LogoAutenticacao() {
+  const [temaEscuro, setTemaEscuro] = useState(verificarTemaEscuro);
+
+  useEffect(() => {
+    const atualizarTema = () => setTemaEscuro(verificarTemaEscuro());
+    atualizarTema();
+
+    const observador = new MutationObserver(atualizarTema);
+    observador.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "class"],
+    });
+    if (document.body) {
+      observador.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["data-theme", "class"],
+      });
+    }
+
+    return () => observador.disconnect();
+  }, []);
+
+  return (
+    <Flex justify="center" mb={{ base: 5, sm: 6 }}>
+      <Box
+        asChild
+        display="inline-flex"
+        alignItems="center"
+        justifyContent="center"
+        borderRadius="var(--radius-md)"
+        transition="opacity var(--duration-fast) var(--ease-standard)"
+        _hover={{ opacity: 0.88 }}
+      >
+        <RouterLink to="/" aria-label="Voltar para a página inicial do Exame Já">
+          <Image
+            src={temaEscuro ? logoEscuro : logoClaro}
+            alt="Exame Já"
+            h={{ base: "38px", sm: "44px" }}
+            w="auto"
+            objectFit="contain"
+          />
+        </RouterLink>
+      </Box>
+    </Flex>
+  );
+}
