@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import "./TelaDeLogin.css";
 import {  Button, ButtonGroup, Heading, Text } from '@chakra-ui/react';
 
 export default function Login() {
