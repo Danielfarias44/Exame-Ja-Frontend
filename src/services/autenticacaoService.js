@@ -1,93 +1,208 @@
-// Camada de preparação para integração futura com Firebase Auth + API Exame Já.
-// Quando os endpoints e credenciais estiverem prontos, basta substituir os blocos simulados abaixo.
+import { PERFIS } from "@/constants/perfis";
 
-const CONVENIOS_MOCK = [
-  { id: 1, nome: "Unimed" },
-  { id: 2, nome: "Bradesco Saúde" },
-  { id: 3, nome: "Amil" },
-  { id: 4, nome: "SulAmérica" },
-  { id: 5, nome: "Hapvida" },
-  { id: 6, nome: "Cassi" },
-  { id: 7, nome: "Geap" },
-  { id: 8, nome: "Petrobras Saúde" },
+const SESSAO_STORAGE_KEY = "exameja_sessao_ativa_v1";
+const USUARIOS_STORAGE_KEY = "exameja_usuarios_cadastrados_v1";
+
+export const CONVENIOS_DISPONIVEIS = [
+  { id: "unimed", nome: "Unimed Belém" },
+  { id: "hapvida", nome: "Hapvida" },
+  { id: "bradesco", nome: "Bradesco Saúde" },
+  { id: "amil", nome: "Amil" },
+  { id: "sulamerica", nome: "SulAmérica" },
+  { id: "cassi", nome: "Cassi" },
+  { id: "ipasgo", nome: "Saúde Caixa" },
 ];
 
-function aguardar(ms = 450) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+export function listarConvenios() {
+  const lista = CONVENIOS_DISPONIVEIS.map((item) => ({ ...item }));
+  Object.defineProperty(lista, "then", {
+    value: (onFulfilled, onRejected) =>
+      Promise.resolve(CONVENIOS_DISPONIVEIS.map((item) => ({ ...item }))).then(
+        onFulfilled,
+        onRejected
+      ),
+    enumerable: false,
+  });
+  return lista;
 }
 
-/**
- * Futuro: GET /convenios (usando token inicial da API)
- */
-export async function listarConvenios() {
-  await aguardar(200);
-  return CONVENIOS_MOCK;
+export const obterConveniosDisponiveis = listarConvenios;
+
+function lerUsuariosCadastrados() {
+  try {
+    const salvo = localStorage.getItem(USUARIOS_STORAGE_KEY);
+    return salvo ? JSON.parse(salvo) : [];
+  } catch {
+    return [];
+  }
 }
 
-/**
- * Futuro:
- * 1. Obter token inicial da API
- * 2. POST /pacientes (gera ID a partir do CPF e salva preferências de até 5 convênios)
- * 3. Iniciar sessão com cookie (credentials: "include")
- */
-export async function registrarPaciente(payload) {
-  await aguardar(550);
-  return {
-    sucesso: true,
-    perfil: "paciente",
-    usuario: {
-      nome: payload.nomeCompleto,
-      email: payload.email,
-      conveniosIds: payload.conveniosIds, // Array de até 5 IDs
-    },
-  };
+function salvarUsuariosCadastrados(lista) {
+  localStorage.setItem(USUARIOS_STORAGE_KEY, JSON.stringify(lista));
 }
 
-/**
- * Futuro:
- * 1. Capturar variáveis da clínica e autenticar no Firebase / API
- * 2. POST /clinicas com foto, nome, contato, CNPJ e conveniosIds
- * 3. Reautenticar sessão -> clínica inicia sempre com status "pendente"
- */
-export async function registrarClinica(payload) {
-  await aguardar(600);
-  return {
-    sucesso: true,
-    perfil: "clinica",
-    status: "pendente", // "pendente" | "aprovado" | "rejeitado"
-    clinica: {
-      nomeFantasia: payload.nomeFantasia,
-      email: payload.email,
-      conveniosIds: payload.conveniosIds,
-    },
-  };
+function salvarSessao(sessao) {
+  localStorage.setItem(SESSAO_STORAGE_KEY, JSON.stringify(sessao));
+  window.dispatchEvent(new Event("exameja:sessao-alterada"));
 }
 
-/**
- * Futuro:
- * 1. signInWithEmailAndPassword(auth, email, senha) via Firebase SDK
- * 2. const idToken = await user.getIdToken()
- * 3. Enviar idToken para a API criar o cookie de sessão e retornar perfil + status
- */
-export async function entrarComEmailESenha({ email, perfil }) {
-  await aguardar(450);
-  return {
-    sucesso: true,
+function gerarTokenMock(perfil) {
+  return `mock-jwt-${perfil}-${Date.now()}`;
+}
+
+export function obterSessaoAtual() {
+  try {
+    const salvo = localStorage.getItem(SESSAO_STORAGE_KEY);
+    return salvo ? JSON.parse(salvo) : null;
+  } catch {
+    return null;
+  }
+}
+
+export const obterUsuarioLogado = obterSessaoAtual;
+
+export function sairDaConta() {
+  localStorage.removeItem(SESSAO_STORAGE_KEY);
+  window.dispatchEvent(new Event("exameja:sessao-alterada"));
+}
+
+export const encerrarSessao = sairDaConta;
+
+export async function entrarComEmailESenha({
+  email,
+  senha,
+  perfil = PERFIS.PACIENTE,
+}) {
+  if (!email || !senha) {
+    throw new Error("Preencha e-mail e senha para continuar.");
+  }
+
+  const emailNormalizado = email.trim().toLowerCase();
+  const usuarios = lerUsuariosCadastrados();
+  const encontrado = usuarios.find(
+    (u) => u.email.toLowerCase() === emailNormalizado && u.perfil === perfil
+  );
+
+  if (encontrado && encontrado.senha && encontrado.senha !== senha) {
+    throw new Error("Senha incorreta. Tente novamente.");
+  }
+
+  const nomePadrao =
+    perfil === PERFIS.CLINICA
+      ? "LabVida Diagnósticos"
+      : perfil === PERFIS.ADMIN
+        ? "Administrador ExameJá"
+        : emailNormalizado === "maria.clara@email.com"
+          ? "Maria Clara Souza"
+          : emailNormalizado
+              .split("@")[0]
+              .replace(/[._-]/g, " ")
+              .replace(/\b\w/g, (letra) => letra.toUpperCase());
+
+  const sessao = {
+    id: encontrado?.id || `usr-${Date.now()}`,
     perfil,
-    email,
-    // Para clínica, o back-end retornará: "pendente" | "aprovado" | "rejeitado" e motivoRejeicao
-    statusClinica: perfil === "clinica" ? "pendente" : null,
+    token: gerarTokenMock(perfil),
+    nome: encontrado?.nome || nomePadrao,
+    email: emailNormalizado,
+    telefone: encontrado?.telefone || "(91) 98412-3390",
+    cpf: encontrado?.cpf || "123.456.789-00",
+    dataNascimento: encontrado?.dataNascimento || "1996-05-14",
+    cidade: encontrado?.cidade || "Belém - PA",
+    conveniosIds: encontrado?.conveniosIds || ["unimed", "hapvida"],
+    autenticadoEm: new Date().toISOString(),
   };
+
+  salvarSessao(sessao);
+  return sessao;
 }
 
-/**
- * Futuro:
- * sendPasswordResetEmail(auth, email) via Firebase SDK
- */
-export async function solicitarRecuperacaoSenha(email) {
-  await aguardar(450);
-  return {
-    sucesso: true,
-    email,
+export const autenticarUsuario = entrarComEmailESenha;
+export const loginComEmailESenha = entrarComEmailESenha;
+
+export async function registrarPaciente(dados) {
+  const usuarios = lerUsuariosCadastrados();
+  const emailNormalizado = (dados.email || "").trim().toLowerCase();
+
+  const novoUsuario = {
+    id: `pac-${Date.now()}`,
+    perfil: PERFIS.PACIENTE,
+    nome: (dados.nome || dados.nomeCompleto || "Paciente").trim(),
+    email: emailNormalizado,
+    senha: dados.senha || "",
+    telefone: dados.telefone || dados.celular || "",
+    cpf: dados.cpf || "",
+    dataNascimento: dados.dataNascimento || "",
+    cidade: dados.cidade || "Belém - PA",
+    conveniosIds: dados.conveniosIds || dados.convenios || [],
   };
+
+  const filtrados = usuarios.filter(
+    (u) =>
+      !(
+        u.email.toLowerCase() === emailNormalizado &&
+        u.perfil === PERFIS.PACIENTE
+      )
+  );
+  filtrados.push(novoUsuario);
+  salvarUsuariosCadastrados(filtrados);
+
+  const { senha: _ignorar, ...dadosPublicos } = novoUsuario;
+  const sessao = {
+    ...dadosPublicos,
+    token: gerarTokenMock(PERFIS.PACIENTE),
+    autenticadoEm: new Date().toISOString(),
+  };
+
+  salvarSessao(sessao);
+  return sessao;
 }
+
+export const cadastrarPaciente = registrarPaciente;
+
+export async function registrarClinica(dados) {
+  const usuarios = lerUsuariosCadastrados();
+  const emailNormalizado = (dados.email || "").trim().toLowerCase();
+
+  const novaClinica = {
+    id: `cli-${Date.now()}`,
+    perfil: PERFIS.CLINICA,
+    nome: (
+      dados.nomeFantasia ||
+      dados.razaoSocial ||
+      dados.nome ||
+      "Clínica Parceira"
+    ).trim(),
+    email: emailNormalizado,
+    senha: dados.senha || "",
+    cnpj: dados.cnpj || "",
+    telefone: dados.telefone || dados.celular || "",
+    endereco: dados.endereco || "",
+    cidade: dados.cidade || "Belém - PA",
+  };
+
+  usuarios.push(novaClinica);
+  salvarUsuariosCadastrados(usuarios);
+
+  const { senha: _ignorar, ...dadosPublicos } = novaClinica;
+  const sessao = {
+    ...dadosPublicos,
+    token: gerarTokenMock(PERFIS.CLINICA),
+    autenticadoEm: new Date().toISOString(),
+  };
+
+  salvarSessao(sessao);
+  return sessao;
+}
+
+export const cadastrarClinica = registrarClinica;
+
+export async function solicitarRecuperacaoSenha(email) {
+  if (!email) {
+    throw new Error("Informe um e-mail válido.");
+  }
+  return { enviado: true };
+}
+
+export const recuperarSenha = solicitarRecuperacaoSenha;
+export const redefinirSenha = solicitarRecuperacaoSenha;

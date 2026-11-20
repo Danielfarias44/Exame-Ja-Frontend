@@ -1,14 +1,44 @@
 import { mockExams, mockEstablishments, mockReviews } from "./mocks";
+import { obterSessaoAtual, sairDaConta } from "./autenticacaoService";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
 
-async function request(path) {
-  const response = await fetch(`${BASE_URL}${path}`);
-  if (!response.ok) {
-    throw new Error(`Erro ${response.status} ao chamar ${path}`);
+export async function apiRequest(path, options = {}) {
+  const sessao = obterSessaoAtual();
+
+  const headers = {
+    "Content-Type": "application/json",
+    ...(sessao?.token ? { Authorization: `Bearer ${sessao.token}` } : {}),
+    ...options.headers,
+  };
+
+  const response = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401) {
+    sairDaConta();
+    window.location.href = "/login";
+    throw new Error("Sessão expirada. Faça login novamente.");
   }
-  return response.json();
+
+  const dados = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      dados?.mensagem ||
+        dados?.message ||
+        `Erro ${response.status} ao chamar ${path}`
+    );
+  }
+
+  return dados;
+}
+
+async function request(path, options) {
+  return apiRequest(path, options);
 }
 
 // GET /exams e GET /exams/search
@@ -17,7 +47,8 @@ export async function searchExams(query = "") {
     const q = query.toLowerCase();
     return mockExams.filter(
       (exam) =>
-        exam.name.toLowerCase().includes(q) || exam.specialty.toLowerCase().includes(q)
+        exam.name.toLowerCase().includes(q) ||
+        exam.specialty.toLowerCase().includes(q)
     );
   }
   return request(`/exams/search?q=${encodeURIComponent(query)}`);

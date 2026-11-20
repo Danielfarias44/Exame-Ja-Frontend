@@ -16,14 +16,29 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import LogoAutenticacao from "./LogoAutenticacao";
+import { PERFIS, ROTA_INICIAL_PERFIL } from "@/constants/perfis";
 import { entrarComEmailESenha } from "@/services/autenticacaoService";
+
+function obterDestinoSeguro(redirectParam, perfil) {
+  const rotaPadrao = ROTA_INICIAL_PERFIL[perfil] || "/";
+  if (
+    redirectParam &&
+    redirectParam.startsWith("/") &&
+    !redirectParam.startsWith("//")
+  ) {
+    return redirectParam;
+  }
+  return rotaPadrao;
+}
 
 export default function PaginaLogin() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navegar = useNavigate();
 
   const [perfil, setPerfil] = useState(() =>
-    searchParams.get("perfil") === "clinica" ? "clinica" : "paciente"
+    searchParams.get("perfil") === PERFIS.CLINICA
+      ? PERFIS.CLINICA
+      : PERFIS.PACIENTE
   );
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -31,16 +46,22 @@ export default function PaginaLogin() {
   const [erro, setErro] = useState("");
   const [entrando, setEntrando] = useState(false);
 
+  const ehClinica = perfil === PERFIS.CLINICA;
+
   useEffect(() => {
-    setPerfil(searchParams.get("perfil") === "clinica" ? "clinica" : "paciente");
+    setPerfil(
+      searchParams.get("perfil") === PERFIS.CLINICA
+        ? PERFIS.CLINICA
+        : PERFIS.PACIENTE
+    );
     setErro("");
   }, [searchParams]);
 
   function alternarPerfil(novoPerfil) {
     setPerfil(novoPerfil);
     setErro("");
-    if (novoPerfil === "clinica") {
-      setSearchParams({ perfil: "clinica" }, { replace: true });
+    if (novoPerfil === PERFIS.CLINICA) {
+      setSearchParams({ perfil: PERFIS.CLINICA }, { replace: true });
     } else {
       setSearchParams({}, { replace: true });
     }
@@ -62,19 +83,53 @@ export default function PaginaLogin() {
 
     setEntrando(true);
     try {
-      await entrarComEmailESenha({
+      const sessao = await entrarComEmailESenha({
         email: email.trim(),
         senha,
         perfil,
       });
-      // Redireciona enquanto as rotas logadas (painel paciente/clínica) não são conectadas
-      navegar(perfil === "clinica" ? "/" : "/busca");
+
+      const perfilAutenticado = sessao?.perfil || perfil;
+      const destino = obterDestinoSeguro(
+        searchParams.get("redirect"),
+        perfilAutenticado
+      );
+      navegar(destino, { replace: true });
+    } catch (err) {
+      setErro(
+        err?.message || "Não foi possível entrar. Verifique seus dados."
+      );
     } finally {
       setEntrando(false);
     }
   }
 
-  const ehClinica = perfil === "clinica";
+  async function entrarModoTesteRapido() {
+    setErro("");
+    setEntrando(true);
+    try {
+      const emailTeste = ehClinica
+        ? "contato@labvida.com.br"
+        : "maria.clara@email.com";
+
+      const sessao = await entrarComEmailESenha({
+        email: emailTeste,
+        senha: "Teste@123",
+        perfil,
+      });
+
+      const perfilAutenticado = sessao?.perfil || perfil;
+      const destino = obterDestinoSeguro(
+        searchParams.get("redirect"),
+        perfilAutenticado
+      );
+      navegar(destino, { replace: true });
+    } catch (err) {
+      setErro(err?.message || "Não foi possível iniciar a sessão de teste.");
+    } finally {
+      setEntrando(false);
+    }
+  }
 
   return (
     <Container
@@ -104,14 +159,16 @@ export default function PaginaLogin() {
           borderRadius="var(--radius-md)"
           bg={!ehClinica ? "var(--color-primary)" : "transparent"}
           color={
-            !ehClinica ? "var(--color-text-on-primary)" : "var(--color-text-muted)"
+            !ehClinica
+              ? "var(--color-text-on-primary)"
+              : "var(--color-text-muted)"
           }
           fontFamily="var(--font-heading)"
           fontWeight="var(--weight-bold)"
           fontSize={{ base: "0.84rem", sm: "0.92rem" }}
           cursor="pointer"
           transition="all var(--duration-fast) var(--ease-standard)"
-          onClick={() => alternarPerfil("paciente")}
+          onClick={() => alternarPerfil(PERFIS.PACIENTE)}
         >
           Paciente
         </Box>
@@ -130,7 +187,7 @@ export default function PaginaLogin() {
           fontSize={{ base: "0.84rem", sm: "0.92rem" }}
           cursor="pointer"
           transition="all var(--duration-fast) var(--ease-standard)"
-          onClick={() => alternarPerfil("clinica")}
+          onClick={() => alternarPerfil(PERFIS.CLINICA)}
         >
           Clínica / Laboratório
         </Box>
@@ -305,6 +362,28 @@ export default function PaginaLogin() {
             >
               {entrando ? "Entrando..." : "Entrar"}
             </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              disabled={entrando}
+              onClick={entrarModoTesteRapido}
+              borderStyle="dashed"
+              borderColor="var(--color-border-soft)"
+              color="var(--color-text-muted)"
+              _hover={{
+                borderColor: "var(--color-primary)",
+                color: "var(--color-primary)",
+              }}
+              fontFamily="var(--font-heading)"
+              fontWeight={600}
+              fontSize="0.85rem"
+              minH="42px"
+              w="100%"
+              borderRadius="var(--radius-md)"
+            >
+              Entrar rápido como {ehClinica ? "Clínica" : "Paciente"} (Teste)
+            </Button>
           </VStack>
         </Box>
 
@@ -319,7 +398,7 @@ export default function PaginaLogin() {
         >
           Ainda não tem conta?{" "}
           <RouterLink
-            to={ehClinica ? "/cadastro?perfil=clinica" : "/cadastro"}
+            to={ehClinica ? `/cadastro?perfil=${PERFIS.CLINICA}` : "/cadastro"}
             style={{
               color: "var(--color-primary)",
               fontWeight: 700,
