@@ -420,8 +420,6 @@ export function atualizarPerfilPaciente(dadosAtualizados) {
   return estado.paciente;
 }
 
-export const salvarPerfilPaciente = atualizarPerfilPaciente;
-
 export function atualizarConveniosPaciente(conveniosIds) {
   const estado = lerEstado();
   estado.paciente.conveniosIds = conveniosIds.slice(0, 5);
@@ -429,15 +427,9 @@ export function atualizarConveniosPaciente(conveniosIds) {
   return estado.paciente;
 }
 
-export const salvarConveniosPaciente = atualizarConveniosPaciente;
-
 /* ============================================================================
  * AGENDAMENTOS, HISTÓRICO E AVALIAÇÕES
  * ========================================================================== */
-
-export function obterAgendamentosPaciente() {
-  return lerEstado().agendamentos;
-}
 
 export function criarNovoAgendamento(dados) {
   const estado = lerEstado();
@@ -468,8 +460,6 @@ export function criarNovoAgendamento(dados) {
   return novo;
 }
 
-export const agendarExamePaciente = criarNovoAgendamento;
-
 export function cancelarAgendamento(agendamentoId) {
   const estado = lerEstado();
   estado.agendamentos = estado.agendamentos.map((ag) =>
@@ -477,8 +467,6 @@ export function cancelarAgendamento(agendamentoId) {
   );
   salvarEstado(estado);
 }
-
-export const cancelarAgendamentoPaciente = cancelarAgendamento;
 
 export function registrarAvaliacaoAgendamento(
   agendamentoId,
@@ -490,8 +478,6 @@ export function registrarAvaliacaoAgendamento(
   );
   salvarEstado(estado);
 }
-
-export const avaliarAgendamentoPaciente = registrarAvaliacaoAgendamento;
 
 /* ============================================================================
  * NOTIFICAÇÕES
@@ -509,15 +495,11 @@ export function marcarNotificacaoComoLida(notificacaoId) {
   salvarEstado(estado);
 }
 
-export const marcarNotificacaoLida = marcarNotificacaoComoLida;
-
 export function marcarTodasNotificacoesComoLidas() {
   const estado = lerEstado();
   estado.notificacoes = estado.notificacoes.map((n) => ({ ...n, lida: true }));
   salvarEstado(estado);
 }
-
-export const marcarTodasNotificacoesLidas = marcarTodasNotificacoesComoLidas;
 
 /* ============================================================================
  * BUSCA COM FILTROS E COMPARAÇÃO DE EXAMES

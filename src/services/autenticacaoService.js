@@ -26,8 +26,6 @@ export function listarConvenios() {
   return lista;
 }
 
-export const obterConveniosDisponiveis = listarConvenios;
-
 function lerUsuariosCadastrados() {
   try {
     const salvo = localStorage.getItem(USUARIOS_STORAGE_KEY);
@@ -59,14 +57,10 @@ export function obterSessaoAtual() {
   }
 }
 
-export const obterUsuarioLogado = obterSessaoAtual;
-
 export function sairDaConta() {
   localStorage.removeItem(SESSAO_STORAGE_KEY);
   window.dispatchEvent(new Event("exameja:sessao-alterada"));
 }
-
-export const encerrarSessao = sairDaConta;
 
 export async function entrarComEmailESenha({
   email,
@@ -117,9 +111,6 @@ export async function entrarComEmailESenha({
   return sessao;
 }
 
-export const autenticarUsuario = entrarComEmailESenha;
-export const loginComEmailESenha = entrarComEmailESenha;
-
 export async function registrarPaciente(dados) {
   const usuarios = lerUsuariosCadastrados();
   const emailNormalizado = (dados.email || "").trim().toLowerCase();
@@ -158,8 +149,6 @@ export async function registrarPaciente(dados) {
   return sessao;
 }
 
-export const cadastrarPaciente = registrarPaciente;
-
 export async function registrarClinica(dados) {
   const usuarios = lerUsuariosCadastrados();
   const emailNormalizado = (dados.email || "").trim().toLowerCase();
@@ -195,14 +184,9 @@ export async function registrarClinica(dados) {
   return sessao;
 }
 
-export const cadastrarClinica = registrarClinica;
-
 export async function solicitarRecuperacaoSenha(email) {
   if (!email) {
     throw new Error("Informe um e-mail válido.");
   }
   return { enviado: true };
 }
-
-export const recuperarSenha = solicitarRecuperacaoSenha;
-export const redefinirSenha = solicitarRecuperacaoSenha;
