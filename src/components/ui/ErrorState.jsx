@@ -13,20 +13,24 @@ export default function ErrorState({
       align="center"
       textAlign="center"
       gap="var(--space-3)"
-      py="var(--space-12)"
+      py="var(--space-8)"
       px="var(--space-4)"
       bg="var(--color-error-soft)"
+      borderWidth="var(--border-width)"
+      borderStyle="solid"
+      borderColor="var(--color-error)"
       borderRadius="var(--radius-lg)"
     >
       <Heading
         as="h2"
         fontFamily="var(--font-heading)"
-        fontSize="var(--text-xl)"
+        fontWeight="var(--weight-semibold)"
+        fontSize="var(--text-lg)"
         color="var(--color-error)"
       >
         {title}
       </Heading>
-      <Text maxW="48ch">{description}</Text>
+      <Text color="var(--color-text)" fontSize="var(--text-sm)" maxW="48ch">{description}</Text>
       {onRetry && (
         <Button variant="outline" onClick={onRetry}>
           Tentar novamente

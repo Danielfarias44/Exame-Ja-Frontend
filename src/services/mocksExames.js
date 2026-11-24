@@ -135,25 +135,3 @@ export const exameCategorias = categoriasBase.map((categoria) => ({
   ...categoria,
   exames: [...categoria.exames].sort(compararNomes),
 }));
-
-// Lista simples com a categoria de cada exame (útil para buscar um exame pelo id).
-export const exames = exameCategorias.flatMap((categoria) =>
-  categoria.exames.map((exame) => ({
-    ...exame,
-    categoriaId: categoria.id,
-    categoria: categoria.nome,
-  }))
-);
-
-// Atalhos para o público que procura os exames mais comuns.
-export const examesMaisProcurados = [
-  "hemograma-completo",
-  "glicemia-em-jejum",
-  "raio-x-de-torax",
-  "ultrassonografia-abdominal-total",
-  "eletrocardiograma-ecg",
-];
-
-export function getExame(id) {
-  return exames.find((exame) => exame.id === id) ?? null;
-}

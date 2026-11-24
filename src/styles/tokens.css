@@ -1,66 +1,68 @@
 @import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600;700&family=Intel+One+Mono:wght@400;500;700&display=swap");
 
 :root {
-  /* ---------- 1. CORES: paleta base (valores brutos, não usar direto nos componentes) ---------- */
-  --blue-500: #2980ba;   /* marca */
-  --blue-700: #1f6a9a;   /* versão escura: texto/botão com contraste AA */
-  --blue-100: #d6e8f4;   /*  fundo suave */
+  /* ---------- 1. CORES: paleta base ---------- */
+  --blue-500: #2980ba;
+  --blue-700: #1f6a9a;
+  --blue-100: #d6e8f4;
 
-  --navy-900: #2b3d4f;   /* marca: texto principal, rodapé */
-  --navy-700: #3f5469;  
+  --navy-900: #2b3d4f;
+  --navy-700: #3f5469;
 
-  --gray-50:  #edf1f2;   /* marca: fundo da página */
-  --gray-500: #7e8b8c;   /* marca: bordas, ícones, desabilitado (NÃO usar para texto) */
-  --gray-700: #5b6869;   /* texto secundário com contraste AA */
+  --gray-50:  #edf1f2;
+  --gray-500: #7e8b8c;
+  --gray-700: #5b6869;
   --white:    #ffffff;
 
-  --purple-500: #795499; /* marca: destaque / acento */
-  --purple-100: #ece4f2; /* fundo suave */
+  --purple-500: #795499;
+  --purple-100: #ece4f2;
 
-  /* ---------- 2. CORES: semânticas (é o que os componentes usam) ---------- */
-  --color-primary:        var(--blue-700);
-  --color-primary-hover:  #185a85;           
-  --color-primary-soft:   var(--blue-100);
-  --color-accent:         var(--purple-500);
-  --color-accent-soft:    var(--purple-100);
+  /* ---------- 2. CORES: semânticas (Tema Claro) ---------- */
+  --color-primary:         var(--blue-700);
+  --color-primary-hover:   #185a85;
+  --color-primary-soft:    var(--blue-100);
+  --color-accent:          var(--purple-500);
+  --color-accent-hover:    #654482;
+  --color-accent-soft:     var(--purple-100);
 
-  --color-bg:             var(--gray-50);
-  --color-surface:        var(--white);
-  --color-border:         var(--gray-500);
-  --color-border-soft:    #d3dadb;          
+  --color-bg:              var(--gray-50);
+  --color-surface:         var(--white);
+  --color-surface-elevated: #ffffff;
+  --color-header-bg:       rgb(237 241 242 / 0.85);
+  --color-border:          var(--gray-500);
+  --color-border-soft:     #d3dadb;
 
-  --color-text:           var(--navy-900);
-  --color-text-muted:     var(--gray-700);
+  --color-text:            var(--navy-900);
+  --color-text-muted:      var(--gray-700);
+  --color-text-highlight:  var(--blue-500);
   --color-text-on-primary: var(--white);
-  --color-disabled:       var(--gray-500);
+  --color-disabled:        var(--gray-500);
 
-  --color-focus:          var(--purple-500);  /* anel de foco visível (acessibilidade) */
+  --color-focus:           var(--purple-500);
 
-  --color-success:        #1e7a4c;
-  --color-success-soft:   #dcf2e6;
-  --color-warning:        #8a5a00;
-  --color-warning-soft:   #fdf0d2;
-  --color-error:          #b3261e;
-  --color-error-soft:     #fbe3e1;
-  --color-info:           var(--blue-700);
-  --color-info-soft:      var(--blue-100);
+  --color-success:         #1e7a4c;
+  --color-success-soft:    #dcf2e6;
+  --color-warning:         #8a5a00;
+  --color-warning-soft:    #fdf0d2;
+  --color-error:           #b3261e;
+  --color-error-soft:      #fbe3e1;
+  --color-info:            var(--blue-700);
+  --color-info-soft:       var(--blue-100);
 
-   /* cor do preço */
-  --price-low:            var(--color-success);
+  --price-low:             var(--color-success);
 
-  /* status de agendamento; sempre com ícone ou texto, nunca só cor */
-  --status-scheduled:     var(--blue-700);
-  --status-confirmed:     var(--color-success);
-  --status-cancelled:     var(--color-error);
-  --status-done:          var(--gray-700);
+  --status-scheduled:      var(--blue-700);
+  --status-confirmed:      var(--color-success);
+  --status-cancelled:      var(--color-error);
+  --status-done:           var(--gray-700);
 
   /* ---------- 3. TIPOGRAFIA ---------- */
   --font-heading: "Josefin Sans", system-ui, sans-serif;
   --font-body:    "Intel One Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
-  --text-xs:   0.875rem;  /* 14px (mínimo; evite abaixo disso) */
+  --text-xs:   0.875rem;  /* 14px */
   --text-sm:   1rem;      /* 16px */
-  --text-base: 1.125rem;  /* 18px: corpo padrão (público com idosos) */
+  --text-base: 1.125rem;  /* 18px */
   --text-lg:   1.25rem;   /* 20px */
   --text-xl:   1.5rem;    /* 24px */
   --text-2xl:  2rem;      /* 32px */
@@ -68,20 +70,21 @@
 
   --weight-regular: 400;
   --weight-medium:  500;
+  --weight-semibold: 600;
   --weight-bold:    700;
 
-  --leading-tight:   1.2;   /* títulos */
-  --leading-normal:  1.6;   /* corpo */
+  --leading-tight:  1.2;
+  --leading-normal: 1.6;
 
-  /* ---------- 4. ESPAÇAMENTO (escala de 4px) ---------- */
-  --space-1:  0.25rem;  /* 4  */
-  --space-2:  0.5rem;   /* 8  */
-  --space-3:  0.75rem;  /* 12 */
-  --space-4:  1rem;     /* 16 */
-  --space-6:  1.5rem;   /* 24 */
-  --space-8:  2rem;     /* 32 */
-  --space-12: 3rem;     /* 48 */
-  --space-16: 4rem;     /* 64 */
+  /* ---------- 4. ESPAÇAMENTO ---------- */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
 
   /* ---------- 5. BORDAS ---------- */
   --radius-sm:   4px;
@@ -91,10 +94,10 @@
   --border-width: 1px;
   --border-width-strong: 2px;
 
-  /* ---------- 6. SOMBRAS (elevação) ---------- */
-  --shadow-sm: 0 1px 2px rgb(43 61 79 / 0.10);
-  --shadow-md: 0 4px 12px rgb(43 61 79 / 0.12);  /* cards */
-  --shadow-lg: 0 12px 32px rgb(43 61 79 / 0.18); /* modais, dropdowns */
+  /* ---------- 6. SOMBRAS ---------- */
+  --shadow-sm: 0 1px 2px rgb(43 61 79 / 0.08);
+  --shadow-md: 0 6px 18px rgb(43 61 79 / 0.10);
+  --shadow-lg: 0 16px 36px rgb(43 61 79 / 0.16);
 
   /* ---------- 7. Z-INDEX ---------- */
   --z-base:     0;
@@ -110,9 +113,46 @@
 
   /* ---------- 9. LAYOUT ---------- */
   --container-max: 1200px;
-  --touch-target-min: 44px;  /* tamanho mínimo de botões/links clicáveis */
+  --touch-target-min: 44px;
+  --map-height: 22rem;
+  --chat-height: 34rem;
 }
 
-/* Breakpoints (variáveis CSS não funcionam em @media; use estes valores):
-   mobile: até 639px | tablet: 640px a 1023px | desktop: 1024px+ */
+/* ---------- 10. TEMA ESCURO (Modo Escuro com contraste AA) ---------- */
+:root.dark,
+[data-theme="dark"] {
+  --color-primary:          #3b97d3;
+  --color-primary-hover:    #56abe2;
+  --color-primary-soft:     rgb(59 151 211 / 0.16);
+  --color-accent:           #9b6ec4;
+  --color-accent-hover:     #b187d6;
+  --color-accent-soft:      rgb(155 110 196 / 0.18);
 
+  --color-bg:               #0f1722;
+  --color-surface:          #172231;
+  --color-surface-elevated: #1e2c3f;
+  --color-header-bg:        rgb(15 23 34 / 0.85);
+  --color-border:           #4a5d73;
+  --color-border-soft:      #263549;
+
+  --color-text:             #f1f5f9;
+  --color-text-muted:       #a7b6c7;
+  --color-text-highlight:   #63b3ed;
+  --color-text-on-primary:  #ffffff;
+  --color-disabled:         #64748b;
+
+  --color-focus:            #b187d6;
+
+  --color-success:          #34d399;
+  --color-success-soft:     rgb(52 211 153 / 0.15);
+  --color-warning:          #fbbf24;
+  --color-warning-soft:     rgb(251 191 36 / 0.15);
+  --color-error:            #f87171;
+  --color-error-soft:       rgb(248 113 113 / 0.15);
+  --color-info:             #63b3ed;
+  --color-info-soft:        rgb(99 179 237 / 0.15);
+
+  --shadow-sm: 0 2px 6px rgb(0 0 0 / 0.35);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 18px 40px rgb(0 0 0 / 0.60);
+}
