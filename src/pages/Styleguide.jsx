@@ -12,6 +12,8 @@ import PageHeader from "@/components/ui/PageHeader";
 import SectionTitle from "@/components/ui/SectionTitle";
 import StatusBadge from "@/components/ui/StatusBadge";
 import EstablishmentMap from "@/components/establishment/EstablishmentMap";
+import MessageBubble from "@/components/chat/MessageBubble";
+import MessageComposer from "@/components/chat/MessageComposer";
 import EstablishmentCard from "@/components/establishment/EstablishmentCard";
 import InsuranceBadges from "@/components/establishment/InsuranceBadges";
 import LoginPrompt from "@/components/LoginPrompt";
@@ -84,6 +86,22 @@ export default function Styleguide() {
           <StatusBadge tone="neutral">Concluído</StatusBadge>
           <StatusBadge solid>3 novas</StatusBadge>
         </Flex>
+      </Section>
+
+      <Section title="Chat">
+        <Card p="0" overflow="hidden">
+          <Stack as="ul" role="list" gap="var(--space-3)" m={0} p="var(--space-4)" listStyleType="none" bg="var(--color-bg)">
+            <MessageBubble
+              mensagem={{ id: "1", texto: "Para o hemograma eu preciso ficar em jejum?", criadoEm: new Date().toISOString() }}
+              minha
+            />
+            <MessageBubble
+              mensagem={{ id: "2", texto: "Não é obrigatório, mas recomendamos 3 horas sem refeições gordurosas.", criadoEm: new Date().toISOString() }}
+              nomeRemetente="LabVida Diagnósticos"
+            />
+          </Stack>
+          <MessageComposer destinatario="LabVida Diagnósticos" limite={1000} onEnviar={async () => {}} />
+        </Card>
       </Section>
 
       <Section title="Mapa">

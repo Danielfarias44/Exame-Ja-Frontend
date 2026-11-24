@@ -115,6 +115,7 @@
   --container-max: 1200px;
   --touch-target-min: 44px;
   --map-height: 22rem;
+  --chat-height: 34rem;
 }
 
 /* ---------- 10. TEMA ESCURO (Modo Escuro com contraste AA) ---------- */

@@ -31,7 +31,7 @@ export default function OfferActions({ oferta, estaLogado }) {
         </Link>
       </Button>
       <Button asChild variant="outline">
-        <Link to="/paciente/chat" aria-label={`Conversar com a clínica: ${oferta.name}`}>
+        <Link to={`/paciente/chat?clinicaId=${oferta.clinicId}`} aria-label={`Conversar com a clínica: ${oferta.name}`}>
           Conversar com a clínica
         </Link>
       </Button>
