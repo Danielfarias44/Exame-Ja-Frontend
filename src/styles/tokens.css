@@ -70,6 +70,7 @@
 
   --weight-regular: 400;
   --weight-medium:  500;
+  --weight-semibold: 600;
   --weight-bold:    700;
 
   --leading-tight:  1.2;
@@ -113,6 +114,7 @@
   /* ---------- 9. LAYOUT ---------- */
   --container-max: 1200px;
   --touch-target-min: 44px;
+  --map-height: 22rem;
 }
 
 /* ---------- 10. TEMA ESCURO (Modo Escuro com contraste AA) ---------- */

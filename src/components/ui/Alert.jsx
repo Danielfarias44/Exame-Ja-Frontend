@@ -35,7 +35,10 @@ export default function Alert({ status = "info", title, children, actions, ...pr
       status={status}
       bg={colors.bg}
       color="var(--color-text)"
-      borderRadius="var(--radius-md)"
+      borderWidth="var(--border-width)"
+      borderStyle="solid"
+      borderColor={colors.fg}
+      borderRadius="var(--radius-lg)"
       p="var(--space-4)"
       alignItems="center"
       flexWrap="wrap"
@@ -45,7 +48,7 @@ export default function Alert({ status = "info", title, children, actions, ...pr
       <ChakraAlert.Indicator color={colors.fg} />
       <ChakraAlert.Content>
         {title && (
-          <ChakraAlert.Title fontWeight="var(--weight-bold)" fontSize="var(--text-sm)">
+          <ChakraAlert.Title fontFamily="var(--font-heading)" fontWeight="var(--weight-semibold)" fontSize="var(--text-sm)">
             {title}
           </ChakraAlert.Title>
         )}

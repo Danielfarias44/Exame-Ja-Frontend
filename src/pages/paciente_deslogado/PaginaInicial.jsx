@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   Badge,
@@ -9,7 +9,6 @@ import {
   Grid,
   Heading,
   Image,
-  Input,
   SimpleGrid,
   Text,
   VStack,
@@ -19,16 +18,9 @@ import VitrineFuncionalidades from "@/components/landing/VitrineFuncionalidades"
 import SecaoConvenios from "@/components/landing/SecaoConvenios";
 import CarrosselDepoimentos from "@/components/landing/CarrosselDepoimentos";
 import SecaoFaq from "@/components/landing/SecaoFaq";
+import SearchBar from "@/components/establishment/SearchBar";
 import fotoLaboratorio from "@/assets/laboratorio-exame.jpeg";
 import fotoClinica from "@/assets/clinica-atendimento.jpeg";
-
-const SUGESTOES_BUSCA_RAPIDA = [
-  "Hemograma",
-  "Ultrassom",
-  "Raio-X",
-  "Unimed",
-  "Bradesco",
-];
 
 const INDICADORES_CONFIANCA = [
   { destaque: "Preço transparente", descricao: "Saiba o valor antes de agendar" },
@@ -89,7 +81,6 @@ const ETAPAS_FUNCIONAMENTO = [
 ];
 
 export default function PaginaInicial() {
-  const [termoBusca, setTermoBusca] = useState("");
   const navegar = useNavigate();
   const referenciaConteudo = useRef(null);
 
@@ -121,11 +112,6 @@ export default function PaginaInicial() {
       return;
     }
     navegar(`/busca?q=${encodeURIComponent(consultaLimpa)}`);
-  }
-
-  function lidarComEnvioBusca(evento) {
-    evento.preventDefault();
-    executarBusca(termoBusca);
   }
 
   return (
@@ -196,84 +182,12 @@ export default function PaginaInicial() {
               , com preço e preparo claros antes de sair de casa.
             </Text>
 
-            <Box as="form" onSubmit={lidarComEnvioBusca} w="100%" maxW="500px" pt={1}>
-              <Flex
-                align="center"
-                bg="var(--color-surface)"
-                border="2px solid var(--color-primary)"
-                borderRadius="var(--radius-lg)"
-                p={1.5}
-                boxShadow="var(--shadow-md)"
-                _focusWithin={{ boxShadow: "0 0 0 4px var(--color-primary-soft)" }}
-              >
-                <Box color="var(--color-primary)" pl={2.5} pr={1} aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                </Box>
-
-                <Input
-                  value={termoBusca}
-                  onChange={(e) => setTermoBusca(e.target.value)}
-                  placeholder="Ex: Hemograma, Unimed, Clínica..."
-                  aria-label="Buscar exames, especialidades ou convênios"
-                  border="none"
-                  bg="transparent"
-                  color="var(--color-text)"
-                  _placeholder={{ color: "var(--color-text-muted)" }}
-                  fontFamily="var(--font-body)"
-                  fontSize="1rem"
-                  minH="44px"
-                  minW="0"
-                  _focusVisible={{ boxShadow: "none", outline: "none" }}
-                />
-
-                <Button
-                  type="submit"
-                  bg="var(--color-primary)"
-                  _hover={{ bg: "var(--color-primary-hover)" }}
-                  color="var(--color-text-on-primary)"
-                  fontFamily="var(--font-heading)"
-                  fontWeight="var(--weight-bold)"
-                  fontSize="0.95rem"
-                  px={5}
-                  minH="44px"
-                  borderRadius="var(--radius-md)"
-                  flexShrink={0}
-                >
-                  Buscar
-                </Button>
-              </Flex>
-
-              <Flex wrap="wrap" justify={{ base: "center", lg: "flex-start" }} gap={2} mt={3}>
-                {SUGESTOES_BUSCA_RAPIDA.map((sugestao) => (
-                  <Box
-                    key={sugestao}
-                    as="button"
-                    type="button"
-                    onClick={() => executarBusca(sugestao)}
-                    px={3}
-                    py={1}
-                    minH="34px"
-                    borderRadius="var(--radius-full)"
-                    bg="var(--color-surface)"
-                    border="1px solid var(--color-border-soft)"
-                    color="var(--color-text-muted)"
-                    fontFamily="var(--font-heading)"
-                    fontWeight={600}
-                    fontSize="0.8rem"
-                    cursor="pointer"
-                    transition="all var(--duration-fast) var(--ease-standard)"
-                    _hover={{
-                      borderColor: "var(--color-primary)",
-                      color: "var(--color-primary)",
-                    }}
-                  >
-                    {sugestao}
-                  </Box>
-                ))}
-              </Flex>
+            <Box w="100%" maxW="500px" pt={1}>
+              <SearchBar
+                onSearch={executarBusca}
+                label="Qual exame você precisa fazer?"
+                align={{ base: "center", lg: "flex-start" }}
+              />
             </Box>
           </VStack>
 

@@ -12,7 +12,6 @@ const RecuperacaoAcesso = lazy(() => import("@/pages/paciente_deslogado/Recupera
 
 const SearchResults = lazy(() => import("@/pages/paciente_deslogado/SearchResults"));
 const EstablishmentDetails = lazy(() => import("@/pages/paciente_deslogado/EstablishmentDetails"));
-const Compare = lazy(() => import("@/pages/paciente_deslogado/Compare"));
 const Styleguide = lazy(() => import("@/pages/Styleguide"));
 
 const LayoutLogado = lazy(() => import("@/layouts/LayoutLogado"));
@@ -37,6 +36,7 @@ export default function AppRoutes() {
           <Route path="/cadastro" element={<PaginaCadastro />} />
           <Route path="/login" element={<PaginaLogin />} />
           <Route path="/recuperar-acesso" element={<RecuperacaoAcesso />} />
+          <Route path="/busca" element={<SearchResults />} />
         </Route>
 
         {/* Área logada protegida do paciente */}
@@ -64,9 +64,7 @@ export default function AppRoutes() {
 
         {/* Demais telas do fluxo público */}
         <Route element={<MainLayout />}>
-          <Route path="/busca" element={<SearchResults />} />
           <Route path="/estabelecimento/:id" element={<EstablishmentDetails />} />
-          <Route path="/comparar" element={<Compare />} />
           <Route path="/styleguide" element={<Styleguide />} />
         </Route>
       </Routes>

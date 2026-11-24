@@ -8,12 +8,15 @@ import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import ListSkeleton from "@/components/ui/Skeleton";
 import Select from "@/components/ui/Select";
+import PageHeader from "@/components/ui/PageHeader";
+import SectionTitle from "@/components/ui/SectionTitle";
+import StatusBadge from "@/components/ui/StatusBadge";
+import EstablishmentMap from "@/components/establishment/EstablishmentMap";
 import EstablishmentCard from "@/components/establishment/EstablishmentCard";
 import InsuranceBadges from "@/components/establishment/InsuranceBadges";
 import LoginPrompt from "@/components/LoginPrompt";
 import PriceTag from "@/components/establishment/PriceTag";
 import RatingSummary from "@/components/establishment/RatingSummary";
-import SearchFilters from "@/components/establishment/SearchFilters";
 import { mockConvenios, mockEdgeCaseEstablishments, mockEstablishments } from "@/services/mocks";
 import { exameCategorias } from "@/services/mocksExames";
 
@@ -53,9 +56,40 @@ export default function Styleguide() {
         </Flex>
       </Section>
 
-      <Section title="Busca por filtros">
-        <SearchFilters />
+      <Section title="Cabeçalho de página">
+        <Card>
+          <PageHeader
+            title="Notificações"
+            description="Acompanhe confirmações de agendamento e lembretes de preparo."
+            badge={<StatusBadge solid>2 novas</StatusBadge>}
+            actions={<Button variant="outline">Marcar todas como lidas</Button>}
+          />
+        </Card>
       </Section>
+
+      <Section title="Título de seção">
+        <Stack gap="var(--space-2)">
+          <SectionTitle>Título de seção (h2)</SectionTitle>
+          <SectionTitle as="h3">Título de cartão (h3)</SectionTitle>
+        </Stack>
+      </Section>
+
+      <Section title="Etiquetas de status">
+        <Flex wrap="wrap" gap="var(--space-2)">
+          <StatusBadge>Agendado</StatusBadge>
+          <StatusBadge tone="success">Confirmado</StatusBadge>
+          <StatusBadge tone="warning">Aguardando preparo</StatusBadge>
+          <StatusBadge tone="error">Cancelado</StatusBadge>
+          <StatusBadge tone="accent">Novo</StatusBadge>
+          <StatusBadge tone="neutral">Concluído</StatusBadge>
+          <StatusBadge solid>3 novas</StatusBadge>
+        </Flex>
+      </Section>
+
+      <Section title="Mapa">
+        <EstablishmentMap establishments={mockEstablishments} zoom={13} />
+      </Section>
+
 
       <Section title="Seleção">
         <Stack gap="var(--space-4)" maxW="420px">

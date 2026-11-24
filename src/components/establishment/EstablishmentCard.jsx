@@ -10,7 +10,7 @@ function formatDistance(km) {
   return km.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 }
 
-export default function EstablishmentCard({ establishment }) {
+export default function EstablishmentCard({ establishment, actions }) {
   const { id, name, address, price, rating, reviewsCount, insurances, distanceKm, exam } =
     establishment;
 
@@ -41,11 +41,13 @@ export default function EstablishmentCard({ establishment }) {
           gap="var(--space-3)"
         >
           <PriceTag price={price} />
-          <Button asChild>
-            <Link to={`/estabelecimento/${id}`} aria-label={`Ver detalhes de ${name}`}>
-              Ver detalhes
-            </Link>
-          </Button>
+          {actions ?? (
+            <Button asChild>
+              <Link to={`/estabelecimento/${id}`} aria-label={`Ver detalhes: ${name}`}>
+                Ver detalhes
+              </Link>
+            </Button>
+          )}
         </Flex>
       </Flex>
     </Card>

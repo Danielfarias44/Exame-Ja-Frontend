@@ -5,9 +5,12 @@ export default function Card({ children, ...props }) {
     <Box
       as="article"
       bg="var(--color-surface)"
+      borderWidth="var(--border-width)"
+      borderStyle="solid"
+      borderColor="var(--color-border-soft)"
       borderRadius="var(--radius-lg)"
-      boxShadow="var(--shadow-md)"
-      p="var(--space-4)"
+      boxShadow="var(--shadow-sm)"
+      p={{ base: "var(--space-4)", md: "var(--space-6)" }}
       {...props}
     >
       {children}

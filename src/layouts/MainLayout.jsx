@@ -6,7 +6,6 @@ import "./MainLayout.css";
 
 const links = [
   { to: "/busca", label: "Buscar exames" },
-  { to: "/comparar", label: "Comparar" },
   { to: "/login", label: "Login" },
   { to: "/cadastro", label: "Cadastro" },
 ];

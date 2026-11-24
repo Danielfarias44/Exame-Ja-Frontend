@@ -1,3 +1,4 @@
+import { Box } from "@chakra-ui/react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -12,30 +13,44 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-export default function EstablishmentMap({ establishments, zoom = 14 }) {
-  const withCoords = establishments.filter((e) => e.lat && e.lng);
+export default function EstablishmentMap({
+  establishments = [],
+  zoom = 14,
+  label = "Mapa das clínicas",
+}) {
+  const withCoords = establishments.filter((e) => e.lat != null && e.lng != null);
   if (withCoords.length === 0) return null;
   const center = [withCoords[0].lat, withCoords[0].lng];
 
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      style={{ height: "320px", width: "100%", borderRadius: 8 }}
+    <Box
+      role="region"
+      aria-label={label}
+      h="var(--map-height)"
+      overflow="hidden"
+      borderWidth="var(--border-width)"
+      borderStyle="solid"
+      borderColor="var(--color-border-soft)"
+      borderRadius="var(--radius-lg)"
+      boxShadow="var(--shadow-sm)"
+      position="relative"
+      zIndex="var(--z-base)"
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {withCoords.map((e) => (
-        <Marker key={e.id} position={[e.lat, e.lng]}>
-          <Popup>
-            <strong>{e.name}</strong>
-            <br />
-            {e.address}
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
+      <MapContainer center={center} zoom={zoom} style={{ height: "100%", width: "100%" }}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {withCoords.map((e) => (
+          <Marker key={e.id} position={[e.lat, e.lng]}>
+            <Popup>
+              <strong>{e.name}</strong>
+              <br />
+              {e.address}
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </Box>
   );
 }
