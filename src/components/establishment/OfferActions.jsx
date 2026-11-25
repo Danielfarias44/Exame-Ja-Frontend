@@ -3,11 +3,14 @@ import { Stack } from "@chakra-ui/react";
 import Button from "@/components/ui/Button";
 
 export default function OfferActions({ oferta, estaLogado }) {
+  const detalhe = estaLogado
+    ? `/paciente/estabelecimento/${encodeURIComponent(oferta.clinicId)}`
+    : `/estabelecimento/${encodeURIComponent(oferta.clinicId)}`;
   if (!estaLogado) {
     return (
       <Button asChild>
         <Link
-          to={`/estabelecimento/${encodeURIComponent(oferta.clinicId)}`}
+          to={detalhe}
           state={{ oferta }}
           aria-label={`Ver oferta: ${oferta.exam} na ${oferta.name}`}
         >
@@ -20,7 +23,7 @@ export default function OfferActions({ oferta, estaLogado }) {
   return (
     <Stack direction={{ base: "column", sm: "row" }} gap="var(--space-2)">
       <Button asChild>
-        <Link to={`/estabelecimento/${encodeURIComponent(oferta.clinicId)}`} state={{ oferta }} aria-label={`Ver oferta: ${oferta.exam} na ${oferta.name}`}>
+        <Link to={detalhe} state={{ oferta }} aria-label={`Ver oferta: ${oferta.exam} na ${oferta.name}`}>
           Ver oferta
         </Link>
       </Button>

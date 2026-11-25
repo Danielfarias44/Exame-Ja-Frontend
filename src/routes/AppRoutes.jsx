@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import MainLayout from "@/layouts/MainLayout";
 import RotaProtegida from "@/components/RotaProtegida";
 import { PERFIS } from "@/constants/perfis";
+import { obterSessaoAtual } from "@/services/autenticacaoService";
 
 const LayoutPublico = lazy(() => import("@/layouts/LayoutPublico"));
 const PaginaInicial = lazy(() => import("@/pages/paciente_deslogado/PaginaInicial"));
@@ -15,7 +16,6 @@ const EstablishmentDetails = lazy(() => import("@/pages/paciente_deslogado/Estab
 const Styleguide = lazy(() => import("@/pages/Styleguide"));
 
 const LayoutLogado = lazy(() => import("@/layouts/LayoutLogado"));
-const HomeLogado = lazy(() => import("@/pages/paciente_logado/HomeLogado"));
 const Perfil = lazy(() => import("@/pages/paciente_logado/Perfil"));
 const Notificacoes = lazy(() => import("@/pages/paciente_logado/Notificacoes"));
 const Chat = lazy(() => import("@/pages/paciente_logado/Chat"));
@@ -29,17 +29,25 @@ const ClinicaDashboard = lazy(() => import("@/pages/clinica/ClinicaDashboard"));
 const ClinicaChat = lazy(() => import("@/pages/clinica/ClinicaChat"));
 const AdminClinicas = lazy(() => import("@/pages/admin/AdminClinicas"));
 
+function BuscaLayout() {
+  return obterSessaoAtual()?.perfil === PERFIS.PACIENTE
+    ? <LayoutLogado />
+    : <LayoutPublico />;
+}
+
 export default function AppRoutes() {
   return (
     <Suspense fallback={null}>
       <Routes>
         {/* Área pública e autenticação */}
+        <Route element={<BuscaLayout />}>
+          <Route path="/busca" element={<SearchResults />} />
+        </Route>
         <Route element={<LayoutPublico />}>
           <Route path="/" element={<PaginaInicial />} />
           <Route path="/cadastro" element={<PaginaCadastro />} />
           <Route path="/login" element={<PaginaLogin />} />
           <Route path="/recuperar-acesso" element={<RecuperacaoAcesso />} />
-          <Route path="/busca" element={<SearchResults />} />
         </Route>
 
         {/* Área logada protegida do paciente */}
@@ -51,7 +59,7 @@ export default function AppRoutes() {
             </RotaProtegida>
           }
         >
-          <Route index element={<HomeLogado />} />
+          <Route index element={<SearchResults />} />
           <Route path="comparar" element={<RecursoIndisponivel titulo="Comparação lado a lado indisponível" descricao="A API não oferece um comparador. Consulte as clínicas na busca e ordene as ofertas por distância ou preço." />} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="agendar" element={<Agendamento />} />

@@ -22,7 +22,9 @@ import FeedbackErro from "@/components/ui/FeedbackErro";
 import {
   registrarClinica,
   registrarPaciente,
+  listarConvenios,
 } from "@/services/autenticacaoService";
+import Select from "@/components/ui/Select";
 
 function formatarCPF(valor) {
   const digitos = valor.replace(/\D/g, "").slice(0, 11);
@@ -92,6 +94,8 @@ const ESTADO_INICIAL_FORM = {
   confirmarSenha: "",
   aceiteTermos: false,
   declaracaoVinculoAceita: false,
+  convenioId: "",
+  conveniosAceitos: [],
 };
 
 export default function PaginaCadastro() {
@@ -107,6 +111,7 @@ export default function PaginaCadastro() {
   const [enviando, setEnviando] = useState(false);
   const [cadastroConcluido, setCadastroConcluido] = useState(false);
   const [erroEnvio, setErroEnvio] = useState("");
+  const [convenios, setConvenios] = useState([]);
 
   useEffect(() => {
     const paramPerfil = searchParams.get("perfil");
@@ -115,6 +120,10 @@ export default function PaginaCadastro() {
     setCadastroConcluido(false);
     setErroEnvio("");
   }, [searchParams]);
+
+  useEffect(() => {
+    listarConvenios().then(setConvenios).catch(() => setConvenios([]));
+  }, []);
 
   function alternarPerfil(novoPerfil) {
     setPerfil(novoPerfil);
@@ -137,6 +146,18 @@ export default function PaginaCadastro() {
     }
   }
 
+  function alternarConvenioClinica(id) {
+    setDados((atuais) => ({
+      ...atuais,
+      conveniosAceitos: atuais.conveniosAceitos.includes(id)
+        ? atuais.conveniosAceitos.filter((convenioId) => convenioId !== id)
+        : atuais.conveniosAceitos.length < 10
+          ? [...atuais.conveniosAceitos, id]
+          : atuais.conveniosAceitos,
+    }));
+    setErros((atuais) => ({ ...atuais, conveniosAceitos: "" }));
+  }
+
   function validarFormulario() {
     const novosErros = {};
 
@@ -152,6 +173,7 @@ export default function PaginaCadastro() {
       } else if (!validarCPF(dados.cpf)) {
         novosErros.cpf = "Informe um CPF válido.";
       }
+      if (!dados.convenioId) novosErros.convenioId = "Selecione um convênio para continuar.";
     } else {
       if (!dados.nomeFantasia.trim()) {
         novosErros.nomeFantasia = "Informe o nome fantasia da unidade.";
@@ -166,6 +188,9 @@ export default function PaginaCadastro() {
       }
       if (!dados.endereco.trim()) {
         novosErros.endereco = "Informe o endereço completo da unidade.";
+      }
+      if (dados.conveniosAceitos.length < 5) {
+        novosErros.conveniosAceitos = "Selecione pelo menos cinco convênios aceitos pela unidade.";
       }
       if (!dados.declaracaoVinculoAceita) {
         novosErros.declaracaoVinculoAceita = "Confirme sua relação com a clínica.";
@@ -213,11 +238,13 @@ export default function PaginaCadastro() {
           email: dados.email.trim(),
           senha: dados.senha,
           declaracaoVinculo: "Declaro que sou responsável e tenho vínculo autorizado com esta clínica.",
+          conveniosAceitos: dados.conveniosAceitos,
         });
       } else {
         await registrarPaciente({
           nomeCompleto: dados.nomeCompleto.trim(),
           cpf: dados.cpf.replace(/\D/g, ""),
+          convenioId: dados.convenioId,
           telefone: dados.telefone.replace(/\D/g, ""),
           email: dados.email.trim(),
           senha: dados.senha,
@@ -480,6 +507,11 @@ export default function PaginaCadastro() {
                       inputMode="numeric"
                     />
 
+                    <Box>
+                      <Select name="convenioId" label="Convênio obrigatório" placeholder="Selecione seu convênio" value={dados.convenioId} onChange={(evento) => atualizarCampo("convenioId", evento.target.value)} options={convenios.map((convenio) => ({ value: convenio.id, label: convenio.nome }))} required />
+                      {erros.convenioId && <Text fontSize="0.78rem" color="var(--color-error)" mt={1}>{erros.convenioId}</Text>}
+                    </Box>
+
                     <CampoTexto
                       id="telefone"
                       rotulo="WhatsApp para contato"
@@ -514,6 +546,19 @@ export default function PaginaCadastro() {
                         inputMode="numeric"
                       />
                     </SimpleGrid>
+
+                    <Box>
+                      <Text fontWeight="var(--weight-bold)" mb={1}>Convênios aceitos ({dados.conveniosAceitos.length}/10 selecionados · mínimo 5)</Text>
+                      <Text fontSize="0.82rem" color="var(--color-text-muted)" mb={3}>Selecione pelo menos cinco. Usaremos os IDs do catálogo para recomendar sua clínica a pacientes compatíveis.</Text>
+                      <Flex wrap="wrap" gap={2}>
+                        {convenios.map((convenio) => {
+                          const selecionado = dados.conveniosAceitos.includes(convenio.id);
+                          const limiteAtingido = !selecionado && dados.conveniosAceitos.length >= 10;
+                          return <Button key={convenio.id} type="button" size="sm" variant={selecionado ? "solid" : "outline"} disabled={limiteAtingido} onClick={() => alternarConvenioClinica(convenio.id)}>{convenio.nome}</Button>;
+                        })}
+                      </Flex>
+                      {erros.conveniosAceitos && <Text role="alert" fontSize="0.78rem" color="var(--color-error)" mt={2}>{erros.conveniosAceitos}</Text>}
+                    </Box>
 
                     <CampoTexto
                       id="razaoSocial"

@@ -34,9 +34,7 @@ export default function Perfil() {
   }, []);
 
   function alternarConvenio(id) {
-    setConveniosSelecionados((atuais) => atuais.includes(id)
-      ? atuais.filter((item) => item !== id)
-      : atuais.length < 10 ? [...atuais, id] : atuais);
+    setConveniosSelecionados([id]);
   }
 
   async function salvar(evento) {
@@ -48,7 +46,7 @@ export default function Perfil() {
       const resultado = await apiRequestWithCsrf("/api/users/me", "PATCH", {
         nome: perfil.nome.trim(),
         telefone: perfil.telefone.trim(),
-        convenios: conveniosSelecionados,
+              convenios: conveniosSelecionados,
       });
       if (resultado.usuario) {
         const nome = resultado.usuario.nome ?? perfil.nome;
@@ -83,8 +81,8 @@ export default function Perfil() {
             <Box><Text fontSize="sm" fontWeight="bold">CPF</Text><Text>{perfil.cpfCadastrado ? "Cadastrado (não pode ser alterado)" : "Não informado"}</Text></Box>
           </SimpleGrid>
           <Box>
-            <Text fontWeight="bold" mb={2}>Convênios ({conveniosSelecionados.length}/10)</Text>
-            <Text fontSize="sm" color="var(--color-text-muted)" mb={3}>A lista é salva no perfil. A busca ainda recebe o convênio selecionado no filtro da busca.</Text>
+            <Text fontWeight="bold" mb={2}>Convênio (obrigatório)</Text>
+            <Text fontSize="sm" color="var(--color-text-muted)" mb={3}>Selecione um único convênio. Clique novamente para removê-lo.</Text>
             <Stack direction="row" wrap="wrap" gap={2}>
               {convenios.map((convenio) => {
                 const selecionado = conveniosSelecionados.includes(convenio.id);

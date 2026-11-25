@@ -71,6 +71,7 @@ export async function searchExamOffers({
   latitude,
   longitude,
   convenioId,
+  raioKm,
   precoMinimo,
   precoMaximo,
   ordenar = "distancia",
@@ -97,6 +98,7 @@ export async function searchExamOffers({
     params.set("longitude", String(longitude));
   }
   if (convenioId) params.set("convenioId", convenioId);
+  if (raioKm !== undefined && raioKm !== "") params.set("raioKm", String(raioKm));
   if (precoMinimo !== undefined && precoMinimo !== "") params.set("precoMinimo", String(precoMinimo));
   if (precoMaximo !== undefined && precoMaximo !== "") params.set("precoMaximo", String(precoMaximo));
 
@@ -104,6 +106,7 @@ export async function searchExamOffers({
   const offers = (data?.resultados ?? []).map(adaptarResultado);
   return {
     offers,
+    location: data?.localizacao ?? null,
     total: Number(data?.total ?? 0),
     limit: Number(data?.limit ?? limit),
     offset: Number(data?.offset ?? offset),

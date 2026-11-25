@@ -8,7 +8,6 @@ import {
   Flex,
   Grid,
   Heading,
-  Input,
   SimpleGrid,
   Text,
   VStack,
@@ -25,7 +24,6 @@ const ESTILOS_CONVENIOS = [
     detalhe: "Análises clínicas e imagem",
     corDestaque: "#00995d",
     fundoSuave: "rgb(0 153 93 / 0.12)",
-    termoBusca: "Unimed",
     atrasoAnimacao: "0s",
     icone: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -40,7 +38,6 @@ const ESTILOS_CONVENIOS = [
     detalhe: "Rede credenciada completa",
     corDestaque: "#cc092f",
     fundoSuave: "rgb(204 9 47 / 0.12)",
-    termoBusca: "Bradesco Saúde",
     atrasoAnimacao: "0.4s",
     icone: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -54,7 +51,6 @@ const ESTILOS_CONVENIOS = [
     detalhe: "Laboratórios e check-up",
     corDestaque: "#f37021",
     fundoSuave: "rgb(243 112 33 / 0.13)",
-    termoBusca: "Hapvida",
     atrasoAnimacao: "0.8s",
     icone: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -69,7 +65,6 @@ const ESTILOS_CONVENIOS = [
     detalhe: "Especialidades e diagnósticos",
     corDestaque: "#ea580c",
     fundoSuave: "rgb(234 88 12 / 0.12)",
-    termoBusca: "SulAmérica",
     atrasoAnimacao: "1.2s",
     icone: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -83,7 +78,6 @@ const ESTILOS_CONVENIOS = [
     detalhe: "Exames laboratoriais e imagem",
     corDestaque: "#2563eb",
     fundoSuave: "rgb(37 99 235 / 0.12)",
-    termoBusca: "Amil",
     atrasoAnimacao: "0.2s",
     icone: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -98,7 +92,6 @@ const ESTILOS_CONVENIOS = [
     detalhe: "Servidores públicos do Pará",
     corDestaque: "#0d9488",
     fundoSuave: "rgb(13 148 136 / 0.12)",
-    termoBusca: "IASEP",
     atrasoAnimacao: "0.6s",
     icone: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -113,7 +106,6 @@ const ESTILOS_CONVENIOS = [
     detalhe: "Planos corporativos e caixas",
     corDestaque: "#1d4ed8",
     fundoSuave: "rgb(29 78 216 / 0.12)",
-    termoBusca: "Cassi",
     atrasoAnimacao: "1s",
     icone: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -128,7 +120,6 @@ const ESTILOS_CONVENIOS = [
     detalhe: "Preço claro sem mensalidade",
     corDestaque: "var(--color-primary)",
     fundoSuave: "var(--color-primary-soft)",
-    termoBusca: "Particular",
     atrasoAnimacao: "1.4s",
     icone: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -144,7 +135,7 @@ const ESTILOS_CONVENIOS = [
  * e ícones grandes com flutuação contínua e reação interativa ao hover/toque.
  */
 export default function SecaoConvenios() {
-  const [planoDigitado, setPlanoDigitado] = useState("");
+  const [convenioSelecionado, setConvenioSelecionado] = useState("");
   const [convenios, setConvenios] = useState([]);
   const [erro, setErro] = useState("");
   const navegar = useNavigate();
@@ -165,18 +156,9 @@ export default function SecaoConvenios() {
     navegar(`/busca?convenioId=${encodeURIComponent(convenio.id)}`);
   }
 
-  function filtrarPorPlano(termo) {
-    const limpo = termo.trim();
-    if (!limpo) {
-      navegar("/busca");
-      return;
-    }
-    navegar(`/busca?q=${encodeURIComponent(limpo)}`);
-  }
-
-  function aoEnviarPlano(evento) {
+  function aoEnviarConvenio(evento) {
     evento.preventDefault();
-    filtrarPorPlano(planoDigitado);
+    if (convenioSelecionado) navegar(`/busca?convenioId=${encodeURIComponent(convenioSelecionado)}`);
   }
 
   return (
@@ -273,8 +255,8 @@ export default function SecaoConvenios() {
               Consulte as ofertas cadastradas e filtre os resultados pelo convênio escolhido.
             </Text>
 
-            {/* Campo de busca de convênio */}
-            <Box as="form" onSubmit={aoEnviarPlano} w="100%" maxW="420px" pt={1}>
+            {/* Filtro por convênio selecionado no cadastro oficial da API */}
+            <Box as="form" onSubmit={aoEnviarConvenio} w="100%" maxW="420px" pt={1}>
               <Flex
                 align="center"
                 bg="var(--color-bg)"
@@ -286,20 +268,24 @@ export default function SecaoConvenios() {
                   boxShadow: "0 0 0 3px var(--color-primary-soft)",
                 }}
               >
-                <Input
-                  value={planoDigitado}
-                  onChange={(e) => setPlanoDigitado(e.target.value)}
-                  placeholder="Digite o nome do seu plano..."
-                  aria-label="Pesquisar pelo nome do seu plano de saúde"
+                <Box
+                  as="select"
+                  value={convenioSelecionado}
+                  onChange={(evento) => setConvenioSelecionado(evento.target.value)}
+                  aria-label="Selecione seu convênio"
                   border="none"
                   bg="transparent"
                   color="var(--color-text)"
-                  _placeholder={{ color: "var(--color-text-muted)" }}
                   fontFamily="var(--font-body)"
                   fontSize="0.9rem"
                   minH="42px"
+                  minW="0"
+                  flex="1"
                   _focusVisible={{ boxShadow: "none", outline: "none" }}
-                />
+                >
+                  <option value="">Selecione um convênio</option>
+                  {convenios.map((convenio) => <option key={convenio.id} value={convenio.id}>{convenio.nome}</option>)}
+                </Box>
                 <Button
                   type="submit"
                   bg="var(--color-primary)"
@@ -313,7 +299,7 @@ export default function SecaoConvenios() {
                   borderRadius="var(--radius-md)"
                   flexShrink={0}
                 >
-                  Filtrar
+                  Ver clínicas
                 </Button>
               </Flex>
             </Box>

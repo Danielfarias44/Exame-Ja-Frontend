@@ -1,37 +1,65 @@
-import { useId, useState } from "react";
-import { Box, Flex, Input, Text } from "@chakra-ui/react";
+import { useEffect, useId, useState } from "react";
+import { Box, Flex, Text } from "@chakra-ui/react";
 import { LuSearch } from "react-icons/lu";
 import Button from "@/components/ui/Button";
+import { getExamCatalog } from "@/services/api";
 
 const TEXTO_POR_ALINHAMENTO = { "flex-start": "left", center: "center", "flex-end": "right" };
 
 function alinhamentoDoTexto(align) {
   if (typeof align === "string") return TEXTO_POR_ALINHAMENTO[align];
-  return Object.fromEntries(
-    Object.entries(align).map(([tela, valor]) => [tela, TEXTO_POR_ALINHAMENTO[valor]])
-  );
+  return Object.fromEntries(Object.entries(align).map(([tela, valor]) => [tela, TEXTO_POR_ALINHAMENTO[valor]]));
 }
 
-const SUGESTOES_BUSCA = ["Hemograma", "Ultrassonografia", "Eletrocardiograma", "Unimed", "Bradesco"];
-
 export default function SearchBar({
-  defaultValue = "",
   onSearch,
   label = "O que você procura?",
-  suggestions = SUGESTOES_BUSCA,
   align = "flex-start",
 }) {
-  const [termo, setTermo] = useState(defaultValue);
+  const [codigoExame, setCodigoExame] = useState("");
+  const [exames, setExames] = useState([]);
+  const [pagina, setPagina] = useState(1);
+  const [temMais, setTemMais] = useState(false);
+  const [carregando, setCarregando] = useState(true);
+  const [carregandoMais, setCarregandoMais] = useState(false);
+  const [erro, setErro] = useState("");
   const idCampo = useId();
 
-  function buscar(valor) {
-    setTermo(valor);
-    onSearch(valor.trim());
-  }
+  useEffect(() => {
+    let ativo = true;
+    getExamCatalog({ page: 1, limit: 100 })
+      .then((resultado) => {
+        if (!ativo) return;
+        setExames(resultado.exams);
+        setPagina(resultado.currentPage);
+        setTemMais(resultado.pages !== null ? resultado.currentPage < resultado.pages : resultado.exams.length === 100);
+      })
+      .catch((falha) => { if (ativo) setErro(falha.message || "Não foi possível carregar o catálogo de exames."); })
+      .finally(() => { if (ativo) setCarregando(false); });
+    return () => { ativo = false; };
+  }, []);
 
   function handleSubmit(event) {
     event.preventDefault();
-    buscar(termo);
+    if (codigoExame) onSearch(codigoExame);
+  }
+
+  async function carregarMais() {
+    if (!temMais || carregandoMais) return;
+    setCarregandoMais(true);
+    try {
+      const resultado = await getExamCatalog({ page: pagina + 1, limit: 100 });
+      setExames((atuais) => {
+        const codigos = new Set(atuais.map((exame) => exame.codigo));
+        return [...atuais, ...resultado.exams.filter((exame) => !codigos.has(exame.codigo))];
+      });
+      setPagina(resultado.currentPage);
+      setTemMais(resultado.pages !== null ? resultado.currentPage < resultado.pages : resultado.exams.length === 100);
+    } catch (falha) {
+      setErro(falha.message || "Não foi possível carregar mais exames.");
+    } finally {
+      setCarregandoMais(false);
+    }
   }
 
   return (
@@ -64,58 +92,37 @@ export default function SearchBar({
           outlineOffset: "2px",
         }}
       >
-        <Box color="var(--color-primary)" px="var(--space-2)" aria-hidden="true">
+        <Box color="var(--color-primary)" px="var(--space-2)" aria-hidden="true" flexShrink={0}>
           <LuSearch />
         </Box>
-        <Input
+        <Box
+          as="select"
           id={idCampo}
-          type="search"
-          value={termo}
-          onChange={(event) => setTermo(event.target.value)}
-          placeholder="Ex: Hemograma, Unimed, Clínica..."
+          aria-label={label}
+          value={codigoExame}
+          onChange={(event) => setCodigoExame(event.target.value)}
+          disabled={carregando}
+          flex="1"
+          minW="0"
+          minH="var(--touch-target-min)"
+          px="var(--space-2)"
           border="none"
           bg="transparent"
           color="var(--color-text)"
-          _placeholder={{ color: "var(--color-text-muted)" }}
           fontFamily="var(--font-body)"
           fontSize="var(--text-sm)"
-          minH="var(--touch-target-min)"
-          minW="0"
           _focusVisible={{ boxShadow: "none", outline: "none" }}
-        />
-        <Button type="submit" flexShrink={0}>
+        >
+          <option value="">{carregando ? "Carregando exames…" : "Selecione um exame do catálogo"}</option>
+          {exames.map((exame) => <option key={exame.codigo} value={exame.codigo}>{exame.nome} ({exame.codigo})</option>)}
+        </Box>
+        <Button type="submit" flexShrink={0} disabled={!codigoExame || carregando}>
           Buscar
         </Button>
       </Flex>
 
-      {suggestions.length > 0 && (
-        <Flex
-          as="ul"
-          role="list"
-          aria-label="Sugestões de busca"
-          wrap="wrap"
-          justify={align}
-          gap="var(--space-2)"
-          mt="var(--space-3)"
-          p={0}
-          listStyleType="none"
-        >
-          {suggestions.map((sugestao) => (
-            <li key={sugestao}>
-              <Button
-                variant="outline"
-                borderRadius="var(--radius-full)"
-                color="var(--color-text-muted)"
-                fontSize="var(--text-xs)"
-                px="var(--space-3)"
-                onClick={() => buscar(sugestao)}
-              >
-                {sugestao}
-              </Button>
-            </li>
-          ))}
-        </Flex>
-      )}
+      {temMais && <Button type="button" variant="outline" size="sm" mt={3} onClick={carregarMais} disabled={carregandoMais}>{carregandoMais ? "Carregando…" : "Carregar mais exames"}</Button>}
+      {erro && <Text role="alert" mt={2} fontSize="sm" color="var(--color-error)">{erro}</Text>}
     </Box>
   );
 }

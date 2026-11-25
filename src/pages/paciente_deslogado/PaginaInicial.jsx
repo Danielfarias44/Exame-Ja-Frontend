@@ -31,28 +31,24 @@ const CATEGORIAS_EXAMES = [
   {
     titulo: "Análises Clínicas",
     exemplos: "Hemograma, glicemia, colesterol e hormônios.",
-    termo: "Sangue",
     tag: "Laboratório",
     raioCard: "22px 22px 22px 6px",
   },
   {
     titulo: "Diagnóstico por Imagem",
     exemplos: "Ultrassom, Raio-X, tomografia e ressonância.",
-    termo: "Imagem",
     tag: "Imagem",
     raioCard: "22px 22px 6px 22px",
   },
   {
     titulo: "Cardiologia",
     exemplos: "Eletrocardiograma, ecocardiograma e teste ergométrico.",
-    termo: "Cardio",
     tag: "Diagnóstico",
     raioCard: "22px 6px 22px 22px",
   },
   {
     titulo: "Check-up Preventivo",
     exemplos: "Encontre exames preventivos no catálogo disponível.",
-    termo: "Check-up",
     tag: "Preventivo",
     raioCard: "6px 22px 22px 22px",
   },
@@ -108,13 +104,8 @@ export default function PaginaInicial() {
     return () => observador.disconnect();
   }, []);
 
-  function executarBusca(consulta) {
-    const consultaLimpa = consulta.trim();
-    if (!consultaLimpa) {
-      navegar("/busca");
-      return;
-    }
-    navegar(`/busca?q=${encodeURIComponent(consultaLimpa)}`);
+  function executarBusca(codigoExame) {
+    if (codigoExame) navegar(`/busca?codigoExame=${encodeURIComponent(codigoExame)}`);
   }
 
   return (
@@ -174,7 +165,7 @@ export default function PaginaInicial() {
               lineHeight="var(--leading-normal)"
               color="var(--color-text-muted)"
             >
-              Informe o exame ou seu convênio e veja onde atender{" "}
+              Selecione o exame e veja onde atender{" "}
               <Box
                 as="span"
                 color="var(--color-text-highlight)"
@@ -281,7 +272,7 @@ export default function PaginaInicial() {
               key={cat.titulo}
               as="button"
               type="button"
-              onClick={() => executarBusca(cat.termo)}
+              onClick={() => navegar("/busca")}
               direction="column"
               align="flex-start"
               justify="space-between"

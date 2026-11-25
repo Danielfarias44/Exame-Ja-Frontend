@@ -50,14 +50,9 @@ export function obterSessaoAtual() {
 }
 
 export async function validarSessaoAtual() {
-  try {
-    const { usuario } = await apiRequest("/api/auth/me");
-    return salvarSessao(usuario);
-  } catch (erro) {
-    if (erro.status >= 500 || !erro.status) throw erro;
-    sairDaConta();
-    return null;
-  }
+  // Session cookie is checked by protected API calls. Local session keeps
+  // navigation immediate; 401 responses clear it through httpClient events.
+  return obterSessaoAtual();
 }
 
 export function limparSessaoLocal() {
@@ -92,11 +87,14 @@ export async function encerrarSessao() {
 export async function entrarComEmailESenha({ email, senha, perfil = PERFIS.PACIENTE }) {
   if (!email?.trim() || !senha) throw new Error("Preencha e-mail e senha para continuar.");
   const tipoEsperado = perfil === PERFIS.PACIENTE ? "cliente" : perfil === PERFIS.CLINICA ? "clinica" : null;
-  if (!tipoEsperado) throw new Error("Este tipo de conta não pode entrar por este formulário.");
+  if (!tipoEsperado && perfil !== PERFIS.ADMIN) throw new Error("Este tipo de conta não pode entrar por este formulário.");
 
-  const credenciais = await apiPostWithCsrf("/api/auth/login", {
-    email: email.trim(),
-    senha,
+  const [csrf] = await Promise.all([apiRequest("/api/auth/csrf")]);
+  if (!csrf?.csrfToken) throw new Error("Não foi possível iniciar a validação de segurança. Tente novamente.");
+  const credenciais = await apiRequest("/api/auth/login", {
+    method: "POST",
+    headers: { "X-CSRF-Token": csrf.csrfToken },
+    body: JSON.stringify({ email: email.trim(), senha }),
   });
   if (!credenciais?.token || !credenciais?.usuario) {
     throw new Error("O servidor não retornou os dados necessários para iniciar a sessão.");
@@ -114,8 +112,7 @@ export async function entrarComEmailESenha({ email, senha, perfil = PERFIS.PACIE
       headers: { Authorization: `Bearer ${credenciais.token}` },
       body: JSON.stringify({}),
     });
-    const { usuario } = await apiRequest("/api/auth/me");
-    return salvarSessao(usuario);
+    return salvarSessao(credenciais.usuario);
   } catch (erro) {
     limparSessaoLocal();
     throw erro;
@@ -130,6 +127,7 @@ export async function registrarPaciente(dados) {
     senha: dados.senha,
     cpf: dados.cpf,
     telefone: dados.telefone || dados.celular || "",
+    convenios: dados.convenioId ? [dados.convenioId] : [],
   });
   return resposta;
 }
@@ -148,6 +146,7 @@ export async function registrarClinica(dados) {
     telefone: dados.telefone || dados.celular || "",
     endereco: (dados.endereco || dados.bairro || "").trim(),
     declaracaoVinculo: dados.declaracaoVinculo || "Declaro que sou responsável e tenho vínculo autorizado com esta clínica.",
+    conveniosAceitos: dados.conveniosAceitos || [],
   });
   return resposta;
 }

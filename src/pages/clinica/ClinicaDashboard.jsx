@@ -148,6 +148,11 @@ export default function ClinicaDashboard() {
   }
 
   async function salvarConvenios() {
+    if (conveniosSelecionados.length < 5) {
+      setErro("Selecione pelo menos cinco convênios aceitos para salvar.");
+      setMensagem("");
+      return;
+    }
     setErro("");
     setMensagem("");
     setSalvando(true);
@@ -356,8 +361,8 @@ export default function ClinicaDashboard() {
       <Card>
         <Stack gap={4}>
           <Box>
-            <Text as="h2" fontWeight="bold" fontSize="lg">Convênios aceitos ({conveniosSelecionados.length}/10)</Text>
-            <Text fontSize="sm" color="var(--color-text-muted)">Pacientes podem filtrar suas ofertas pelos convênios selecionados aqui.</Text>
+            <Text as="h2" fontWeight="bold" fontSize="lg">Convênios aceitos ({conveniosSelecionados.length}/10 selecionados · mínimo 5)</Text>
+            <Text fontSize="sm" color="var(--color-text-muted)">Selecione pelo menos cinco convênios. Os IDs do catálogo são usados para recomendar ofertas a pacientes compatíveis.</Text>
           </Box>
           <Flex wrap="wrap" gap={2}>
             {convenios.map((convenio) => {
@@ -366,7 +371,7 @@ export default function ClinicaDashboard() {
               return <Button key={convenio.id} type="button" size="sm" variant={selecionado ? "solid" : "outline"} disabled={bloqueado} onClick={() => alternarConvenio(convenio.id)}>{convenio.nome}</Button>;
             })}
           </Flex>
-          <Button type="button" variant="outline" disabled={salvando} onClick={salvarConvenios}>{salvando ? "Salvando..." : "Salvar convênios"}</Button>
+          <Button type="button" variant="outline" disabled={salvando || conveniosSelecionados.length < 5} onClick={salvarConvenios}>{salvando ? "Salvando..." : "Salvar convênios"}</Button>
         </Stack>
       </Card>
 
