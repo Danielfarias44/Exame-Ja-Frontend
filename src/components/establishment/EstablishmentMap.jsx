@@ -18,7 +18,7 @@ export default function EstablishmentMap({
   zoom = 14,
   label = "Mapa das clínicas",
 }) {
-  const withCoords = establishments.filter((e) => e.lat != null && e.lng != null);
+  const withCoords = establishments.filter((e) => Number.isFinite(e.lat) && Number.isFinite(e.lng));
   if (withCoords.length === 0) return null;
   const center = [withCoords[0].lat, withCoords[0].lng];
 

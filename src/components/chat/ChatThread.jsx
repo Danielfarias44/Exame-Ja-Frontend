@@ -21,6 +21,8 @@ export default function ChatThread({ conversa, participante, focarAoAbrir, onVol
   const [mensagens, setMensagens] = useState([]);
   const [proximoCursor, setProximoCursor] = useState(null);
   const [status, setStatus] = useState("loading");
+  const [erro, setErro] = useState("");
+  const [tentativa, setTentativa] = useState(0);
   const [carregandoAntigas, setCarregandoAntigas] = useState(false);
   const areaRef = useRef(null);
   const tituloRef = useRef(null);
@@ -32,6 +34,7 @@ export default function ChatThread({ conversa, participante, focarAoAbrir, onVol
   useEffect(() => {
     let ativo = true;
     setStatus("loading");
+    setErro("");
     rolarParaFimRef.current = true;
     listarMensagens(conversa.id)
       .then((resultado) => {
@@ -40,19 +43,38 @@ export default function ChatThread({ conversa, participante, focarAoAbrir, onVol
         setProximoCursor(resultado.proximoCursor);
         setStatus("success");
       })
-      .catch(() => ativo && setStatus("error"));
+      .catch((falha) => {
+        if (!ativo) return;
+        setErro(falha.message || "Verifique sua conexão e tente novamente.");
+        setStatus("error");
+      });
 
     const cancelar = assinarChat((evento) => {
       if (evento.tipo !== "nova-mensagem" || evento.conversaId !== conversa.id) return;
       rolarParaFimRef.current = true;
       setMensagens((atuais) => adicionarSemRepetir(atuais, evento.mensagem));
     });
+    const intervalo = window.setInterval(() => {
+      listarMensagens(conversa.id)
+        .then((resultado) => {
+          if (!ativo) return;
+          setErro("");
+          setMensagens((atuais) => [...resultado.mensagens].reverse().reduce(
+            (lista, mensagem) => adicionarSemRepetir(lista, mensagem),
+            atuais
+          ));
+        })
+        .catch((falha) => {
+          if (ativo) setErro(falha.message || "Não foi possível atualizar as mensagens.");
+        });
+    }, 10000);
 
     return () => {
       ativo = false;
       cancelar();
+      window.clearInterval(intervalo);
     };
-  }, [conversa.id]);
+  }, [conversa.id, tentativa]);
 
   useEffect(() => {
     if (focarAoAbrir) tituloRef.current?.focus();
@@ -72,11 +94,14 @@ export default function ChatThread({ conversa, participante, focarAoAbrir, onVol
     const alturaAntes = area?.scrollHeight ?? 0;
     try {
       const resultado = await listarMensagens(conversa.id, { cursor: proximoCursor });
+      setErro("");
       setMensagens((atuais) => [...[...resultado.mensagens].reverse(), ...atuais]);
       setProximoCursor(resultado.proximoCursor);
       requestAnimationFrame(() => {
         if (area) area.scrollTop = area.scrollHeight - alturaAntes;
       });
+    } catch (falha) {
+      setErro(falha.message || "Não foi possível carregar as mensagens anteriores.");
     } finally {
       setCarregandoAntigas(false);
     }
@@ -130,9 +155,7 @@ export default function ChatThread({ conversa, participante, focarAoAbrir, onVol
             Carregando mensagens...
           </Text>
         )}
-        {status === "error" && (
-          <ErrorState title="Não foi possível abrir a conversa" description="Tente novamente em instantes." />
-        )}
+        {erro && <Box role="alert" mb="var(--space-3)"><ErrorState title={status === "error" ? "Não foi possível abrir a conversa" : "Problema ao atualizar a conversa"} description={erro} onRetry={() => { setErro(""); setTentativa((atual) => atual + 1); }} /></Box>}
         {status === "success" && (
           <Stack gap="var(--space-3)">
             {proximoCursor && (
@@ -145,7 +168,7 @@ export default function ChatThread({ conversa, participante, focarAoAbrir, onVol
             {mensagens.length === 0 ? (
               <Text fontSize="var(--text-sm)" color="var(--color-text-muted)" textAlign="center">
                 {souCliente
-                  ? "Escreva sua dúvida sobre preparo, convênio ou horários."
+                  ? "Escreva sua dúvida sobre exames, convênios ou horários."
                   : "Nenhuma mensagem nesta conversa ainda."}
               </Text>
             ) : (

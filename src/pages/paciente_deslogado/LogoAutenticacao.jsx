@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { Box, Flex, Image } from "@chakra-ui/react";
 import logoClaro from "@/assets/exame-ja_horizontal.png";
-import logoEscuro from "@/assets/exame-ja_negativa.png";
 
 function verificarTemaEscuro() {
   if (typeof document === "undefined") return false;
@@ -51,11 +50,13 @@ export default function LogoAutenticacao() {
       >
         <RouterLink to="/" aria-label="Voltar para a página inicial do Exame Já">
           <Image
-            src={temaEscuro ? logoEscuro : logoClaro}
+            src={logoClaro}
             alt="Exame Já"
             h={{ base: "38px", sm: "44px" }}
             w="auto"
             objectFit="contain"
+            filter={temaEscuro ? "brightness(0) invert(1)" : "none"}
+            transition="filter var(--duration-base) var(--ease-standard)"
           />
         </RouterLink>
       </Box>

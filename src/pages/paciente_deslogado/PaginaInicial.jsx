@@ -16,16 +16,15 @@ import {
 import IlustracaoInterativaHero from "@/components/landing/IlustracaoInterativaHero";
 import VitrineFuncionalidades from "@/components/landing/VitrineFuncionalidades";
 import SecaoConvenios from "@/components/landing/SecaoConvenios";
-import CarrosselDepoimentos from "@/components/landing/CarrosselDepoimentos";
 import SecaoFaq from "@/components/landing/SecaoFaq";
 import SearchBar from "@/components/establishment/SearchBar";
 import fotoLaboratorio from "@/assets/laboratorio-exame.jpeg";
 import fotoClinica from "@/assets/clinica-atendimento.jpeg";
 
 const INDICADORES_CONFIANCA = [
-  { destaque: "Preço transparente", descricao: "Saiba o valor antes de agendar" },
-  { destaque: "Convênio ou particular", descricao: "Filtre clínicas em segundos" },
-  { destaque: "Alertas de preparo", descricao: "Avisos de jejum no app e e-mail" },
+  { destaque: "Preços disponíveis", descricao: "Consulte valores publicados pelas clínicas" },
+  { destaque: "Convênio ou particular", descricao: "Encontre ofertas conforme seu plano" },
+  { destaque: "Busca por localização", descricao: "Veja clínicas próximas no mapa" },
 ];
 
 const CATEGORIAS_EXAMES = [
@@ -33,28 +32,28 @@ const CATEGORIAS_EXAMES = [
     titulo: "Análises Clínicas",
     exemplos: "Hemograma, glicemia, colesterol e hormônios.",
     termo: "Sangue",
-    tag: "Coleta rápida",
+    tag: "Laboratório",
     raioCard: "22px 22px 22px 6px",
   },
   {
     titulo: "Diagnóstico por Imagem",
     exemplos: "Ultrassom, Raio-X, tomografia e ressonância.",
     termo: "Imagem",
-    tag: "Laudo digital",
+    tag: "Imagem",
     raioCard: "22px 22px 6px 22px",
   },
   {
     titulo: "Cardiologia",
     exemplos: "Eletrocardiograma, ecocardiograma e teste ergométrico.",
     termo: "Cardio",
-    tag: "Especialistas",
+    tag: "Diagnóstico",
     raioCard: "22px 6px 22px 22px",
   },
   {
     titulo: "Check-up Preventivo",
-    exemplos: "Pacotes completos com histórico organizado.",
+    exemplos: "Encontre exames preventivos no catálogo disponível.",
     termo: "Check-up",
-    tag: "Pacotes",
+    tag: "Preventivo",
     raioCard: "6px 22px 22px 22px",
   },
 ];
@@ -64,19 +63,19 @@ const ETAPAS_FUNCIONAMENTO = [
     numero: "01",
     antesDestaque: "Escolha a clínica ",
     destaque: "ideal",
-    descricao: "Compare preço, distância, convênios e avaliações reais.",
+    descricao: "Consulte preço, distância e convênios das ofertas disponíveis.",
   },
   {
     numero: "02",
-    antesDestaque: "Agende ou tire dúvidas",
+    antesDestaque: "Escolha uma oferta",
     destaque: "",
-    descricao: "Solicite horário online ou fale direto no chat da unidade.",
+    descricao: "Veja os dados da clínica e tire dúvidas pelo chat.",
   },
   {
     numero: "03",
-    antesDestaque: "Vá preparado e ",
-    destaque: "sem filas",
-    descricao: "Receba lembretes de jejum e salve tudo no seu histórico.",
+    antesDestaque: "Entre em contato com a ",
+    destaque: "clínica",
+    descricao: "Confirme diretamente com a unidade a disponibilidade e as orientações do exame.",
   },
 ];
 
@@ -89,6 +88,10 @@ export default function PaginaInicial() {
     if (!conteiner) return;
 
     const elementos = conteiner.querySelectorAll(".revelar-secao");
+    if (!window.IntersectionObserver || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      elementos.forEach((elemento) => elemento.classList.add("visivel"));
+      return;
+    }
     const observador = new IntersectionObserver(
       (entradas) => {
         entradas.forEach((entrada) => {
@@ -179,7 +182,7 @@ export default function PaginaInicial() {
               >
                 perto de você
               </Box>
-              , com preço e preparo claros antes de sair de casa.
+              , com ofertas e informações de localização disponíveis para consulta.
             </Text>
 
             <Box w="100%" maxW="500px" pt={1}>
@@ -286,6 +289,7 @@ export default function PaginaInicial() {
               w="100%"
               minW="0"
               p={5}
+              className="landing-cartao"
               bg="var(--color-surface)"
               border="1px solid var(--color-border-soft)"
               borderRadius={cat.raioCard}
@@ -472,7 +476,7 @@ export default function PaginaInicial() {
               <VStack align="stretch" gap={2} fontSize="0.78rem" color="var(--color-text-muted)">
                 <Text>• Demora no telefone ou WhatsApp</Text>
                 <Text>• Preço descoberto só na hora</Text>
-                <Text>• Risco de esquecer o jejum</Text>
+                <Text>• Dificuldade para comparar opções</Text>
               </VStack>
             </Box>
 
@@ -488,9 +492,9 @@ export default function PaginaInicial() {
                 Com o Exame Já
               </Badge>
               <VStack align="stretch" gap={2} fontSize="0.78rem" color="var(--color-text)">
-                <Text>✓ Valores e notas na hora</Text>
+                <Text>✓ Valores e distância das ofertas</Text>
                 <Text>✓ Filtro direto pelo convênio</Text>
-                <Text>✓ Alertas automáticos de preparo</Text>
+                <Text>✓ Busca por exame, convênio e localização</Text>
               </VStack>
             </Box>
           </SimpleGrid>
@@ -524,7 +528,7 @@ export default function PaginaInicial() {
               </Heading>
 
               <Text fontFamily="var(--font-body)" fontSize="0.82rem" color="var(--color-text-muted)" mb={5} maxW="520px">
-                Cadastre sua unidade, divulgue seus convênios e reduza faltas com lembretes automáticos.
+                Cadastre sua unidade, publique ofertas de exames e informe os convênios aceitos.
               </Text>
 
               <Button
@@ -567,10 +571,7 @@ export default function PaginaInicial() {
         </Container>
       </Box>
 
-      {/* 7. DEPOIMENTOS ANIMADOS */}
-       <CarrosselDepoimentos/>
-
-      {/* 8. PERGUNTAS FREQUENTES */}
+      {/* 7. PERGUNTAS FREQUENTES */}
       <SecaoFaq />
     </Box>
   );

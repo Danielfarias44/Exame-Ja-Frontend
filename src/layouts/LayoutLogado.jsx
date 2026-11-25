@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
+import { Link as RouterLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Badge,
   Box,
@@ -10,11 +10,9 @@ import {
   Text,
 } from "@chakra-ui/react";
 import logoClara from "@/assets/exame-ja_horizontal.png";
-import logoEscura from "@/assets/exame-ja_negativa.png";
-import {
-  obterNotificacoesPaciente,
-  obterPerfilPaciente,
-} from "@/services/pacienteLogadoService";
+import { encerrarSessao, obterSessaoAtual } from "@/services/autenticacaoService";
+import { apiRequest } from "@/services/httpClient";
+import { useTema } from "@/hooks/useTema";
 
 const LINKS_BARRA_INFERIOR = [
   {
@@ -28,24 +26,24 @@ const LINKS_BARRA_INFERIOR = [
     ),
   },
   {
-    rotulo: "Buscar",
-    rota: "/paciente/mapa",
-    icone: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
-    ),
-  },
-  {
-    rotulo: "Agendar",
-    rota: "/paciente/agendar",
+    rotulo: "Agendamentos",
+    rota: "/paciente/agendamentos",
     icone: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
         <line x1="16" y1="2" x2="16" y2="6" />
         <line x1="8" y1="2" x2="8" y2="6" />
         <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+    ),
+  },
+  {
+    rotulo: "Buscar",
+    rota: "/paciente/mapa",
+    icone: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
     ),
   },
@@ -73,54 +71,50 @@ const LINKS_BARRA_INFERIOR = [
 const LINKS_DESKTOP = [
   { rotulo: "Início", rota: "/paciente" },
   { rotulo: "Buscar no Mapa", rota: "/paciente/mapa" },
-  { rotulo: "Agendar", rota: "/paciente/agendar" },
-  { rotulo: "Meus Exames", rota: "/paciente/agendamentos" },
+  { rotulo: "Agendamentos", rota: "/paciente/agendamentos" },
   { rotulo: "Histórico", rota: "/paciente/historico" },
   { rotulo: "Chat", rota: "/paciente/chat" },
+  { rotulo: "Perfil", rota: "/paciente/perfil" },
 ];
 
 export default function LayoutLogado() {
   const location = useLocation();
+  const navegar = useNavigate();
 
-  const [temaEscuro, setTemaEscuro] = useState(() =>
-    document.documentElement.classList.contains("dark")
-  );
+  const { ehEscuro, alternarTema } = useTema();
   const [naoLidas, setNaoLidas] = useState(0);
-  const [iniciaisUsuario, setIniciaisUsuario] = useState("MC");
+  const [iniciaisUsuario, setIniciaisUsuario] = useState(() => obterIniciais(obterSessaoAtual()?.nome));
+  const [erroSaida, setErroSaida] = useState("");
+
+  useEffect(() => {
+    const atualizarIniciais = () => setIniciaisUsuario(obterIniciais(obterSessaoAtual()?.nome));
+    window.addEventListener("exameja:sessao-alterada", atualizarIniciais);
+    return () => window.removeEventListener("exameja:sessao-alterada", atualizarIniciais);
+  }, []);
 
   useEffect(() => {
     let ativo = true;
-
-    function carregarCabecalho() {
-      Promise.all([obterNotificacoesPaciente(), obterPerfilPaciente()]).then(
-        ([notificacoes, perfil]) => {
-          if (!ativo) return;
-          setNaoLidas(notificacoes.filter((n) => !n.lida).length);
-          if (perfil?.nomeCompleto) {
-            const partes = perfil.nomeCompleto.trim().split(" ");
-            const iniciais =
-              partes.length > 1
-                ? `${partes[0][0]}${partes[partes.length - 1][0]}`
-                : partes[0].slice(0, 2);
-            setIniciaisUsuario(iniciais.toUpperCase());
-          }
-        }
-      );
-    }
-
-    carregarCabecalho();
-    window.addEventListener("paciente-estado-atualizado", carregarCabecalho);
+    const carregarNotificacoes = () => apiRequest("/api/users/notifications?limit=50")
+      .then((resultado) => {
+        if (ativo) setNaoLidas((resultado.notificacoes ?? []).filter((item) => !item.lida).length);
+      })
+      .catch(() => { if (ativo) setNaoLidas(0); });
+    carregarNotificacoes();
+    window.addEventListener("exameja:notificacoes-atualizadas", carregarNotificacoes);
     return () => {
       ativo = false;
-      window.removeEventListener("paciente-estado-atualizado", carregarCabecalho);
+      window.removeEventListener("exameja:notificacoes-atualizadas", carregarNotificacoes);
     };
-  }, [location.pathname]);
+  }, []);
 
-  function alternarTema() {
-    const proximo = !temaEscuro;
-    setTemaEscuro(proximo);
-    document.documentElement.classList.toggle("dark", proximo);
-    localStorage.setItem("tema", proximo ? "dark" : "light");
+  async function sair() {
+    setErroSaida("");
+    try {
+      await encerrarSessao();
+      navegar("/", { replace: true });
+    } catch {
+      setErroSaida("Não foi possível encerrar a sessão. Verifique sua conexão e tente novamente.");
+    }
   }
 
   function rotaEstaAtiva(rota) {
@@ -154,9 +148,10 @@ export default function LayoutLogado() {
               style={{ display: "inline-flex", alignItems: "center" }}
             >
               <img
-                src={temaEscuro ? logoEscura : logoClara}
+                src={logoClara}
                 alt="Exame Já"
                 style={{ height: "32px", width: "auto" }}
+                className={ehEscuro ? "logo-tema-escuro" : undefined}
               />
             </RouterLink>
 
@@ -212,7 +207,7 @@ export default function LayoutLogado() {
                 onClick={alternarTema}
                 aria-label="Alternar tema"
               >
-                {temaEscuro ? "☀" : "☾"}
+                {ehEscuro ? "☀" : "☾"}
               </Button>
 
               <Button
@@ -283,10 +278,15 @@ export default function LayoutLogado() {
               >
                 <RouterLink to="/paciente/perfil">{iniciaisUsuario}</RouterLink>
               </Box>
+              <Button type="button" size="sm" variant="ghost" onClick={sair} aria-label="Sair da conta">
+                Sair
+              </Button>
             </HStack>
           </Flex>
         </Container>
       </Box>
+
+      {erroSaida && <Text role="alert" textAlign="center" color="var(--color-error)" fontSize="var(--text-sm)" py={2}>{erroSaida}</Text>}
 
       {/* Conteúdo das Telas */}
       <Box as="main" flex="1" pb={{ base: "86px", lg: 12 }}>
@@ -343,4 +343,10 @@ export default function LayoutLogado() {
       </Box>
     </Flex>
   );
+}
+
+function obterIniciais(nome = "") {
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return "U";
+  return (partes.length > 1 ? `${partes[0][0]}${partes.at(-1)[0]}` : partes[0].slice(0, 2)).toUpperCase();
 }

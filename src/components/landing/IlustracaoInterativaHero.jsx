@@ -4,45 +4,44 @@ import { Badge, Box, Flex, HStack, Text, VStack } from "@chakra-ui/react";
 const CENARIOS_INTERATIVOS = [
   {
     id: "preco",
-    aba: "Preço claro",
-    exame: "Hemograma Completo",
-    clinica: "LabVida Diagnósticos • Umarizal",
-    distancia: "1,4 km de você",
-    valor: "R$ 45,00",
-    selo: "Menor preço da região",
+    aba: "Preços",
+    exame: "Ofertas de exames",
+    clinica: "Valores publicados pelas clínicas",
+    distancia: "Ordene por menor preço",
+    valor: "Consultar",
+    selo: "Filtro por preço",
     corSeloBg: "var(--color-success-soft)",
     corSeloTexto: "var(--color-success)",
-    observacao: "Resultado digital no mesmo dia às 17h",
+    observacao: "Compare os valores disponíveis para o exame selecionado.",
   },
   {
     id: "convenio",
     aba: "Convênio",
-    exame: "Ultrassonografia Abdominal",
-    clinica: "Centro Médico Nazaré • Belém",
-    distancia: "2,1 km de você",
-    valor: "Coberto (Unimed)",
-    selo: "Aceita seu plano",
+    exame: "Ofertas por convênio",
+    clinica: "Planos cadastrados pelas clínicas",
+    distancia: "Filtre pelo seu plano",
+    valor: "Consultar",
+    selo: "Filtro por convênio",
     corSeloBg: "var(--color-primary-soft)",
     corSeloTexto: "var(--color-primary)",
-    observacao: "Horários disponíveis amanhã a partir das 08:00",
+    observacao: "A cobertura deve ser confirmada diretamente com a unidade.",
   },
   {
-    id: "preparo",
-    aba: "Preparo",
-    exame: "Glicemia e Colesterol Total",
-    clinica: "Clínica São Lucas • Marco",
-    distancia: "900 m de você",
-    valor: "R$ 58,00",
-    selo: "Alerta de jejum ativo",
+    id: "mapa",
+    aba: "Mapa",
+    exame: "Clínicas próximas",
+    clinica: "Resultados com endereço e localização",
+    distancia: "Busca por endereço ou GPS",
+    valor: "Explorar",
+    selo: "Mapa interativo",
     corSeloBg: "var(--color-accent-soft)",
     corSeloTexto: "var(--color-accent)",
-    observacao: "Jejum obrigatório de 8 a 12 horas (água permitida)",
+    observacao: "Informe sua localização para encontrar ofertas na região.",
   },
 ];
 
 /**
- * Vitrine interativa do Hero com formas geométricas orbitais
- * e simulação real de consulta de exame, preço, convênio e preparo.
+ * Vitrine ilustrativa interativa para apresentar filtros e localização.
  */
 export default function IlustracaoInterativaHero() {
   const [indiceAtivo, setIndiceAtivo] = useState(0);
@@ -142,6 +141,7 @@ export default function IlustracaoInterativaHero() {
       <Box
         position="relative"
         zIndex={1}
+        className="landing-cartao"
         bg="var(--color-surface)"
         border="1px solid var(--color-border-soft)"
         borderRadius="var(--radius-lg)"
@@ -184,7 +184,7 @@ export default function IlustracaoInterativaHero() {
                 fontSize="0.88rem"
                 color="var(--color-text)"
               >
-                Simulação em tempo real
+                Prévia da experiência
               </Text>
               <Text
                 fontFamily="var(--font-body)"
@@ -212,6 +212,8 @@ export default function IlustracaoInterativaHero() {
 
         {/* Detalhes do exame selecionado */}
         <Box
+          key={cenario.id}
+          className="cenario-entrada"
           p={4}
           borderRadius="var(--radius-md)"
           bg="var(--color-bg)"
@@ -284,6 +286,7 @@ export default function IlustracaoInterativaHero() {
                   as="button"
                   type="button"
                   onClick={() => setIndiceAtivo(idx)}
+                  aria-pressed={ativo}
                   flex="1"
                   minW="92px"
                   minH="40px"

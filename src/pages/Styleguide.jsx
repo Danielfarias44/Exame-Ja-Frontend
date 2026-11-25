@@ -62,7 +62,7 @@ export default function Styleguide() {
         <Card>
           <PageHeader
             title="Notificações"
-            description="Acompanhe confirmações de agendamento e lembretes de preparo."
+            description="Acompanhe atualizações dos seus agendamentos."
             badge={<StatusBadge solid>2 novas</StatusBadge>}
             actions={<Button variant="outline">Marcar todas como lidas</Button>}
           />
@@ -80,7 +80,7 @@ export default function Styleguide() {
         <Flex wrap="wrap" gap="var(--space-2)">
           <StatusBadge>Agendado</StatusBadge>
           <StatusBadge tone="success">Confirmado</StatusBadge>
-          <StatusBadge tone="warning">Aguardando preparo</StatusBadge>
+          <StatusBadge tone="warning">Aguardando confirmação</StatusBadge>
           <StatusBadge tone="error">Cancelado</StatusBadge>
           <StatusBadge tone="accent">Novo</StatusBadge>
           <StatusBadge tone="neutral">Concluído</StatusBadge>
@@ -92,7 +92,7 @@ export default function Styleguide() {
         <Card p="0" overflow="hidden">
           <Stack as="ul" role="list" gap="var(--space-3)" m={0} p="var(--space-4)" listStyleType="none" bg="var(--color-bg)">
             <MessageBubble
-              mensagem={{ id: "1", texto: "Para o hemograma eu preciso ficar em jejum?", criadoEm: new Date().toISOString() }}
+              mensagem={{ id: "1", texto: "A clínica atende este exame pelo meu convênio?", criadoEm: new Date().toISOString() }}
               minha
             />
             <MessageBubble

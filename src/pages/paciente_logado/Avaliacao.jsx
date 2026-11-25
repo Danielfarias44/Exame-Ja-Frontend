@@ -1,308 +1,86 @@
-import { useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  Heading,
-  Text,
-  Textarea,
-  VStack,
-} from "@chakra-ui/react";
-import {
-  obterDadosPacienteLogado,
-  registrarAvaliacaoAgendamento,
-} from "@/services/pacienteLogadoService";
-
-const SELOS_ATENDIMENTO = [
-  "Pontualidade",
-  "Atendimento cordial",
-  "Ambiente limpo e organizado",
-  "Coleta rápida e cuidadosa",
-  "Resultado entregue no prazo",
-];
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Button, Container, Stack, Text, Textarea } from "@chakra-ui/react";
+import PageHeader from "@/components/ui/PageHeader";
+import Card from "@/components/ui/Card";
+import ErrorState from "@/components/ui/ErrorState";
+import ListSkeleton from "@/components/ui/Skeleton";
+import FeedbackErro from "@/components/ui/FeedbackErro";
+import { createReview, getAppointment } from "@/services/api";
 
 export default function Avaliacao() {
-  const [searchParams] = useSearchParams();
+  const [params] = useSearchParams();
   const navegar = useNavigate();
+  const agendamentoId = params.get("id") || "";
+  const [agendamento, setAgendamento] = useState(null);
+  const [nota, setNota] = useState(5);
+  const [comentario, setComentario] = useState("");
+  const [status, setStatus] = useState("loading");
+  const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [jaAvaliado, setJaAvaliado] = useState(false);
 
-  const agendamentoId = searchParams.get("id");
-  const agendamento = useMemo(() => {
-    const { agendamentos } = obterDadosPacienteLogado();
-    return (
-      agendamentos.find((ag) => ag.id === agendamentoId) ||
-      agendamentos.find((ag) => ag.status === "Concluído")
-    );
+  useEffect(() => {
+    let ativo = true;
+    if (!agendamentoId) return () => { ativo = false; };
+    getAppointment(agendamentoId).then((resposta) => {
+      if (!ativo) return;
+      const dados = resposta.agendamento ?? resposta;
+      if (dados.status !== "concluido") throw new Error("Só é possível avaliar agendamentos concluídos.");
+      setAgendamento(dados);
+      const avaliacaoExistente = dados.avaliacao ?? dados.review;
+      if (dados.avaliado === true || dados.avaliacaoId || dados.reviewId || avaliacaoExistente) {
+        setJaAvaliado(true);
+      }
+      setStatus("ready");
+    }).catch((falha) => {
+      if (!ativo) return;
+      setErro(falha.message || "Não foi possível carregar o agendamento.");
+      setStatus("error");
+    });
+    return () => { ativo = false; };
   }, [agendamentoId]);
 
-  const [nota, setNota] = useState(5);
-  const [selos, setSelos] = useState(["Pontualidade"]);
-  const [comentario, setComentario] = useState("");
-
-  function alternarSelo(selo) {
-    setSelos((atual) =>
-      atual.includes(selo)
-        ? atual.filter((item) => item !== selo)
-        : [...atual, selo]
-    );
-  }
-
-  function enviarAvaliacao(evento) {
+  async function enviar(evento) {
     evento.preventDefault();
-    if (!agendamento) return;
-
-    registrarAvaliacaoAgendamento(agendamento.id, {
-      nota,
-      selos,
-      comentario: comentario.trim(),
-    });
-
-    navegar("/paciente/historico");
+    setErro("");
+    setEnviando(true);
+    try {
+      await createReview({ agendamentoId, nota, ...(comentario.trim() ? { comentario: comentario.trim() } : {}) });
+      navegar(`/estabelecimento/${encodeURIComponent(agendamento.clinicaUid)}`, { replace: true });
+    } catch (falha) {
+      if (falha.status === 409) {
+        setJaAvaliado(true);
+        setErro("A API informou que este atendimento já possui uma avaliação ou não aceita outra avaliação para ele.");
+      } else {
+        setErro(falha.message || "Não foi possível enviar a avaliação.");
+      }
+      setEnviando(false);
+    }
   }
 
-  if (!agendamento) {
-    return (
-      <Container maxW="760px" px={{ base: 4, md: 6 }} py={8}>
-        <Box
-          p={8}
-          textAlign="center"
-          bg="var(--color-surface)"
-          border="1px solid var(--color-border-soft)"
-          borderRadius="var(--radius-lg)"
-        >
-          <Text
-            fontFamily="var(--font-heading)"
-            fontWeight={600}
-            color="var(--color-text)"
-            mb={3}
-          >
-            Atendimento não encontrado para avaliação
-          </Text>
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => navegar("/paciente/historico")}
-            bg="var(--color-primary)"
-            color="var(--color-text-on-primary)"
-          >
-            Voltar ao histórico
-          </Button>
-        </Box>
-      </Container>
-    );
-  }
+  if (!agendamentoId) return <Container py={8}><ErrorState title="Avaliação indisponível" description="Selecione um agendamento concluído no histórico para avaliá-lo." /></Container>;
+  if (status === "loading") return <Container py={8}><ListSkeleton count={1} /></Container>;
+  if (status === "error") return <Container py={8}><ErrorState title="Avaliação indisponível" description={erro} /></Container>;
 
   return (
-    <Container
-      maxW="760px"
-      px={{ base: 4, md: 6 }}
-      py={{ base: 6, md: 8 }}
-      pb={{ base: "110px", md: 12 }}
-      className="animar-entrada"
-    >
-      <Box mb={6}>
-        <Heading
-          as="h1"
-          fontFamily="var(--font-heading)"
-          fontWeight="var(--weight-bold)"
-          fontSize={{ base: "1.5rem", md: "1.9rem" }}
-          color="var(--color-text)"
-          mb={1}
-        >
-          Avaliar Atendimento
-        </Heading>
-        <Text
-          fontFamily="var(--font-body)"
-          fontSize="0.92rem"
-          color="var(--color-text-muted)"
-        >
-          Sua avaliação ajuda outros pacientes a escolherem a melhor clínica.
-        </Text>
-      </Box>
-
-      <Box
-        as="form"
-        onSubmit={enviarAvaliacao}
-        p={{ base: 5, md: 7 }}
-        bg="var(--color-surface)"
-        border="1px solid var(--color-border-soft)"
-        borderRadius="var(--radius-lg)"
-        boxShadow="var(--shadow-sm)"
-      >
-        <VStack align="stretch" gap={5}>
-          <Box
-            p={4}
-            borderRadius="var(--radius-md)"
-            bg="var(--color-bg)"
-            border="1px solid var(--color-border-soft)"
-          >
-            <Text
-              fontFamily="var(--font-heading)"
-              fontWeight={700}
-              fontSize="1rem"
-              color="var(--color-text)"
-            >
-              {agendamento.exameNome || agendamento.exame}
-            </Text>
-            <Text
-              fontFamily="var(--font-body)"
-              fontSize="0.84rem"
-              color="var(--color-text-muted)"
-            >
-              {agendamento.clinicaNome || agendamento.clinica} —{" "}
-              {agendamento.unidade} • {agendamento.data}
-            </Text>
-          </Box>
-
-          <Box>
-            <Text
-              fontFamily="var(--font-heading)"
-              fontWeight={600}
-              fontSize="0.9rem"
-              color="var(--color-text)"
-              mb={2}
-            >
-              Nota geral ({nota} de 5)
-            </Text>
-            <Flex gap={2}>
-              {[1, 2, 3, 4, 5].map((valor) => {
-                const ativo = valor <= nota;
-                return (
-                  <Box
-                    key={valor}
-                    as="button"
-                    type="button"
-                    w="44px"
-                    h="44px"
-                    borderRadius="var(--radius-md)"
-                    bg={
-                      ativo
-                        ? "var(--color-primary)"
-                        : "var(--color-bg)"
-                    }
-                    color={
-                      ativo
-                        ? "var(--color-text-on-primary)"
-                        : "var(--color-text-muted)"
-                    }
-                    border="1px solid"
-                    borderColor={
-                      ativo
-                        ? "var(--color-primary)"
-                        : "var(--color-border-soft)"
-                    }
-                    fontFamily="var(--font-heading)"
-                    fontWeight={700}
-                    fontSize="1rem"
-                    cursor="pointer"
-                    onClick={() => setNota(valor)}
-                  >
-                    {valor}
-                  </Box>
-                );
-              })}
-            </Flex>
-          </Box>
-
-          <Box>
-            <Text
-              fontFamily="var(--font-heading)"
-              fontWeight={600}
-              fontSize="0.9rem"
-              color="var(--color-text)"
-              mb={2}
-            >
-              O que mais se destacou?
-            </Text>
-            <Flex gap={2} flexWrap="wrap">
-              {SELOS_ATENDIMENTO.map((selo) => {
-                const ativo = selos.includes(selo);
-                return (
-                  <Box
-                    key={selo}
-                    as="button"
-                    type="button"
-                    px={3.5}
-                    minH="36px"
-                    borderRadius="var(--radius-full)"
-                    bg={
-                      ativo
-                        ? "var(--color-primary-soft)"
-                        : "var(--color-bg)"
-                    }
-                    color={
-                      ativo
-                        ? "var(--color-primary)"
-                        : "var(--color-text-muted)"
-                    }
-                    border="1px solid"
-                    borderColor={
-                      ativo
-                        ? "var(--color-primary)"
-                        : "var(--color-border-soft)"
-                    }
-                    fontFamily="var(--font-heading)"
-                    fontWeight={600}
-                    fontSize="0.82rem"
-                    cursor="pointer"
-                    onClick={() => alternarSelo(selo)}
-                  >
-                    {selo}
-                  </Box>
-                );
-              })}
-            </Flex>
-          </Box>
-
-          <Box>
-            <Text
-              fontFamily="var(--font-heading)"
-              fontWeight={600}
-              fontSize="0.9rem"
-              color="var(--color-text)"
-              mb={1.5}
-            >
-              Comentário (opcional)
-            </Text>
-            <Textarea
-              value={comentario}
-              onChange={(e) => setComentario(e.target.value)}
-              placeholder="Conte como foi sua experiência na unidade..."
-              rows={3}
-              bg="var(--color-bg)"
-              color="var(--color-text)"
-              borderColor="var(--color-border-soft)"
-              borderRadius="var(--radius-md)"
-            />
-          </Box>
-
-          <Flex justify="flex-end" gap={3}>
-            <Button
-              type="button"
-              variant="outline"
-              borderColor="var(--color-border-soft)"
-              color="var(--color-text)"
-              onClick={() => navegar("/paciente/historico")}
-              fontFamily="var(--font-heading)"
-              fontWeight={600}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              bg="var(--color-primary)"
-              _hover={{ bg: "var(--color-primary-hover)" }}
-              color="var(--color-text-on-primary)"
-              fontFamily="var(--font-heading)"
-              fontWeight="var(--weight-bold)"
-              px={6}
-            >
-              Enviar avaliação
-            </Button>
-          </Flex>
-        </VStack>
-      </Box>
+    <Container maxW="720px" px={{ base: 4, md: 6 }} py={8} pb={{ base: "110px", md: 12 }}>
+      <PageHeader title="Avaliar atendimento" description="Sua avaliação só será publicada vinculada a este atendimento concluído." />
+      <Card>
+        {jaAvaliado && <Text role="status" mb={4} color="var(--color-text-muted)">Este atendimento não está disponível para uma nova avaliação. {erro}</Text>}
+        <Stack as="form" onSubmit={enviar} gap={4}>
+          <Text><strong>{agendamento.nomeExame}</strong> · {agendamento.clinicaNome || agendamento.nomeClinica || agendamento.clinica?.nomeFantasia || agendamento.clinica?.nome || `Clínica ${agendamento.clinicaUid}`}</Text>
+          <label htmlFor="notaAvaliacao">Nota</label>
+          <select id="notaAvaliacao" value={nota} onChange={(evento) => setNota(Number(evento.target.value))} disabled={jaAvaliado}>
+            {[5, 4, 3, 2, 1].map((valor) => <option key={valor} value={valor}>{valor} {valor === 1 ? "estrela" : "estrelas"}</option>)}
+          </select>
+          <label htmlFor="comentarioAvaliacao">Comentário (opcional, até 1000 caracteres)</label>
+          <Textarea id="comentarioAvaliacao" value={comentario} onChange={(evento) => setComentario(evento.target.value.slice(0, 1000))} maxLength={1000} rows={5} disabled={jaAvaliado} />
+          {!jaAvaliado && <FeedbackErro mensagem={erro} titulo="Não foi possível enviar a avaliação" />}
+          {!jaAvaliado && <Button type="submit" disabled={enviando}>{enviando ? "Enviando avaliação..." : "Enviar avaliação"}</Button>}
+          <Button asChild variant="outline"><Link to="/paciente/historico">Voltar ao histórico</Link></Button>
+        </Stack>
+      </Card>
     </Container>
   );
 }

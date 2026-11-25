@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { Box, Grid, Text } from "@chakra-ui/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Box, Button as ChakraButton, Flex, Grid, Text } from "@chakra-ui/react";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import ListSkeleton from "@/components/ui/Skeleton";
@@ -13,22 +13,59 @@ export default function ChatPanel({ participante, conversaInicialId, vazio }) {
   const [conversaAtivaId, setConversaAtivaId] = useState(conversaInicialId ?? null);
   const [abertaNoCelular, setAbertaNoCelular] = useState(Boolean(conversaInicialId));
   const [escolhidaPelaPessoa, setEscolhidaPelaPessoa] = useState(false);
+  const [erro, setErro] = useState("");
+  const [proximoCursor, setProximoCursor] = useState(null);
+  const [carregandoMais, setCarregandoMais] = useState(false);
+  const carregouTodasRef = useRef(false);
 
   const souCliente = participante.tipo === "cliente";
 
-  const carregar = useCallback(() => {
-    return listarConversas()
-      .then((resultado) => {
-        setConversas(resultado.conversas);
-        setConversaAtivaId((atual) => atual ?? resultado.conversas[0]?.id ?? null);
-        setStatus("success");
-      })
-      .catch(() => setStatus("error"));
+  const carregar = useCallback(async () => {
+    try {
+      const resultado = await listarConversas();
+      setConversas((atuais) => {
+        const idsRecentes = new Set(resultado.conversas.map((item) => item.id));
+        const antigas = atuais.filter((item) => !idsRecentes.has(item.id));
+        return [...resultado.conversas, ...antigas];
+      });
+      if (!resultado.proximoCursor) carregouTodasRef.current = true;
+      if (!carregouTodasRef.current) setProximoCursor((atual) => atual ?? resultado.proximoCursor ?? null);
+      setConversaAtivaId((atual) => atual ?? resultado.conversas[0]?.id ?? null);
+      setErro("");
+      setStatus("success");
+    } catch (falha) {
+      setErro(falha.message || "Verifique sua conexão e tente novamente.");
+      setStatus((atual) => atual === "success" ? atual : "error");
+    }
   }, []);
+
+  const carregarMais = useCallback(async () => {
+    if (!proximoCursor || carregandoMais) return;
+    setCarregandoMais(true);
+    try {
+      const pagina = await listarConversas({ cursor: proximoCursor });
+      setConversas((atuais) => {
+        const ids = new Set(atuais.map((item) => item.id));
+        return [...atuais, ...pagina.conversas.filter((item) => !ids.has(item.id))];
+      });
+      setProximoCursor(pagina.proximoCursor ?? null);
+      if (!pagina.proximoCursor) carregouTodasRef.current = true;
+      setErro("");
+    } catch (falha) {
+      setErro(falha.message || "Não foi possível carregar mais conversas.");
+    } finally {
+      setCarregandoMais(false);
+    }
+  }, [proximoCursor, carregandoMais]);
 
   useEffect(() => {
     carregar();
-    return assinarChat(() => carregar());
+    const cancelar = assinarChat(() => carregar());
+    const intervalo = window.setInterval(carregar, 10000);
+    return () => {
+      cancelar();
+      window.clearInterval(intervalo);
+    };
   }, [carregar]);
 
   useEffect(() => {
@@ -37,6 +74,11 @@ export default function ChatPanel({ participante, conversaInicialId, vazio }) {
       setAbertaNoCelular(true);
     }
   }, [conversaInicialId]);
+
+  useEffect(() => {
+    if (!conversaInicialId || conversas.some((item) => item.id === conversaInicialId) || !proximoCursor) return;
+    carregarMais();
+  }, [conversaInicialId, conversas, proximoCursor, carregarMais]);
 
   function selecionar(id) {
     setConversaAtivaId(id);
@@ -53,7 +95,7 @@ export default function ChatPanel({ participante, conversaInicialId, vazio }) {
 
   if (status === "loading") return <ListSkeleton count={2} />;
   if (status === "error") {
-    return <ErrorState title="Não foi possível carregar as conversas" />;
+    return <ErrorState title="Não foi possível carregar as conversas" description={erro} onRetry={carregar} />;
   }
   if (conversas.length === 0) {
     return (
@@ -87,23 +129,23 @@ export default function ChatPanel({ participante, conversaInicialId, vazio }) {
         overflowY="auto"
         minH={0}
       >
+        <Flex justify="space-between" align="center" px="var(--space-4)" py="var(--space-3)" borderBottomWidth="var(--border-width)" borderBottomStyle="solid" borderBottomColor="var(--color-border-soft)">
         <Text
-          px="var(--space-4)"
-          py="var(--space-3)"
           fontSize="var(--text-xs)"
           color="var(--color-text-muted)"
-          borderBottomWidth="var(--border-width)"
-          borderBottomStyle="solid"
-          borderBottomColor="var(--color-border-soft)"
         >
           {conversas.length} {conversas.length === 1 ? "conversa" : "conversas"}
         </Text>
+        <ChakraButton size="xs" variant="ghost" onClick={carregar}>Atualizar</ChakraButton>
+        </Flex>
+        {erro && <Text role="status" px="var(--space-4)" py="var(--space-2)" fontSize="var(--text-xs)" color="var(--color-error)">{erro} A lista exibida pode estar desatualizada.</Text>}
         <ConversationList
           conversas={conversas}
           conversaAtivaId={conversaAtiva.id}
           souCliente={souCliente}
           onSelecionar={selecionar}
         />
+        {proximoCursor && <Box p="var(--space-3)"><ChakraButton w="100%" variant="outline" onClick={carregarMais} loading={carregandoMais}>Carregar mais conversas</ChakraButton></Box>}
       </Box>
 
       <Box display={{ base: abertaNoCelular ? "block" : "none", lg: "block" }} h={{ lg: "100%" }} minH={0}>

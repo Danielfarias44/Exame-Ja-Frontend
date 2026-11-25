@@ -1,6 +1,5 @@
 import { Flex, Heading, Text } from "@chakra-ui/react";
 import Button from "./Button";
-// Estado para quando algo no sistema dá erro (que surpresa)
 export default function ErrorState({
   title = "Não foi possível carregar",
   description = "Verifique sua conexão e tente novamente.",
@@ -21,6 +20,19 @@ export default function ErrorState({
       borderColor="var(--color-error)"
       borderRadius="var(--radius-lg)"
     >
+      <Flex
+        align="center"
+        justify="center"
+        boxSize="42px"
+        borderRadius="var(--radius-full)"
+        bg="var(--color-error)"
+        color="var(--color-text-on-primary)"
+        fontSize="xl"
+        fontWeight="bold"
+        aria-hidden="true"
+      >
+        !
+      </Flex>
       <Heading
         as="h2"
         fontFamily="var(--font-heading)"

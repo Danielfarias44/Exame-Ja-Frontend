@@ -1,137 +1,198 @@
-import { mockEstablishments, mockReviews } from "./mocks";
-import { obterSessaoAtual, sairDaConta } from "./autenticacaoService";
-import {
-  CATEGORIAS_EXAMES,
-  CLINICAS_PARCEIRAS,
-  CONVENIOS_DISPONIVEIS,
-  OFERTAS_EXAMES,
-} from "./pacienteLogadoService";
+import { apiRequest, apiRequestWithCsrf } from "./httpClient";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
+const RESULTADOS_CACHE = "exameja_resultados_busca_v1";
 
-export async function apiRequest(path, options = {}) {
-  const sessao = obterSessaoAtual();
+export { apiRequest } from "./httpClient";
 
-  const headers = {
-    "Content-Type": "application/json",
-    ...(sessao?.token ? { Authorization: `Bearer ${sessao.token}` } : {}),
-    ...options.headers,
-  };
-
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
-
-  if (response.status === 401) {
-    sairDaConta();
-    window.location.href = "/login";
-    throw new Error("Sessão expirada. Faça login novamente.");
+export function cacheSearchResults(offers) {
+  try {
+    sessionStorage.setItem(RESULTADOS_CACHE, JSON.stringify(offers));
+  } catch {
+    // A falta de armazenamento não impede a busca.
   }
+}
 
-  const dados = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(
-      dados?.mensagem ||
-        dados?.message ||
-        `Erro ${response.status} ao chamar ${path}`
-    );
+export function getCachedClinicName(uid) {
+  try {
+    const offers = JSON.parse(sessionStorage.getItem(RESULTADOS_CACHE) || "[]");
+    return offers.find((offer) => offer.clinicId === uid)?.name ?? "Clínica";
+  } catch {
+    return "Clínica";
   }
-
-  return dados;
 }
 
-async function request(path, options) {
-  return apiRequest(path, options);
-}
-
-// GET /establishments/:id
-export async function getEstablishment(id) {
-  if (USE_MOCKS) {
-    return mockEstablishments.find((e) => e.id === id) ?? null;
-  }
-  return request(`/establishments/${id}`);
-}
-
-// GET /establishments/:id/reviews
-export async function getEstablishmentReviews(id) {
-  if (USE_MOCKS) {
-    return mockReviews;
-  }
-  return request(`/establishments/${id}/reviews`);
-}
-
-const ORDENACOES = {
-  distancia: (a, b) => compararComNulosNoFim(a.distanceKm, b.distanceKm),
-  preco: (a, b) => compararComNulosNoFim(a.price, b.price),
-  avaliacao: (a, b) => compararComNulosNoFim(b.rating, a.rating),
-};
-
-function compararComNulosNoFim(valorA, valorB) {
-  if (valorA == null && valorB == null) return 0;
-  if (valorA == null) return 1;
-  if (valorB == null) return -1;
-  return valorA - valorB;
-}
-
-function normalizar(texto = "") {
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-function nomeDoConvenio(id) {
-  return CONVENIOS_DISPONIVEIS.find((convenio) => convenio.id === id)?.nome ?? id;
-}
-
-function adaptarOferta(oferta) {
-  const clinica = CLINICAS_PARCEIRAS.find((item) => item.id === oferta.clinicaId);
+function adaptarResultado(resultado) {
+  const { clinica = {}, exame = {}, preco = {} } = resultado;
   return {
-    id: oferta.id,
-    clinicId: oferta.clinicaId,
-    name: oferta.clinicaNome,
-    unit: oferta.unidade,
-    address: clinica?.endereco ?? oferta.bairro,
-    exam: oferta.exameNome,
-    price: oferta.precoParticular ?? null,
-    rating: oferta.avaliacao ?? null,
-    reviewsCount: clinica?.totalAvaliacoes ?? 0,
-    distanceKm: oferta.distanciaKm ?? null,
-    insurances: (oferta.conveniosAceitos ?? []).map(nomeDoConvenio),
-    insuranceIds: oferta.conveniosAceitos ?? [],
-    nextSlot: oferta.proximoHorario ?? null,
-    resultTime: oferta.prazoResultado ?? null,
-    lat: clinica?.latitude ?? null,
-    lng: clinica?.longitude ?? null,
+    id: `${clinica.uid}:${exame.codigo}`,
+    clinicId: clinica.uid,
+    name: clinica.nomeFantasia,
+    address: clinica.endereco,
+    lat: clinica.latitude,
+    lng: clinica.longitude,
+    distanceKm: clinica.distanciaKm,
+    insurances: (clinica.conveniosAceitos ?? []).map(({ nome }) => nome),
+    insuranceIds: (clinica.conveniosAceitos ?? []).map(({ id }) => id),
+    exam: exame.nome,
+    examCode: exame.codigo,
+    price: preco.valor,
+    rating: Number.isFinite(clinica.avaliacaoMedia) && clinica.quantidadeAvaliacoes > 0
+      ? clinica.avaliacaoMedia
+      : null,
+    reviewsCount: Number.isSafeInteger(clinica.quantidadeAvaliacoes)
+      ? clinica.quantidadeAvaliacoes
+      : 0,
   };
 }
 
-function ofertaCorrespondeAoTermo(oferta, termo) {
-  if (!termo) return true;
-  const categoria = CATEGORIAS_EXAMES.find((item) => item.id === oferta.categoria)?.label;
-  const campos = [
-    oferta.exameNome,
-    oferta.clinicaNome,
-    oferta.bairro,
-    categoria,
-    ...(oferta.conveniosAceitos ?? []).map(nomeDoConvenio),
-  ];
-  return campos.some((campo) => normalizar(campo).includes(termo));
-}
-
-export async function searchExamOffers({ q = "", convenio = "", ordenar = "distancia" } = {}) {
-  const termo = normalizar(q.trim());
-  const ordenacao = ORDENACOES[ordenar] ?? ORDENACOES.distancia;
-
-  return OFERTAS_EXAMES.filter((oferta) => ofertaCorrespondeAoTermo(oferta, termo))
-    .filter((oferta) => !convenio || (oferta.conveniosAceitos ?? []).includes(convenio))
-    .map(adaptarOferta)
-    .sort(ordenacao);
+export async function getExamCatalog({ page = 1, limit = 100 } = {}) {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  const pagina = await apiRequest(`/api/exams?${params}`);
+  return {
+    exams: (pagina?.dados ?? []).map((exame) => ({
+      ...exame,
+      nome: exame.nome ?? exame.descricao,
+      codigo: String(exame.codigo),
+    })),
+    total: Number.isFinite(pagina?.total) ? pagina.total : null,
+    pages: Number.isFinite(pagina?.paginas) ? pagina.paginas : null,
+    currentPage: Number.isFinite(pagina?.paginaAtual) ? pagina.paginaAtual : page,
+  };
 }
 
 export async function getInsurances() {
-  return CONVENIOS_DISPONIVEIS.map(({ id, nome }) => ({ id, name: nome }));
+  const data = await apiRequest("/api/convenios");
+  return (data?.convenios ?? []).map(({ id, nome }) => ({ id, name: nome }));
+}
+
+export async function searchExamOffers({
+  codigoExame,
+  endereco,
+  latitude,
+  longitude,
+  convenioId,
+  precoMinimo,
+  precoMaximo,
+  ordenar = "distancia",
+  limit = 100,
+  offset = 0,
+} = {}) {
+  if (!codigoExame) throw new Error("Selecione um exame do catálogo TUSS.");
+  const temEndereco = Boolean(endereco?.trim());
+  const temLatitude = Number.isFinite(latitude);
+  const temLongitude = Number.isFinite(longitude);
+  if (temEndereco === (temLatitude && temLongitude)) {
+    throw new Error("Informe um endereço ou use sua localização para buscar clínicas.");
+  }
+
+  const params = new URLSearchParams({
+    codigoExame,
+    ordenar: ordenar === "preco" ? "preco" : "distancia",
+    limit: String(limit),
+    offset: String(offset),
+  });
+  if (temEndereco) params.set("endereco", endereco.trim());
+  else {
+    params.set("latitude", String(latitude));
+    params.set("longitude", String(longitude));
+  }
+  if (convenioId) params.set("convenioId", convenioId);
+  if (precoMinimo !== undefined && precoMinimo !== "") params.set("precoMinimo", String(precoMinimo));
+  if (precoMaximo !== undefined && precoMaximo !== "") params.set("precoMaximo", String(precoMaximo));
+
+  const data = await apiRequest(`/api/clinics/search?${params}`);
+  const offers = (data?.resultados ?? []).map(adaptarResultado);
+  return {
+    offers,
+    total: Number(data?.total ?? 0),
+    limit: Number(data?.limit ?? limit),
+    offset: Number(data?.offset ?? offset),
+    raw: data,
+  };
+}
+
+export async function getEstablishment(id) {
+  const resposta = await apiRequest(`/api/clinics/${encodeURIComponent(id)}`);
+  const clinica = resposta?.clinica;
+  if (!clinica) return null;
+
+  const ofertasEmCache = await getEstablishmentOffers(id);
+  const ofertaConhecida = ofertasEmCache[0];
+  const ofertas = (clinica.ofertas ?? []).map((oferta) => ({
+    id: `${id}:${oferta.codigoExame}`,
+    clinicId: id,
+    name: clinica.nomeFantasia,
+    address: clinica.endereco,
+    lat: clinica.latitude ?? ofertaConhecida?.lat,
+    lng: clinica.longitude ?? ofertaConhecida?.lng,
+    distanceKm: ofertaConhecida?.distanceKm,
+    insurances: (clinica.conveniosAceitos ?? []).map(({ nome }) => nome),
+    insuranceIds: (clinica.conveniosAceitos ?? []).map(({ id: convenioId }) => convenioId),
+    exam: oferta.nomeExame,
+    examCode: String(oferta.codigoExame),
+    price: oferta.preco,
+    rating: Number.isFinite(clinica.avaliacaoMedia) && clinica.quantidadeAvaliacoes > 0
+      ? clinica.avaliacaoMedia
+      : null,
+    reviewsCount: Number.isSafeInteger(clinica.quantidadeAvaliacoes)
+      ? clinica.quantidadeAvaliacoes
+      : 0,
+  }));
+  return { clinic: clinica, offers: ofertas };
+}
+
+export async function getEstablishmentOffers(id) {
+  try {
+    const offers = JSON.parse(sessionStorage.getItem(RESULTADOS_CACHE) || "[]");
+    return offers.filter((offer) => offer.clinicId === id || offer.id === id);
+  } catch {
+    return [];
+  }
+}
+
+export async function getClinicReviews(uid, { limit = 20, cursor } = {}) {
+  const params = new URLSearchParams({ limite: String(limit) });
+  if (cursor) params.set("cursor", cursor);
+  return apiRequest(`/api/clinics/${encodeURIComponent(uid)}/reviews?${params}`);
+}
+
+export async function getClinicAvailability(uid, { inicio, fim, limite = 50, cursor } = {}) {
+  const params = new URLSearchParams({ inicio, fim, limite: String(limite) });
+  if (cursor) params.set("cursor", cursor);
+  return apiRequest(`/api/clinics/${encodeURIComponent(uid)}/availability?${params}`);
+}
+
+export async function publishClinicAvailability(horarios) {
+  return apiRequestWithCsrf("/api/clinics/me/availability", "POST", { horarios });
+}
+
+export async function removeClinicAvailability(dataHora) {
+  return apiRequestWithCsrf(
+    `/api/clinics/me/availability/${encodeURIComponent(dataHora)}`,
+    "DELETE",
+    {},
+  );
+}
+
+export async function createAppointment(payload) {
+  const resposta = await apiRequestWithCsrf("/api/appointments", "POST", payload);
+  return resposta.agendamento ?? resposta;
+}
+
+export async function listAppointments({ limit = 30, cursor } = {}) {
+  const params = new URLSearchParams({ limite: String(limit) });
+  if (cursor) params.set("cursor", cursor);
+  return apiRequest(`/api/appointments?${params}`);
+}
+
+export async function getAppointment(id) {
+  return apiRequest(`/api/appointments/${encodeURIComponent(id)}`);
+}
+
+export async function updateAppointment(id, payload) {
+  return apiRequestWithCsrf(`/api/appointments/${encodeURIComponent(id)}`, "PUT", payload);
+}
+
+export async function createReview(payload) {
+  return apiRequestWithCsrf("/api/reviews", "POST", payload);
 }

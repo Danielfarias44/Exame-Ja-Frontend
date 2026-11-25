@@ -12,6 +12,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import LogoAutenticacao from "./LogoAutenticacao";
+import FeedbackErro from "@/components/ui/FeedbackErro";
 import { solicitarRecuperacaoSenha } from "@/services/autenticacaoService";
 
 export default function RecuperacaoAcesso() {
@@ -33,6 +34,8 @@ export default function RecuperacaoAcesso() {
     try {
       await solicitarRecuperacaoSenha(email.trim());
       setEnviado(true);
+    } catch (err) {
+      setErro(err?.message || "Não foi possível enviar as instruções agora. Tente novamente.");
     } finally {
       setEnviando(false);
     }
@@ -173,19 +176,7 @@ export default function RecuperacaoAcesso() {
               </Text>
             </Box>
 
-            {erro && (
-              <Box
-                mb={4}
-                p={3.5}
-                borderRadius="var(--radius-md)"
-                bg="var(--color-error-soft)"
-                color="var(--color-error)"
-                fontFamily="var(--font-body)"
-                fontSize="0.84rem"
-              >
-                {erro}
-              </Box>
-            )}
+            <Box mb={erro ? 4 : 0}><FeedbackErro mensagem={erro} titulo="Não foi possível enviar as instruções" /></Box>
 
             <Box as="form" onSubmit={lidarComEnvio} noValidate>
               <VStack align="stretch" gap={4}>

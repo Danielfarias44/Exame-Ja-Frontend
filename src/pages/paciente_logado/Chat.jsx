@@ -34,7 +34,7 @@ export default function Chat() {
     >
       <PageHeader
         title="Chat com Clínicas"
-        description="Tire dúvidas sobre preparo, convênio e horários direto com a recepção das unidades."
+        description="Tire dúvidas sobre exames, convênios e horários diretamente com as unidades."
       />
 
       {erro && (

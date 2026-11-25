@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Badge,
@@ -13,12 +13,12 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import { apiRequest } from "@/services/httpClient";
 
 /**
- * Operadoras e modalidades aceitas nas clínicas credenciadas.
- * Cada item possui cor, ícone vetorial e atraso de animação próprios.
+ * Estilo visual aplicado aos convênios retornados pela API.
  */
-const CONVENIOS_ACEITOS = [
+const ESTILOS_CONVENIOS = [
   {
     nome: "Unimed",
     sigla: "UNI",
@@ -145,7 +145,25 @@ const CONVENIOS_ACEITOS = [
  */
 export default function SecaoConvenios() {
   const [planoDigitado, setPlanoDigitado] = useState("");
+  const [convenios, setConvenios] = useState([]);
+  const [erro, setErro] = useState("");
   const navegar = useNavigate();
+
+  useEffect(() => {
+    let ativo = true;
+    apiRequest("/api/convenios")
+      .then((resposta) => {
+        if (ativo) setConvenios(resposta.convenios ?? []);
+      })
+      .catch((falha) => {
+        if (ativo) setErro(falha.message || "Não foi possível carregar os convênios.");
+      });
+    return () => { ativo = false; };
+  }, []);
+
+  function filtrarPorConvenio(convenio) {
+    navegar(`/busca?convenioId=${encodeURIComponent(convenio.id)}`);
+  }
 
   function filtrarPorPlano(termo) {
     const limpo = termo.trim();
@@ -252,8 +270,7 @@ export default function SecaoConvenios() {
               lineHeight="var(--leading-normal)"
               color="var(--color-text-muted)"
             >
-              Toque no seu convênio ao lado para ver na hora quais laboratórios e
-              clínicas atendem pelo seu plano — ou pesquise outra operadora abaixo.
+              Consulte as ofertas cadastradas e filtre os resultados pelo convênio escolhido.
             </Text>
 
             {/* Campo de busca de convênio */}
@@ -302,7 +319,7 @@ export default function SecaoConvenios() {
             </Box>
 
             <Text fontFamily="var(--font-body)" fontSize="0.76rem" color="var(--color-text-muted)">
-              ✓ Também exibimos valores particulares para quem não usa convênio.
+              {erro || "A disponibilidade depende das ofertas publicadas por cada clínica."}
             </Text>
           </VStack>
 
@@ -312,16 +329,17 @@ export default function SecaoConvenios() {
             gap={{ base: 3.5, md: 4 }}
             pb={{ lg: 5 }}
           >
-            {CONVENIOS_ACEITOS.map((plano, indice) => {
+            {convenios.map((convenio, indice) => {
+              const estilo = ESTILOS_CONVENIOS[indice % ESTILOS_CONVENIOS.length];
               // Desloca os cards da coluna direita no desktop para quebrar a linha reta
               const deslocadoVerticalmente = indice % 2 === 1;
 
               return (
                 <Flex
-                  key={plano.nome}
+                  key={convenio.id}
                   as="button"
                   type="button"
-                  onClick={() => filtrarPorPlano(plano.termoBusca)}
+                  onClick={() => filtrarPorConvenio(convenio)}
                   className="cartao-convenio"
                   align="center"
                   gap={4}
@@ -353,14 +371,14 @@ export default function SecaoConvenios() {
                     justify="center"
                     boxSize="64px"
                     borderRadius="18px"
-                    bg={plano.fundoSuave}
-                    color={plano.corDestaque}
+                    bg={estilo.fundoSuave}
+                    color={estilo.corDestaque}
                     border="1px solid"
                     borderColor="var(--color-border-soft)"
                     flexShrink={0}
-                    style={{ animationDelay: plano.atrasoAnimacao }}
+                    style={{ animationDelay: estilo.atrasoAnimacao }}
                   >
-                    {plano.icone}
+                    {estilo.icone}
                     <Text
                       fontFamily="var(--font-heading)"
                       fontWeight="var(--weight-bold)"
@@ -368,7 +386,7 @@ export default function SecaoConvenios() {
                       letterSpacing="0.06em"
                       mt={0.5}
                     >
-                      {plano.sigla}
+                      {(convenio.nome ?? "").slice(0, 3).toUpperCase()}
                     </Text>
                   </Flex>
 
@@ -380,7 +398,7 @@ export default function SecaoConvenios() {
                       color="var(--color-text)"
                       truncate
                     >
-                      {plano.nome}
+                      {convenio.nome}
                     </Text>
                     <Text
                       fontFamily="var(--font-body)"
@@ -389,12 +407,15 @@ export default function SecaoConvenios() {
                       mt={0.5}
                       lineHeight="1.35"
                     >
-                      {plano.detalhe}
+                      {convenio.descricao || "Convênio cadastrado"}
                     </Text>
                   </Box>
                 </Flex>
               );
             })}
+            {convenios.length === 0 && !erro && (
+              <Text color="var(--color-text-muted)" role="status">Carregando convênios disponíveis...</Text>
+            )}
           </SimpleGrid>
         </Grid>
       </Container>

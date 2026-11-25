@@ -1,92 +1,94 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { Container, Flex, Stack, Text } from "@chakra-ui/react";
-import { obterDadosPacienteLogado } from "@/services/pacienteLogadoService";
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Button, Container, Flex, Stack, Text } from "@chakra-ui/react";
 import PageHeader from "@/components/ui/PageHeader";
-import SectionTitle from "@/components/ui/SectionTitle";
 import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
-import StatusBadge from "@/components/ui/StatusBadge";
+import ErrorState from "@/components/ui/ErrorState";
+import ListSkeleton from "@/components/ui/Skeleton";
+import { listAppointments } from "@/services/api";
+
+function paraData(valor) {
+  if (typeof valor === "string") return new Date(valor);
+  if (valor?._seconds != null) return new Date(valor._seconds * 1000 + (valor._nanoseconds || 0) / 1e6);
+  if (valor?.seconds != null) return new Date(valor.seconds * 1000 + (valor.nanoseconds || 0) / 1e6);
+  return null;
+}
+
+function nomeDaClinica(agendamento) {
+  return agendamento.clinicaNome ?? agendamento.nomeClinica ?? agendamento.clinica?.nomeFantasia ?? agendamento.clinica?.nome ?? `Clínica ${agendamento.clinicaUid}`;
+}
 
 export default function Historico() {
-  const navegar = useNavigate();
-  const { agendamentos } = useMemo(() => obterDadosPacienteLogado(), []);
+  const [agendamentos, setAgendamentos] = useState([]);
+  const [status, setStatus] = useState("loading");
+  const [erro, setErro] = useState("");
+  const [proximoCursor, setProximoCursor] = useState(null);
+  const [carregandoMais, setCarregandoMais] = useState(false);
+  const [temConcluidosEmPaginasFuturas, setTemConcluidosEmPaginasFuturas] = useState(false);
 
-  const concluidos = agendamentos.filter((ag) => ag.status === "Concluído");
+  const carregar = useCallback(async () => {
+    const pagina = await listAppointments();
+    setAgendamentos((pagina.agendamentos ?? []).filter((item) => item.status === "concluido"));
+    setProximoCursor(pagina.proximoCursor ?? null);
+    setTemConcluidosEmPaginasFuturas(Boolean(pagina.proximoCursor));
+    setStatus("ready");
+  }, []);
+
+  async function carregarMais() {
+    if (!proximoCursor || carregandoMais) return;
+    setCarregandoMais(true);
+    setErro("");
+    try {
+      let cursor = proximoCursor;
+      let novosConcluidos = [];
+      let proximo = null;
+      // Avança páginas que contenham apenas solicitações ainda não concluídas,
+      // até encontrar exames concluídos ou chegar ao fim do histórico.
+      do {
+        const pagina = await listAppointments({ cursor });
+        novosConcluidos = (pagina.agendamentos ?? []).filter((item) => item.status === "concluido");
+        proximo = pagina.proximoCursor ?? null;
+        cursor = proximo;
+      } while (cursor && novosConcluidos.length === 0);
+      if (novosConcluidos.length) setAgendamentos((atuais) => [...atuais, ...novosConcluidos]);
+      setProximoCursor(proximo);
+      setTemConcluidosEmPaginasFuturas(Boolean(proximo));
+    } catch (falha) {
+      setErro(falha.message || "Não foi possível carregar mais registros.");
+    } finally {
+      setCarregandoMais(false);
+    }
+  }
+
+  useEffect(() => {
+    let ativo = true;
+    carregar().catch((falha) => {
+      if (!ativo) return;
+      setErro(falha.message || "Não foi possível carregar o histórico.");
+      setStatus("error");
+    });
+    return () => { ativo = false; };
+  }, [carregar]);
+
+  if (status === "loading") return <Container py={8}><ListSkeleton count={3} /></Container>;
+  if (status === "error") return <Container py={8}><ErrorState title="Histórico indisponível" description={erro} onRetry={() => { setStatus("loading"); setErro(""); carregar().catch((falha) => { setErro(falha.message); setStatus("error"); }); }} /></Container>;
 
   return (
-    <Container
-      maxW="960px"
-      px={{ base: 4, md: 6 }}
-      py={{ base: 6, md: 8 }}
-      pb={{ base: "110px", md: 12 }}
-      className="animar-entrada"
-    >
-      <PageHeader
-        title="Histórico de Exames"
-        description="Consulte exames já realizados e avalie o atendimento das unidades."
-      />
-
-      {concluidos.length === 0 ? (
-        <EmptyState
-          title="Nenhum exame concluído até o momento"
-          description="Quando você fizer um exame agendado pelo Exame Já, ele aparece aqui."
-        />
-      ) : (
-        <Stack gap="var(--space-4)">
-          {concluidos.map((ag) => {
-            const nomeExame = ag.exameNome || ag.exame;
-            return (
-              <Card key={ag.id}>
-                <Flex
-                  justify="space-between"
-                  align={{ base: "flex-start", sm: "center" }}
-                  direction={{ base: "column", sm: "row" }}
-                  gap="var(--space-3)"
-                >
-                  <Stack gap="var(--space-1)">
-                    <Flex align="center" gap="var(--space-2)" wrap="wrap">
-                      <StatusBadge>Concluído</StatusBadge>
-                      <Text fontSize="var(--text-xs)" color="var(--color-text-muted)">
-                        Realizado em {ag.data} às {ag.horario}
-                      </Text>
-                    </Flex>
-                    <SectionTitle fontSize="var(--text-base)">{nomeExame}</SectionTitle>
-                    <Text fontSize="var(--text-xs)" color="var(--color-text-muted)">
-                      {ag.clinicaNome || ag.clinica} — {ag.unidade} • {ag.modalidade}
-                    </Text>
-                  </Stack>
-
-                  <Flex gap="var(--space-2)" align="center" wrap="wrap">
-                    {ag.avaliado ? (
-                      <StatusBadge tone="success">Atendimento avaliado</StatusBadge>
-                    ) : (
-                      <Button
-                        aria-label={`Avaliar atendimento: ${nomeExame}`}
-                        onClick={() => navegar(`/paciente/avaliacao?id=${ag.id}`)}
-                      >
-                        Avaliar atendimento
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      aria-label={`Agendar novamente: ${nomeExame}`}
-                      onClick={() =>
-                        navegar(
-                          `/paciente/agendar?clinicaId=${ag.clinicaId}&exame=${encodeURIComponent(nomeExame)}`
-                        )
-                      }
-                    >
-                      Agendar novamente
-                    </Button>
-                  </Flex>
-                </Flex>
-              </Card>
-            );
+    <Container maxW="960px" px={{ base: 4, md: 6 }} py={8} pb={{ base: "110px", md: 12 }}>
+      <PageHeader title="Histórico de exames" description="Consulte seus agendamentos concluídos e avalie o atendimento." />
+      {agendamentos.length === 0
+        ? <EmptyState title={proximoCursor ? "Nenhum exame concluído nesta página" : "Nenhum exame concluído"} description={proximoCursor ? "Ainda há outras páginas do histórico. Carregue mais para continuar procurando." : "Agendamentos concluídos pela clínica aparecerão aqui."} />
+        : <Stack gap={4}>
+          {agendamentos.map((item) => {
+            const data = paraData(item.dataHora);
+            return <Card key={item.id}><Flex justify="space-between" align={{ base: "stretch", sm: "center" }} direction={{ base: "column", sm: "row" }} gap={4}>
+              <Stack gap={1}><Text fontWeight="bold">{item.nomeExame}</Text><Text fontSize="sm" color="var(--color-text-muted)">{data?.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })} · {nomeDaClinica(item)}</Text></Stack>
+              <Flex gap={2} wrap="wrap"><Button asChild><Link to={`/paciente/avaliacao?id=${encodeURIComponent(item.id)}`}>Avaliar atendimento</Link></Button><Button asChild variant="outline"><Link to={`/estabelecimento/${encodeURIComponent(item.clinicaUid)}`}>Ver clínica</Link></Button></Flex>
+            </Flex></Card>;
           })}
-        </Stack>
-      )}
+        </Stack>}
+      {proximoCursor && <Button mt={4} variant="outline" onClick={carregarMais} disabled={carregandoMais}>{carregandoMais ? "Procurando exames concluídos..." : agendamentos.length === 0 || temConcluidosEmPaginasFuturas ? "Procurar mais exames concluídos" : "Carregar mais"}</Button>}
     </Container>
   );
 }

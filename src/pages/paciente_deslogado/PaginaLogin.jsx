@@ -16,15 +16,17 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import LogoAutenticacao from "./LogoAutenticacao";
+import FeedbackErro from "@/components/ui/FeedbackErro";
 import { PERFIS, ROTA_INICIAL_PERFIL } from "@/constants/perfis";
-import { entrarComEmailESenha } from "@/services/autenticacaoService";
+import { entrarComEmailESenha, reenviarVerificacaoEmail } from "@/services/autenticacaoService";
 
 function obterDestinoSeguro(redirectParam, perfil) {
   const rotaPadrao = ROTA_INICIAL_PERFIL[perfil] || "/";
   if (
     redirectParam &&
     redirectParam.startsWith("/") &&
-    !redirectParam.startsWith("//")
+    !redirectParam.startsWith("//") &&
+    !redirectParam.startsWith("/\\")
   ) {
     return redirectParam;
   }
@@ -35,36 +37,37 @@ export default function PaginaLogin() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navegar = useNavigate();
 
-  const [perfil, setPerfil] = useState(() =>
-    searchParams.get("perfil") === PERFIS.CLINICA
-      ? PERFIS.CLINICA
-      : PERFIS.PACIENTE
-  );
+  const [perfil, setPerfil] = useState(() => {
+    if (searchParams.get("perfil") === PERFIS.ADMIN || searchParams.get("redirect")?.startsWith("/admin")) return PERFIS.ADMIN;
+    return searchParams.get("perfil") === PERFIS.CLINICA ? PERFIS.CLINICA : PERFIS.PACIENTE;
+  });
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erro, setErro] = useState("");
   const [entrando, setEntrando] = useState(false);
+  const [reenviandoVerificacao, setReenviandoVerificacao] = useState(false);
+  const [mensagemVerificacao, setMensagemVerificacao] = useState("");
+  const [erroVerificacao, setErroVerificacao] = useState("");
 
   const ehClinica = perfil === PERFIS.CLINICA;
+  const ehAdmin = perfil === PERFIS.ADMIN;
 
   useEffect(() => {
-    setPerfil(
-      searchParams.get("perfil") === PERFIS.CLINICA
-        ? PERFIS.CLINICA
-        : PERFIS.PACIENTE
-    );
+    const perfilSolicitado = searchParams.get("perfil");
+    setPerfil(perfilSolicitado === PERFIS.ADMIN || searchParams.get("redirect")?.startsWith("/admin")
+      ? PERFIS.ADMIN
+      : perfilSolicitado === PERFIS.CLINICA ? PERFIS.CLINICA : PERFIS.PACIENTE);
     setErro("");
   }, [searchParams]);
 
   function alternarPerfil(novoPerfil) {
     setPerfil(novoPerfil);
     setErro("");
-    if (novoPerfil === PERFIS.CLINICA) {
-      setSearchParams({ perfil: PERFIS.CLINICA }, { replace: true });
-    } else {
-      setSearchParams({}, { replace: true });
-    }
+    const proximos = new URLSearchParams(searchParams);
+    if (novoPerfil === PERFIS.CLINICA) proximos.set("perfil", PERFIS.CLINICA);
+    else proximos.delete("perfil");
+    setSearchParams(proximos, { replace: true });
   }
 
   async function lidarComLogin(evento) {
@@ -104,30 +107,17 @@ export default function PaginaLogin() {
     }
   }
 
-  async function entrarModoTesteRapido() {
-    setErro("");
-    setEntrando(true);
+  async function reenviarEmailVerificacao() {
+    setReenviandoVerificacao(true);
+    setMensagemVerificacao("");
+    setErroVerificacao("");
     try {
-      const emailTeste = ehClinica
-        ? "contato@labvida.com.br"
-        : "maria.clara@email.com";
-
-      const sessao = await entrarComEmailESenha({
-        email: emailTeste,
-        senha: "Teste@123",
-        perfil,
-      });
-
-      const perfilAutenticado = sessao?.perfil || perfil;
-      const destino = obterDestinoSeguro(
-        searchParams.get("redirect"),
-        perfilAutenticado
-      );
-      navegar(destino, { replace: true });
+      await reenviarVerificacaoEmail(email.trim());
+      setMensagemVerificacao("Se a conta existir, enviaremos novamente o link de verificação.");
     } catch (err) {
-      setErro(err?.message || "Não foi possível iniciar a sessão de teste.");
+      setErroVerificacao(err?.message || "Não foi possível reenviar o e-mail agora.");
     } finally {
-      setEntrando(false);
+      setReenviandoVerificacao(false);
     }
   }
 
@@ -141,7 +131,7 @@ export default function PaginaLogin() {
       <LogoAutenticacao />
 
       {/* Seletor de Perfil */}
-      <Flex
+      { !ehAdmin && <Flex
         p={1.5}
         mb={6}
         bg="var(--color-surface)"
@@ -191,7 +181,7 @@ export default function PaginaLogin() {
         >
           Clínica / Laboratório
         </Box>
-      </Flex>
+      </Flex>}
 
       <Box
         bg="var(--color-surface)"
@@ -216,7 +206,7 @@ export default function PaginaLogin() {
             fontWeight="var(--weight-bold)"
             fontSize="0.75rem"
           >
-            {ehClinica ? "Área do Parceiro" : "Área do Paciente"}
+            {ehAdmin ? "Área Administrativa" : ehClinica ? "Área do Parceiro" : "Área do Paciente"}
           </Badge>
 
           <Heading
@@ -227,7 +217,7 @@ export default function PaginaLogin() {
             color="var(--color-text)"
             mb={1.5}
           >
-            Entrar na sua conta
+            {ehAdmin ? "Acesso administrativo" : "Entrar na sua conta"}
           </Heading>
 
           <Text
@@ -235,24 +225,21 @@ export default function PaginaLogin() {
             fontSize="0.88rem"
             color="var(--color-text-muted)"
           >
-            {ehClinica
+            {ehAdmin ? "Acesse com uma conta administrativa autorizada."
+              : ehClinica
               ? "Acesse o painel da sua unidade para acompanhar aprovação e exames."
-              : "Acompanhe seus agendamentos, preparos e convênios salvos."}
+              : "Acompanhe seus agendamentos e gerencie seus dados da conta."}
           </Text>
         </Box>
 
-        {erro && (
-          <Box
-            mb={4}
-            p={3.5}
-            borderRadius="var(--radius-md)"
-            bg="var(--color-error-soft)"
-            color="var(--color-error)"
-            fontFamily="var(--font-body)"
-            fontSize="0.84rem"
-          >
-            {erro}
-          </Box>
+        <Box mb={erro ? 4 : 0}><FeedbackErro mensagem={erro} titulo="Não foi possível entrar" /></Box>
+        <Box mb={erroVerificacao ? 4 : 0}>
+          <FeedbackErro mensagem={erroVerificacao} titulo="Falha ao reenviar a verificação" />
+        </Box>
+        {mensagemVerificacao && (
+          <Text role="status" mb={4} fontSize="0.84rem" color="var(--color-text-muted)">
+            {mensagemVerificacao}
+          </Text>
         )}
 
         <Box as="form" onSubmit={lidarComLogin} noValidate>
@@ -363,27 +350,11 @@ export default function PaginaLogin() {
               {entrando ? "Entrando..." : "Entrar"}
             </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              disabled={entrando}
-              onClick={entrarModoTesteRapido}
-              borderStyle="dashed"
-              borderColor="var(--color-border-soft)"
-              color="var(--color-text-muted)"
-              _hover={{
-                borderColor: "var(--color-primary)",
-                color: "var(--color-primary)",
-              }}
-              fontFamily="var(--font-heading)"
-              fontWeight={600}
-              fontSize="0.85rem"
-              minH="42px"
-              w="100%"
-              borderRadius="var(--radius-md)"
-            >
-              Entrar rápido como {ehClinica ? "Clínica" : "Paciente"} (Teste)
-            </Button>
+            {(erro.toLowerCase().includes("verifique seu e-mail") || erro.toLowerCase().includes("verificação")) && (
+              <Button type="button" variant="outline" disabled={reenviandoVerificacao || !email.trim()} onClick={reenviarEmailVerificacao}>
+                {reenviandoVerificacao ? "Enviando..." : "Reenviar e-mail de verificação"}
+              </Button>
+            )}
           </VStack>
         </Box>
 
@@ -398,7 +369,9 @@ export default function PaginaLogin() {
         >
           Ainda não tem conta?{" "}
           <RouterLink
-            to={ehClinica ? `/cadastro?perfil=${PERFIS.CLINICA}` : "/cadastro"}
+            to={ehClinica
+              ? `/cadastro?perfil=${PERFIS.CLINICA}${searchParams.get("redirect") ? `&redirect=${encodeURIComponent(searchParams.get("redirect"))}` : ""}`
+              : `/cadastro${searchParams.get("redirect") ? `?redirect=${encodeURIComponent(searchParams.get("redirect"))}` : ""}`}
             style={{
               color: "var(--color-primary)",
               fontWeight: 700,

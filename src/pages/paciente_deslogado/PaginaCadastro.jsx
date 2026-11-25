@@ -12,20 +12,17 @@ import {
   Flex,
   Heading,
   HStack,
-  Image,
   Input,
   SimpleGrid,
   Text,
   VStack,
 } from "@chakra-ui/react";
 import LogoAutenticacao from "./LogoAutenticacao";
+import FeedbackErro from "@/components/ui/FeedbackErro";
 import {
-  listarConvenios,
   registrarClinica,
   registrarPaciente,
 } from "@/services/autenticacaoService";
-
-const LIMITE_CONVENIOS_PACIENTE = 5;
 
 function formatarCPF(valor) {
   const digitos = valor.replace(/\D/g, "").slice(0, 11);
@@ -56,26 +53,45 @@ function formatarTelefone(valor) {
     .replace(/(\d{5})(\d)/, "$1-$2");
 }
 
+function validarCPF(valor) {
+  const cpf = valor.replace(/\D/g, "");
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  const calcularDigito = (base) => {
+    const soma = [...base].reduce((total, numero, indice) => total + Number(numero) * (base.length + 1 - indice), 0);
+    const resto = (soma * 10) % 11;
+    return resto === 10 ? 0 : resto;
+  };
+  return calcularDigito(cpf.slice(0, 9)) === Number(cpf[9]) && calcularDigito(cpf.slice(0, 10)) === Number(cpf[10]);
+}
+
+function validarCNPJ(valor) {
+  const cnpj = valor.replace(/\D/g, "");
+  if (cnpj.length !== 14 || /^(\d)\1{13}$/.test(cnpj)) return false;
+  const calcularDigito = (base, pesos) => {
+    const soma = [...base].reduce((total, numero, indice) => total + Number(numero) * pesos[indice], 0);
+    const resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+  };
+  return calcularDigito(cnpj.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]) === Number(cnpj[12])
+    && calcularDigito(cnpj.slice(0, 13), [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]) === Number(cnpj[13]);
+}
+
 const ESTADO_INICIAL_FORM = {
   // Paciente
   nomeCompleto: "",
   cpf: "",
-  dataNascimento: "",
   // Clínica
   nomeFantasia: "",
   razaoSocial: "",
   cnpj: "",
-  bairro: "",
-  fotoArquivo: null,
-  fotoPreview: "",
-  // Preferências / Convênios (IDs vindos da API)
-  conveniosIds: [],
+  endereco: "",
   // Comuns
   telefone: "",
   email: "",
   senha: "",
   confirmarSenha: "",
   aceiteTermos: false,
+  declaracaoVinculoAceita: false,
 };
 
 export default function PaginaCadastro() {
@@ -85,40 +101,29 @@ export default function PaginaCadastro() {
   const [perfil, setPerfil] = useState(() =>
     searchParams.get("perfil") === "clinica" ? "clinica" : "paciente"
   );
-  const [conveniosDisponiveis, setConveniosDisponiveis] = useState([]);
   const [dados, setDados] = useState(ESTADO_INICIAL_FORM);
   const [erros, setErros] = useState({});
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [cadastroConcluido, setCadastroConcluido] = useState(false);
-
-  useEffect(() => {
-    let ativo = true;
-    listarConvenios().then((lista) => {
-      if (ativo) setConveniosDisponiveis(lista);
-    });
-    return () => {
-      ativo = false;
-    };
-  }, []);
+  const [erroEnvio, setErroEnvio] = useState("");
 
   useEffect(() => {
     const paramPerfil = searchParams.get("perfil");
     setPerfil(paramPerfil === "clinica" ? "clinica" : "paciente");
     setErros({});
     setCadastroConcluido(false);
+    setErroEnvio("");
   }, [searchParams]);
 
   function alternarPerfil(novoPerfil) {
     setPerfil(novoPerfil);
     setErros({});
     setCadastroConcluido(false);
-    setDados((anterior) => ({ ...anterior, conveniosIds: [] }));
-    if (novoPerfil === "clinica") {
-      setSearchParams({ perfil: "clinica" }, { replace: true });
-    } else {
-      setSearchParams({}, { replace: true });
-    }
+    const proximos = new URLSearchParams(searchParams);
+    if (novoPerfil === "clinica") proximos.set("perfil", "clinica");
+    else proximos.delete("perfil");
+    setSearchParams(proximos, { replace: true });
   }
 
   function atualizarCampo(campo, valor) {
@@ -130,39 +135,6 @@ export default function PaginaCadastro() {
         return copia;
       });
     }
-  }
-
-  function alternarConvenio(idConvenio) {
-    setDados((anterior) => {
-      const jaSelecionado = anterior.conveniosIds.includes(idConvenio);
-      if (jaSelecionado) {
-        return {
-          ...anterior,
-          conveniosIds: anterior.conveniosIds.filter((id) => id !== idConvenio),
-        };
-      }
-      if (
-        perfil === "paciente" &&
-        anterior.conveniosIds.length >= LIMITE_CONVENIOS_PACIENTE
-      ) {
-        return anterior;
-      }
-      return {
-        ...anterior,
-        conveniosIds: [...anterior.conveniosIds, idConvenio],
-      };
-    });
-  }
-
-  function lidarComFotoClinica(evento) {
-    const arquivo = evento.target.files?.[0];
-    if (!arquivo) return;
-    const previewUrl = URL.createObjectURL(arquivo);
-    setDados((anterior) => ({
-      ...anterior,
-      fotoArquivo: arquivo,
-      fotoPreview: previewUrl,
-    }));
   }
 
   function validarFormulario() {
@@ -177,9 +149,8 @@ export default function PaginaCadastro() {
       }
       if (dados.cpf.replace(/\D/g, "").length !== 11) {
         novosErros.cpf = "Informe um CPF válido com 11 dígitos.";
-      }
-      if (!dados.dataNascimento) {
-        novosErros.dataNascimento = "Informe sua data de nascimento.";
+      } else if (!validarCPF(dados.cpf)) {
+        novosErros.cpf = "Informe um CPF válido.";
       }
     } else {
       if (!dados.nomeFantasia.trim()) {
@@ -190,9 +161,14 @@ export default function PaginaCadastro() {
       }
       if (dados.cnpj.replace(/\D/g, "").length !== 14) {
         novosErros.cnpj = "Informe um CNPJ válido com 14 dígitos.";
+      } else if (!validarCNPJ(dados.cnpj)) {
+        novosErros.cnpj = "Informe um CNPJ válido.";
       }
-      if (!dados.bairro.trim()) {
-        novosErros.bairro = "Informe o bairro ou endereço de atendimento.";
+      if (!dados.endereco.trim()) {
+        novosErros.endereco = "Informe o endereço completo da unidade.";
+      }
+      if (!dados.declaracaoVinculoAceita) {
+        novosErros.declaracaoVinculoAceita = "Confirme sua relação com a clínica.";
       }
     }
 
@@ -204,8 +180,8 @@ export default function PaginaCadastro() {
       novosErros.email = "Informe um endereço de e-mail válido.";
     }
 
-    if (dados.senha.length < 6) {
-      novosErros.senha = "A senha deve ter pelo menos 6 caracteres.";
+    if (dados.senha.length < 8) {
+      novosErros.senha = "A senha deve ter pelo menos 8 caracteres.";
     }
 
     if (dados.confirmarSenha !== dados.senha) {
@@ -224,6 +200,7 @@ export default function PaginaCadastro() {
     evento.preventDefault();
     if (!validarFormulario()) return;
 
+    setErroEnvio("");
     setEnviando(true);
     try {
       if (perfil === "clinica") {
@@ -231,34 +208,30 @@ export default function PaginaCadastro() {
           nomeFantasia: dados.nomeFantasia.trim(),
           razaoSocial: dados.razaoSocial.trim(),
           cnpj: dados.cnpj.replace(/\D/g, ""),
-          bairro: dados.bairro.trim(),
+          endereco: dados.endereco.trim(),
           telefone: dados.telefone.replace(/\D/g, ""),
           email: dados.email.trim(),
           senha: dados.senha,
-          conveniosIds: dados.conveniosIds,
-          fotoArquivo: dados.fotoArquivo,
+          declaracaoVinculo: "Declaro que sou responsável e tenho vínculo autorizado com esta clínica.",
         });
       } else {
         await registrarPaciente({
           nomeCompleto: dados.nomeCompleto.trim(),
           cpf: dados.cpf.replace(/\D/g, ""),
-          dataNascimento: dados.dataNascimento,
           telefone: dados.telefone.replace(/\D/g, ""),
           email: dados.email.trim(),
           senha: dados.senha,
-          conveniosIds: dados.conveniosIds,
         });
       }
       setCadastroConcluido(true);
+    } catch (erro) {
+      setErroEnvio(erro.message || "Não foi possível concluir o cadastro. Revise os dados e tente novamente.");
     } finally {
       setEnviando(false);
     }
   }
 
   const ehClinica = perfil === "clinica";
-  const atingiuLimitePaciente =
-    !ehClinica && dados.conveniosIds.length >= LIMITE_CONVENIOS_PACIENTE;
-
   return (
     <Container
       maxW="680px"
@@ -385,8 +358,8 @@ export default function PaginaCadastro() {
               maxW="470px"
             >
               {ehClinica
-                ? `O cadastro da unidade ${dados.nomeFantasia} está com status pendente. Você já pode acessar o painel para visualizar os dados enviados enquanto validamos sua unidade.`
-                : `Tudo pronto, ${dados.nomeCompleto.split(" ")[0]}! Suas preferências foram salvas e você já pode acessar sua conta.`}
+                ? `O cadastro da unidade ${dados.nomeFantasia} foi enviado. Verifique o e-mail corporativo e aguarde a análise antes de acessar as funções de clínica.`
+                : `Enviamos as instruções de verificação para ${dados.email}. Confirme seu e-mail antes de entrar.`}
             </Text>
 
             <Flex
@@ -398,9 +371,9 @@ export default function PaginaCadastro() {
             >
               <Button
                 type="button"
-                onClick={() =>
-                  navegar(ehClinica ? "/login?perfil=clinica" : "/login")
-                }
+                onClick={() => navegar(ehClinica
+                  ? `/login?perfil=clinica${searchParams.get("redirect") ? `&redirect=${encodeURIComponent(searchParams.get("redirect"))}` : ""}`
+                  : `/login${searchParams.get("redirect") ? `?redirect=${encodeURIComponent(searchParams.get("redirect"))}` : ""}`)}
                 bg={ehClinica ? "var(--color-accent)" : "var(--color-primary)"}
                 _hover={{
                   bg: ehClinica
@@ -477,14 +450,15 @@ export default function PaginaCadastro() {
                 fontSize="0.88rem"
                 color="var(--color-text-muted)"
               >
-                {ehClinica
-                  ? "Após o envio, sua clínica inicia como pendente e exibe apenas foto, nome, contato e convênios."
-                  : "Salve até 5 convênios nas suas preferências para comparar preços mais rápido."}
+              {ehClinica
+                ? "Informe os dados da unidade e use um e-mail do domínio corporativo. O acesso depende da verificação do e-mail e da análise cadastral."
+                : "Crie sua conta e confirme o e-mail para acessar o Exame Já."}
               </Text>
             </Box>
 
             <Box as="form" onSubmit={lidarComEnvio} noValidate>
               <VStack align="stretch" gap={4}>
+                <FeedbackErro mensagem={erroEnvio} titulo="Não foi possível criar a conta" />
                 {!ehClinica ? (
                   <>
                     <CampoTexto
@@ -496,30 +470,19 @@ export default function PaginaCadastro() {
                       erro={erros.nomeCompleto}
                     />
 
-                    <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
-                      <CampoTexto
-                        id="cpf"
-                        rotulo="CPF"
-                        placeholder="000.000.000-00"
-                        valor={dados.cpf}
-                        aoMudar={(v) => atualizarCampo("cpf", formatarCPF(v))}
-                        erro={erros.cpf}
-                        inputMode="numeric"
-                      />
-
-                      <CampoTexto
-                        id="dataNascimento"
-                        rotulo="Data de nascimento"
-                        tipo="date"
-                        valor={dados.dataNascimento}
-                        aoMudar={(v) => atualizarCampo("dataNascimento", v)}
-                        erro={erros.dataNascimento}
-                      />
-                    </SimpleGrid>
+                    <CampoTexto
+                      id="cpf"
+                      rotulo="CPF"
+                      placeholder="000.000.000-00"
+                      valor={dados.cpf}
+                      aoMudar={(v) => atualizarCampo("cpf", formatarCPF(v))}
+                      erro={erros.cpf}
+                      inputMode="numeric"
+                    />
 
                     <CampoTexto
                       id="telefone"
-                      rotulo="WhatsApp (para alertas de preparo)"
+                      rotulo="WhatsApp para contato"
                       placeholder="(91) 98888-0000"
                       valor={dados.telefone}
                       aoMudar={(v) =>
@@ -531,98 +494,6 @@ export default function PaginaCadastro() {
                   </>
                 ) : (
                   <>
-                    {/* Foto / Logo da Clínica (dado público visível) */}
-                    <Box>
-                      <Text
-                        fontFamily="var(--font-heading)"
-                        fontWeight={600}
-                        fontSize="0.88rem"
-                        color="var(--color-text)"
-                        mb={1.5}
-                      >
-                        Foto ou logo da clínica (visível para pacientes)
-                      </Text>
-
-                      <Flex
-                        align="center"
-                        gap={3.5}
-                        p={3}
-                        borderRadius="var(--radius-md)"
-                        border="1px dashed var(--color-border-soft)"
-                        bg="var(--color-bg)"
-                      >
-                        {dados.fotoPreview ? (
-                          <Image
-                            src={dados.fotoPreview}
-                            alt="Pré-visualização da clínica"
-                            boxSize="52px"
-                            borderRadius="var(--radius-md)"
-                            objectFit="cover"
-                          />
-                        ) : (
-                          <Flex
-                            align="center"
-                            justify="center"
-                            boxSize="52px"
-                            borderRadius="var(--radius-md)"
-                            bg="var(--color-accent-soft)"
-                            color="var(--color-accent)"
-                            fontFamily="var(--font-heading)"
-                            fontWeight="var(--weight-bold)"
-                            fontSize="0.75rem"
-                            flexShrink={0}
-                          >
-                            LOGO
-                          </Flex>
-                        )}
-
-                        <Box flex="1" minW={0}>
-                          <Text
-                            fontFamily="var(--font-body)"
-                            fontSize="0.82rem"
-                            color="var(--color-text)"
-                            truncate
-                          >
-                            {dados.fotoArquivo
-                              ? dados.fotoArquivo.name
-                              : "Nenhuma imagem selecionada"}
-                          </Text>
-                          <Text
-                            fontFamily="var(--font-body)"
-                            fontSize="0.75rem"
-                            color="var(--color-text-muted)"
-                          >
-                            PNG ou JPG até 2MB
-                          </Text>
-                        </Box>
-
-                        <Box
-                          as="label"
-                          htmlFor="fotoClinica"
-                          px={3.5}
-                          py={2}
-                          borderRadius="var(--radius-md)"
-                          border="1px solid var(--color-border-soft)"
-                          bg="var(--color-surface)"
-                          color="var(--color-text)"
-                          fontFamily="var(--font-heading)"
-                          fontWeight={600}
-                          fontSize="0.8rem"
-                          cursor="pointer"
-                          flexShrink={0}
-                        >
-                          {dados.fotoPreview ? "Trocar" : "Escolher"}
-                          <input
-                            id="fotoClinica"
-                            type="file"
-                            accept="image/png,image/jpeg,image/webp"
-                            onChange={lidarComFotoClinica}
-                            hidden
-                          />
-                        </Box>
-                      </Flex>
-                    </Box>
-
                     <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
                       <CampoTexto
                         id="nomeFantasia"
@@ -667,112 +538,26 @@ export default function PaginaCadastro() {
                       />
 
                       <CampoTexto
-                        id="bairro"
-                        rotulo="Bairro / Cidade"
-                        placeholder="Ex: Umarizal, Belém - PA"
-                        valor={dados.bairro}
-                        aoMudar={(v) => atualizarCampo("bairro", v)}
-                        erro={erros.bairro}
+                        id="endereco"
+                        rotulo="Endereço completo da unidade"
+                        placeholder="Rua, número, bairro, cidade e CEP"
+                        valor={dados.endereco}
+                        aoMudar={(v) => atualizarCampo("endereco", v)}
+                        erro={erros.endereco}
                       />
                     </SimpleGrid>
                   </>
                 )}
 
-                {/* Seletor de Convênios por ID (até 5 para Paciente; livre para Clínica) */}
-                <Box>
-                  <Flex justify="space-between" align="center" mb={1.5}>
-                    <Text
-                      fontFamily="var(--font-heading)"
-                      fontWeight={600}
-                      fontSize="0.88rem"
-                      color="var(--color-text)"
-                    >
-                      {ehClinica
-                        ? "Convênios atendidos (opcional)"
-                        : "Seus convênios (opcional • até 5)"}
-                    </Text>
-
-                    {!ehClinica && (
-                      <Text
-                        fontFamily="var(--font-heading)"
-                        fontWeight={600}
-                        fontSize="0.78rem"
-                        color={
-                          atingiuLimitePaciente
-                            ? "var(--color-accent)"
-                            : "var(--color-text-muted)"
-                        }
-                      >
-                        {dados.conveniosIds.length}/{LIMITE_CONVENIOS_PACIENTE}{" "}
-                        selecionados
-                      </Text>
-                    )}
-                  </Flex>
-
-                  <Flex wrap="wrap" gap={2}>
-                    {conveniosDisponiveis.map((convenio) => {
-                      const selecionado = dados.conveniosIds.includes(
-                        convenio.id
-                      );
-                      const bloqueado = !selecionado && atingiuLimitePaciente;
-
-                      return (
-                        <Box
-                          key={convenio.id}
-                          as="button"
-                          type="button"
-                          disabled={bloqueado}
-                          onClick={() => alternarConvenio(convenio.id)}
-                          px={3.5}
-                          py={1.5}
-                          minH="36px"
-                          borderRadius="var(--radius-full)"
-                          border="1px solid"
-                          borderColor={
-                            selecionado
-                              ? ehClinica
-                                ? "var(--color-accent)"
-                                : "var(--color-primary)"
-                              : "var(--color-border-soft)"
-                          }
-                          bg={
-                            selecionado
-                              ? ehClinica
-                                ? "var(--color-accent-soft)"
-                                : "var(--color-primary-soft)"
-                              : "var(--color-bg)"
-                          }
-                          color={
-                            selecionado
-                              ? ehClinica
-                                ? "var(--color-accent)"
-                                : "var(--color-primary)"
-                              : "var(--color-text-muted)"
-                          }
-                          fontFamily="var(--font-heading)"
-                          fontWeight={selecionado ? 700 : 500}
-                          fontSize="0.82rem"
-                          opacity={bloqueado ? 0.45 : 1}
-                          cursor={bloqueado ? "not-allowed" : "pointer"}
-                          transition="all var(--duration-fast) var(--ease-standard)"
-                        >
-                          {selecionado ? `✓ ${convenio.nome}` : convenio.nome}
-                        </Box>
-                      );
-                    })}
-                  </Flex>
-
-                  <Text
-                    fontFamily="var(--font-body)"
-                    fontSize="0.76rem"
-                    color="var(--color-text-muted)"
-                    mt={1.5}
-                  >
-                    {ehClinica
-                      ? "Selecione os planos aceitos pela unidade para aparecer nos filtros de busca."
-                      : "Caso não possua plano, deixe desmarcado para buscar valores particulares."}
-                  </Text>
-                </Box>
+                {ehClinica && (
+                  <Box>
+                    <HStack align="flex-start" gap={2.5}>
+                      <Box as="input" id="declaracaoVinculoAceita" type="checkbox" checked={dados.declaracaoVinculoAceita} onChange={(e) => atualizarCampo("declaracaoVinculoAceita", e.target.checked)} mt={1} w="18px" h="18px" />
+                      <Box as="label" htmlFor="declaracaoVinculoAceita" fontSize="0.82rem" color="var(--color-text-muted)">Declaro que sou responsável e tenho vínculo autorizado com esta clínica.</Box>
+                    </HStack>
+                    {erros.declaracaoVinculoAceita && <Text fontSize="0.78rem" color="var(--color-error)" mt={1}>{erros.declaracaoVinculoAceita}</Text>}
+                  </Box>
+                )}
 
                 <CampoTexto
                   id="email"
@@ -817,7 +602,7 @@ export default function PaginaCadastro() {
                       type={mostrarSenha ? "text" : "password"}
                       value={dados.senha}
                       onChange={(e) => atualizarCampo("senha", e.target.value)}
-                      placeholder="Mínimo 6 caracteres"
+                      placeholder="Mínimo 8 caracteres"
                       minH="46px"
                       bg="var(--color-bg)"
                       color="var(--color-text)"
@@ -922,7 +707,9 @@ export default function PaginaCadastro() {
             >
               Já possui cadastro?{" "}
               <RouterLink
-                to={ehClinica ? "/login?perfil=clinica" : "/login"}
+                to={ehClinica
+                  ? `/login?perfil=clinica${searchParams.get("redirect") ? `&redirect=${encodeURIComponent(searchParams.get("redirect"))}` : ""}`
+                  : `/login${searchParams.get("redirect") ? `?redirect=${encodeURIComponent(searchParams.get("redirect"))}` : ""}`}
                 style={{
                   color: "var(--color-primary)",
                   fontWeight: 700,

@@ -18,37 +18,31 @@ const PERGUNTAS_FREQUENTES = [
     id: "gratuito",
     pergunta: "O Exame Já é gratuito para pacientes?",
     resposta:
-      "Sim. Pesquisar exames, filtrar por convênio, comparar clínicas, conversar no chat e acompanhar seu histórico são 100% gratuitos para pacientes. Você paga apenas o valor do exame diretamente à clínica, caso seja atendimento particular.",
+      "Sim. A busca de exames e clínicas está disponível gratuitamente. Os valores exibidos são os publicados pelas clínicas; confirme diretamente com a unidade as condições e a disponibilidade do atendimento.",
   },
   {
     id: "preco-convenio",
     pergunta: "Consigo saber o preço e se aceita meu plano antes de ir?",
     resposta:
-      "Sim. Cada clínica exibe antecipadamente os convênios credenciados (como Unimed, Bradesco, Hapvida, SulAmérica, Amil e IASEP) e os valores transparentes para atendimento particular.",
-  },
-  {
-    id: "lembretes",
-    pergunta: "Como funcionam os lembretes de jejum e preparo?",
-    resposta:
-      "Após agendar, você recebe avisos automáticos no aplicativo e por e-mail informando horários de jejum, documentos necessários e recomendações específicas do seu exame.",
+      "A busca mostra ofertas e convênios cadastrados pelas clínicas. A disponibilidade do exame e a cobertura do seu plano devem ser confirmadas com a unidade antes do atendimento.",
   },
   {
     id: "pwa-celular",
     pergunta: "Preciso baixar algum aplicativo para usar no celular?",
     resposta:
-      "Não precisa baixar na Play Store ou App Store. O Exame Já funciona como PWA: você pode instalar um atalho direto pelo navegador (Chrome ou Safari) em segundos, ocupando quase zero memória.",
+      "Não. Você pode acessar a plataforma pelo navegador do celular ou do computador.",
   },
   {
     id: "acessibilidade",
     pergunta: "A plataforma é fácil de usar para pessoas mais velhas?",
     resposta:
-      "Sim. Contamos com personalização de interface e modo de leitura facilitada (60+), que amplia fontes, aumenta botões e simplifica as etapas para uma navegação confortável.",
+      "A plataforma pode ser acessada pelo navegador. Recursos específicos de personalização para leitura facilitada ainda não estão disponíveis.",
   },
   {
     id: "clinicas",
     pergunta: "Tenho uma clínica ou laboratório. Como me torno parceiro?",
     resposta:
-      "Clique em “Credenciar minha clínica”, preencha os dados da unidade e cadastre seus exames, preços e convênios atendidos para começar a receber solicitações de agendamento.",
+      "Use “Credenciar minha clínica” para enviar os dados da unidade. Após a análise e aprovação do cadastro, a clínica pode acessar o painel para publicar ofertas e informar os convênios aceitos. Agendamentos pela plataforma ainda não estão disponíveis.",
   },
 ];
 

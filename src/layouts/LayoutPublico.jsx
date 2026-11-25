@@ -19,13 +19,11 @@ import {
 import AlternadorTema from "@/components/layout/AlternadorTema";
 import { useTema } from "@/hooks/useTema";
 import logoHorizontal from "@/assets/exame-ja_horizontal.png";
-import logoNegativa from "@/assets/exame-ja_negativa.png";
 
 const LINKS_NAVEGACAO = [
   { rotulo: "Como funciona", destino: "/#como-funciona" },
   { rotulo: "Especialidades", destino: "/#especialidades" },
   { rotulo: "Para clínicas", destino: "/#para-clinicas" },
-  { rotulo: "Depoimentos", destino: "/#depoimentos" },
 ];
 
 export default function LayoutPublico() {
@@ -128,12 +126,14 @@ export default function LayoutPublico() {
               }}
             >
               <Image
-                src={ehEscuro ? logoNegativa : logoHorizontal}
+                src={logoHorizontal}
                 alt="Exame Já"
                 h={{ base: "38px", sm: "44px", md: "48px" }}
                 w="auto"
                 maxW={{ base: "170px", md: "220px" }}
                 objectFit="contain"
+                filter={ehEscuro ? "brightness(0) invert(1)" : "none"}
+                transition="filter var(--duration-base) var(--ease-standard)"
               />
             </RouterLink>
 
@@ -349,7 +349,7 @@ export default function LayoutPublico() {
         <Outlet />
       </Box>
 
-      {/* Rodapé institucional com logo negativa */}
+      {/* Rodapé institucional */}
       <Box as="footer" bg="#162332" color="#f8fafc" mt="auto">
         {!ocultarRodapeCta && (
           <Container
@@ -360,13 +360,14 @@ export default function LayoutPublico() {
             textAlign="center"
           >
             <Image
-              src={logoNegativa}
+              src={logoHorizontal}
               alt="Exame Já"
               h="46px"
               w="auto"
               mx="auto"
               mb={4}
               objectFit="contain"
+              filter="brightness(0) invert(1)"
             />
 
             <Text

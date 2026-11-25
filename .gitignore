@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Clone local do backend usado para conferir contratos da API
+/Exameja-Backend/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
