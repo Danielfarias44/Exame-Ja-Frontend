@@ -6,6 +6,8 @@ import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import ListSkeleton from "@/components/ui/Skeleton";
+import ConfirmacaoInline from "@/components/ui/ConfirmacaoInline";
+import { rotuloStatusAgendamento } from "@/utils/statusAgendamento";
 import { listAppointments, updateAppointment } from "@/services/api";
 
 function paraData(valor) {
@@ -13,10 +15,6 @@ function paraData(valor) {
   if (valor?._seconds != null) return new Date(valor._seconds * 1000 + (valor._nanoseconds || 0) / 1e6);
   if (valor?.seconds != null) return new Date(valor.seconds * 1000 + (valor.nanoseconds || 0) / 1e6);
   return null;
-}
-
-function rotuloStatus(status) {
-  return ({ pendente: "Aguardando confirmação", confirmado: "Confirmado", recusado: "Recusado", cancelado: "Cancelado", concluido: "Concluído" })[status] || status;
 }
 
 function nomeDaClinica(agendamento) {
@@ -29,6 +27,7 @@ export default function MeusAgendamentos() {
   const [status, setStatus] = useState("loading");
   const [erro, setErro] = useState("");
   const [acaoAtiva, setAcaoAtiva] = useState("");
+  const [confirmando, setConfirmando] = useState("");
   const [proximoCursor, setProximoCursor] = useState(null);
   const [carregandoMais, setCarregandoMais] = useState(false);
   const recemCriado = params.get("novo") === "1";
@@ -66,11 +65,11 @@ export default function MeusAgendamentos() {
   }, [carregar]);
 
   async function cancelar(id) {
-    if (!window.confirm("Deseja cancelar este agendamento? A clínica será notificada e o horário poderá voltar a ficar disponível.")) return;
     setAcaoAtiva(id);
     setErro("");
     try {
       await updateAppointment(id, { acao: "cancelar" });
+      setConfirmando("");
       await carregar();
     } catch (falha) {
       setErro(falha.message || "Não foi possível cancelar o agendamento.");
@@ -95,13 +94,15 @@ export default function MeusAgendamentos() {
             const podeCancelar = ["pendente", "confirmado"].includes(agendamento.status);
             return <li key={agendamento.id}><Card><Flex justify="space-between" align={{ base: "stretch", sm: "center" }} direction={{ base: "column", sm: "row" }} gap={4}>
               <Stack gap={1}>
-                <Text fontWeight="bold">{agendamento.nomeExame}</Text>
-                <Text fontSize="sm" color="var(--color-text-muted)">{data && !Number.isNaN(data.getTime()) ? data.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" }) : "Horário não informado"}</Text>
-                <Text fontSize="sm" color="var(--color-text-muted)">Clínica: {nomeDaClinica(agendamento)}</Text>
-                <Text fontSize="sm">{rotuloStatus(agendamento.status)}{agendamento.motivo ? ` · ${agendamento.motivo}` : ""}</Text>
+                <Text fontWeight="var(--weight-bold)">{agendamento.nomeExame}</Text>
+                <Text fontSize="var(--text-xs)" color="var(--color-text-muted)">{data && !Number.isNaN(data.getTime()) ? data.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" }) : "Horário não informado"}</Text>
+                <Text fontSize="var(--text-xs)" color="var(--color-text-muted)">Clínica: {nomeDaClinica(agendamento)}</Text>
+                <Text fontSize="var(--text-xs)">{rotuloStatusAgendamento(agendamento.status)}{agendamento.motivo ? ` · ${agendamento.motivo}` : ""}</Text>
               </Stack>
-              {podeCancelar && <Button type="button" variant="outline" colorPalette="red" disabled={acaoAtiva === agendamento.id} onClick={() => cancelar(agendamento.id)}>{acaoAtiva === agendamento.id ? "Cancelando..." : "Cancelar solicitação"}</Button>}
-            </Flex></Card></li>;
+              {podeCancelar && confirmando !== agendamento.id && <Button type="button" variant="outline" colorPalette="red" disabled={Boolean(acaoAtiva)} onClick={() => setConfirmando(agendamento.id)}>Cancelar solicitação</Button>}
+            </Flex>
+            {confirmando === agendamento.id && <Stack mt={4}><ConfirmacaoInline pergunta="Cancelar este agendamento? A clínica será avisada e o horário pode voltar a ficar disponível." rotuloConfirmar="Sim, cancelar" rotuloEnviando="Cancelando…" rotuloVoltar="Manter agendamento" ocupado={acaoAtiva === agendamento.id} onConfirmar={() => cancelar(agendamento.id)} onCancelar={() => setConfirmando("")} /></Stack>}
+            </Card></li>;
           })}
         </Stack>}
       {proximoCursor && <Button mt={4} variant="outline" onClick={carregarMais} disabled={carregandoMais}>{carregandoMais ? "Carregando..." : "Carregar mais"}</Button>}

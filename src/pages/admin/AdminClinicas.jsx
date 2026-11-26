@@ -1,112 +1,109 @@
-import { useCallback, useEffect, useState } from "react";
-import { Box, Container, Flex, Input, Stack, Text } from "@chakra-ui/react";
-import PageHeader from "@/components/ui/PageHeader";
+import { useState } from "react";
+import { Box, Container, Flex, Stack, Text } from "@chakra-ui/react";
+import Alert from "@/components/ui/Alert";
 import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
-import ErrorState from "@/components/ui/ErrorState";
-import ListSkeleton from "@/components/ui/Skeleton";
-import FeedbackErro from "@/components/ui/FeedbackErro";
-import { encerrarSessao } from "@/services/autenticacaoService";
+import PageHeader from "@/components/ui/PageHeader";
+import SectionTitle from "@/components/ui/SectionTitle";
+import StatusBadge from "@/components/ui/StatusBadge";
 import { aprovarClinica, listarClinicasPendentes, rejeitarClinica } from "@/services/adminService";
+import { formatarData } from "@/utils/formatarData";
+import ConteudoLista from "./ConteudoLista";
+import FormularioDecisao from "./FormularioDecisao";
+import ListaDados from "./ListaDados";
+import { formatarCnpj } from "./rotulosAdmin";
+import { useListaPaginada } from "./useListaPaginada";
+
+const ACOES_FILA = [
+  { valor: "aprovar", rotulo: "Aprovar clínica", rotuloEnviando: "Aprovando…", exigeTexto: false },
+  { valor: "rejeitar", rotulo: "Rejeitar cadastro", rotuloEnviando: "Rejeitando…", variante: "outline", exigeTexto: true, verbo: "rejeitar" },
+];
+
+function nomeDaClinica(clinica) {
+  return clinica.nomeFantasia || clinica.razaoSocial || "Clínica sem nome";
+}
 
 export default function AdminClinicas() {
-  const [clinicas, setClinicas] = useState([]);
-  const [status, setStatus] = useState("loading");
-  const [erro, setErro] = useState("");
+  const lista = useListaPaginada(listarClinicasPendentes);
   const [mensagem, setMensagem] = useState("");
-  const [motivos, setMotivos] = useState({});
-  const [acaoAtiva, setAcaoAtiva] = useState("");
-  const [proximoCursor, setProximoCursor] = useState(null);
-  const [carregandoMais, setCarregandoMais] = useState(false);
 
-  const carregar = useCallback(async () => {
-    setStatus("loading");
-    setErro("");
-    try {
-      const pagina = await listarClinicasPendentes();
-      setClinicas(pagina.clinicas);
-      setProximoCursor(pagina.proximoCursor);
-      setStatus("ready");
-    } catch (falha) {
-      setErro(falha.message || "Não foi possível carregar os cadastros pendentes.");
-      setStatus("error");
-    }
-  }, []);
-
-  async function carregarMais() {
-    if (!proximoCursor || carregandoMais) return;
-    setCarregandoMais(true);
-    setErro("");
-    try {
-      const pagina = await listarClinicasPendentes({ cursor: proximoCursor });
-      setClinicas((atuais) => {
-        const idsAtuais = new Set(atuais.map((item) => item.uid ?? item.id));
-        return [...atuais, ...pagina.clinicas.filter((item) => !idsAtuais.has(item.uid ?? item.id))];
-      });
-      setProximoCursor(pagina.proximoCursor);
-    } catch (falha) {
-      setErro(falha.message || "Não foi possível carregar mais cadastros.");
-    } finally {
-      setCarregandoMais(false);
-    }
-  }
-
-  useEffect(() => { carregar(); }, [carregar]);
-
-  async function decidir(clinica, acao) {
-    const uid = clinica.uid ?? clinica.id;
-    const motivo = (motivos[uid] || "").trim();
-    if (acao === "rejeitar" && motivo.length < 10) {
-      setErro("Informe um motivo de rejeição com pelo menos 10 caracteres.");
-      return;
-    }
-    setErro("");
+  async function decidir(clinica, acao, motivo) {
     setMensagem("");
-    setAcaoAtiva(`${uid}:${acao}`);
-    try {
-      if (acao === "aprovar") await aprovarClinica(uid);
-      else await rejeitarClinica(uid, motivo);
-      setClinicas((atuais) => atuais.filter((item) => (item.uid ?? item.id) !== uid));
-      setMensagem(acao === "aprovar" ? "Clínica aprovada." : "Clínica rejeitada e motivo registrado.");
-    } catch (falha) {
-      setErro(falha.message || "Não foi possível registrar a decisão.");
-    } finally {
-      setAcaoAtiva("");
-    }
-  }
-
-  async function sair() {
-    try { await encerrarSessao(); window.location.assign("/"); }
-    catch (falha) { setErro(falha.message || "Não foi possível encerrar a sessão."); }
+    if (acao === "aprovar") await aprovarClinica(clinica.uid);
+    else await rejeitarClinica(clinica.uid, motivo);
+    lista.removerItem(clinica.uid);
+    setMensagem(acao === "aprovar"
+      ? `${nomeDaClinica(clinica)} foi aprovada e já pode usar o painel da clínica.`
+      : `${nomeDaClinica(clinica)} foi rejeitada. A clínica vê o motivo e pode corrigir e reenviar.`);
   }
 
   return (
-    <Container maxW="1000px" px={{ base: 4, md: 6 }} py={{ base: 6, md: 8 }}>
-      <PageHeader title="Aprovação de clínicas" description="Analise os cadastros que aguardam liberação para acessar o painel." actions={<Button variant="outline" onClick={sair}>Sair</Button>} />
-      {erro && <Box mb={4}><FeedbackErro mensagem={erro} /></Box>}
-      {mensagem && <Text role="status" mb={4} color="var(--color-success)">{mensagem}</Text>}
-      {status === "loading" && <ListSkeleton count={3} />}
-      {status === "error" && <ErrorState title="Fila de aprovação indisponível" description={erro} onRetry={carregar} />}
-      {status === "ready" && clinicas.length === 0 && <Card><Text>Nenhum cadastro pendente para análise.</Text></Card>}
-      {status === "ready" && <Stack gap={4}>
-        {clinicas.map((clinica) => {
-          const uid = clinica.uid ?? clinica.id;
-          const ativo = acaoAtiva.startsWith(`${uid}:`);
-          return <Card key={uid}><Stack gap={3}>
-            <Box><Text fontSize="lg" fontWeight="bold">{clinica.nomeFantasia || clinica.razaoSocial || `Clínica ${uid}`}</Text><Text color="var(--color-text-muted)">CNPJ: {clinica.cnpj || "Não informado"} · E-mail: {clinica.email || "Não informado"}</Text></Box>
-            <Text>{clinica.endereco || "Endereço não informado"}</Text>
-            {clinica.telefone && <Text>Telefone: {clinica.telefone}</Text>}
-            <label>Motivo da rejeição (obrigatório para rejeitar)
-              <Input mt={1} value={motivos[uid] || ""} onChange={(evento) => setMotivos((atuais) => ({ ...atuais, [uid]: evento.target.value }))} minLength={10} maxLength={500} />
-            </label>
-            <Flex gap={2} wrap="wrap">
-              <Button disabled={Boolean(acaoAtiva)} onClick={() => decidir(clinica, "aprovar")}>{ativo && acaoAtiva.endsWith(":aprovar") ? "Aprovando..." : "Aprovar clínica"}</Button>
-              <Button variant="outline" colorPalette="red" disabled={Boolean(acaoAtiva)} onClick={() => decidir(clinica, "rejeitar")}>{ativo && acaoAtiva.endsWith(":rejeitar") ? "Rejeitando..." : "Rejeitar cadastro"}</Button>
-            </Flex>
-          </Stack></Card>;
-        })}
-      </Stack>}
-      {status === "ready" && proximoCursor && <Box mt={4}><Button variant="outline" onClick={carregarMais} disabled={carregandoMais}>{carregandoMais ? "Carregando..." : "Carregar mais clínicas"}</Button></Box>}
+    <Container maxW="960px" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
+      <PageHeader
+        title="Fila de aprovação"
+        description="Cadastros de clínicas aguardando análise, do mais antigo para o mais novo. Só clínicas aprovadas aparecem na busca."
+      />
+      <Stack gap="var(--space-4)">
+        {mensagem && <Alert status="success" role="status">{mensagem}</Alert>}
+        <ConteudoLista
+          lista={lista}
+          tituloErro="Fila de aprovação indisponível"
+          vazio={{ title: "Nenhum cadastro aguardando análise", description: "Quando uma clínica se cadastrar ou reenviar correções, ela aparece aqui." }}
+          rotuloMais="Carregar mais cadastros"
+        >
+          {(clinica) => {
+            const tituloId = `fila-${clinica.uid}`;
+            const consulta = clinica.consultaCnpj;
+            return (
+              <Card key={clinica.uid} as="section" aria-labelledby={tituloId}>
+                <Stack gap="var(--space-4)">
+                  <Flex justify="space-between" align="center" gap="var(--space-3)" wrap="wrap">
+                    <SectionTitle id={tituloId}>{nomeDaClinica(clinica)}</SectionTitle>
+                    <StatusBadge tone="warning">Em análise</StatusBadge>
+                  </Flex>
+                  <ListaDados
+                    linhas={[
+                      ["Razão social", clinica.razaoSocial],
+                      ["CNPJ", formatarCnpj(clinica.cnpj)],
+                      ["Consulta do CNPJ", consulta
+                        ? `${consulta.razaoSocial} (${consulta.fonte || "consulta cadastral"}${consulta.consultadoEm ? `, ${formatarData(consulta.consultadoEm)}` : ""})`
+                        : "Sem registro da consulta"],
+                      ["CNES", clinica.cnes],
+                      ["E-mail", clinica.email],
+                      ["Domínio corporativo", clinica.dominioCorporativo],
+                      ["Telefone", clinica.telefone],
+                      ["Endereço", clinica.endereco],
+                      ["Enviado em", formatarData(clinica.criadoEm)],
+                    ]}
+                  />
+                  {clinica.declaracaoVinculo && (
+                    <Box
+                      as="figure"
+                      m={0}
+                      p="var(--space-3)"
+                      bg="var(--color-bg)"
+                      borderRadius="var(--radius-md)"
+                      borderLeftWidth="var(--border-width-strong)"
+                      borderLeftStyle="solid"
+                      borderLeftColor="var(--color-border)"
+                    >
+                      <Text as="figcaption" fontSize="var(--text-xs)" fontWeight="var(--weight-bold)" mb="var(--space-1)">
+                        Declaração de vínculo
+                      </Text>
+                      <Text as="blockquote" fontSize="var(--text-sm)" whiteSpace="pre-wrap">{clinica.declaracaoVinculo}</Text>
+                    </Box>
+                  )}
+                  <FormularioDecisao
+                    rotulo="Motivo da rejeição"
+                    ajuda="Obrigatório só para rejeitar, de 10 a 500 caracteres. A clínica vê este texto."
+                    acoes={ACOES_FILA}
+                    aoConfirmar={(acao, motivo) => decidir(clinica, acao, motivo)}
+                  />
+                </Stack>
+              </Card>
+            );
+          }}
+        </ConteudoLista>
+      </Stack>
     </Container>
   );
 }

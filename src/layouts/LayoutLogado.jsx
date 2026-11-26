@@ -13,6 +13,7 @@ import logoClara from "@/assets/exame-ja_horizontal.png";
 import { encerrarSessao, obterSessaoAtual } from "@/services/autenticacaoService";
 import { apiRequest } from "@/services/httpClient";
 import { useTema } from "@/hooks/useTema";
+import PularParaConteudo, { ID_CONTEUDO } from "@/components/ui/PularParaConteudo";
 
 const LINKS_BARRA_INFERIOR = [
   {
@@ -131,6 +132,7 @@ export default function LayoutLogado() {
       bg="var(--color-bg)"
       color="var(--color-text)"
     >
+      <PularParaConteudo />
       {/* Cabeçalho */}
       <Box
         as="header"
@@ -289,7 +291,7 @@ export default function LayoutLogado() {
       {erroSaida && <Text role="alert" textAlign="center" color="var(--color-error)" fontSize="var(--text-sm)" py={2}>{erroSaida}</Text>}
 
       {/* Conteúdo das Telas */}
-      <Box as="main" flex="1" pb={{ base: "86px", lg: 12 }}>
+      <Box as="main" id={ID_CONTEUDO} tabIndex={-1} flex="1" pb={{ base: "86px", lg: 12 }} _focus={{ outline: "none" }}>
         <Outlet />
       </Box>
 

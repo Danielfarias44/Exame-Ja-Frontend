@@ -25,6 +25,7 @@ import {
   listarConvenios,
 } from "@/services/autenticacaoService";
 import Select from "@/components/ui/Select";
+import SeletorConvenios from "@/components/ui/SeletorConvenios";
 
 function formatarCPF(valor) {
   const digitos = valor.replace(/\D/g, "").slice(0, 11);
@@ -95,6 +96,7 @@ const ESTADO_INICIAL_FORM = {
   aceiteTermos: false,
   declaracaoVinculoAceita: false,
   convenioId: "",
+  conveniosAceitos: [],
 };
 
 export default function PaginaCadastro() {
@@ -198,6 +200,9 @@ export default function PaginaCadastro() {
       if (!dados.endereco.trim()) {
         novosErros.endereco = "Informe o endereço completo da unidade.";
       }
+      if (dados.conveniosAceitos.length < 5 || dados.conveniosAceitos.length > 10) {
+        novosErros.conveniosAceitos = "Escolha de 5 a 10 convênios aceitos pela clínica.";
+      }
       if (!dados.declaracaoVinculoAceita) {
         novosErros.declaracaoVinculoAceita = "Confirme sua relação com a clínica.";
       }
@@ -245,6 +250,7 @@ export default function PaginaCadastro() {
           email: dados.email.trim(),
           senha: dados.senha,
           declaracaoVinculo: "Declaro que sou responsável e tenho vínculo autorizado com esta clínica.",
+          conveniosAceitos: dados.conveniosAceitos,
         });
       } else {
         await registrarPaciente({
@@ -514,7 +520,7 @@ export default function PaginaCadastro() {
                     />
 
                     <Box>
-                      <Select name="convenioId" label="Convênio obrigatório" placeholder={erroConvenios ? "Lista indisponível" : "Selecione seu convênio"} value={dados.convenioId} onChange={(evento) => atualizarCampo("convenioId", evento.target.value)} options={convenios.map((convenio) => ({ value: convenio.id, label: convenio.nome }))} error={erros.convenioId} helperText="Ele fica salvo no seu perfil no primeiro acesso." required />
+                      <Select name="convenioId" label="Convênio obrigatório" placeholder={erroConvenios ? "Lista indisponível" : "Selecione seu convênio"} value={dados.convenioId} onChange={(evento) => atualizarCampo("convenioId", evento.target.value)} options={convenios.map((convenio) => ({ value: convenio.id, label: convenio.nome }))} error={erros.convenioId} helperText="Ele fica salvo no seu perfil e você pode trocar depois." required />
                       {erroConvenios && (
                         <Flex role="alert" mt="var(--space-2)" gap="var(--space-2)" align="center" wrap="wrap">
                           <Text fontSize="var(--text-sm)" color="var(--color-error)">{erroConvenios}</Text>
@@ -558,18 +564,24 @@ export default function PaginaCadastro() {
                       />
                     </SimpleGrid>
 
-                    <Box
-                      p="var(--space-3)"
-                      bg="var(--color-info-soft)"
-                      borderRadius="var(--radius-md)"
-                      borderWidth="var(--border-width)"
-                      borderStyle="solid"
-                      borderColor="var(--color-info)"
-                    >
-                      <Text fontWeight="var(--weight-bold)" fontSize="var(--text-sm)">Convênios aceitos</Text>
-                      <Text fontSize="var(--text-sm)" color="var(--color-text)">
-                        Depois que o cadastro for aprovado, você escolhe no painel da clínica de 5 a 10 convênios aceitos.
-                      </Text>
+                    <Box>
+                      <SeletorConvenios
+                        legenda="Convênios aceitos pela clínica"
+                        convenios={convenios}
+                        selecionados={dados.conveniosAceitos}
+                        onChange={(ids) => atualizarCampo("conveniosAceitos", ids)}
+                        erro={erros.conveniosAceitos}
+                        idPrimeiro="conveniosAceitos"
+                      />
+                      {convenios.length === 0 && !erroConvenios && (
+                        <Text fontSize="var(--text-xs)" color="var(--color-text-muted)">Carregando convênios…</Text>
+                      )}
+                      {erroConvenios && (
+                        <Flex role="alert" mt="var(--space-2)" gap="var(--space-2)" align="center" wrap="wrap">
+                          <Text fontSize="var(--text-sm)" color="var(--color-error)">{erroConvenios}</Text>
+                          <Button type="button" variant="outline" size="sm" onClick={() => setTentativaConvenios((atual) => atual + 1)}>Tentar novamente</Button>
+                        </Flex>
+                      )}
                     </Box>
 
                     <CampoTexto

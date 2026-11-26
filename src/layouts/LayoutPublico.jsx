@@ -20,6 +20,7 @@ import AlternadorTema from "@/components/layout/AlternadorTema";
 import { useTema } from "@/hooks/useTema";
 import { rotaCadastroComRetorno, rotaLoginComRetorno } from "@/utils/rotasOferta";
 import logoHorizontal from "@/assets/exame-ja_horizontal.png";
+import PularParaConteudo, { ID_CONTEUDO } from "@/components/ui/PularParaConteudo";
 
 const LINKS_NAVEGACAO = [
   { rotulo: "Como funciona", destino: "/#como-funciona" },
@@ -105,6 +106,7 @@ export default function LayoutPublico() {
       color="var(--color-text)"
       overflowX="clip"
     >
+      <PularParaConteudo />
       {/* Cabeçalho fixo */}
       <Box
         as="header"
@@ -351,7 +353,7 @@ export default function LayoutPublico() {
       </Box>
 
       {/* Conteúdo principal */}
-      <Box as="main" flex="1" w="100%">
+      <Box as="main" id={ID_CONTEUDO} tabIndex={-1} flex="1" w="100%" _focus={{ outline: "none" }}>
         <Outlet />
       </Box>
 

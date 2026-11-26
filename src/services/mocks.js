@@ -41,11 +41,6 @@ export const mockEstablishments = [
   },
 ];
 
-export const mockReviews = [
-  { id: "1", author: "Ana P.", rating: 5, comment: "Atendimento rápido e organizado." },
-  { id: "2", author: "Carlos M.", rating: 4, comment: "Bom preço, mas demorou um pouco." },
-];
-
 export const mockEdgeCaseEstablishments = [
   {
     id: "e1",

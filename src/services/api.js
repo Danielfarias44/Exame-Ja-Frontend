@@ -114,12 +114,21 @@ export async function searchExamOffers({
   };
 }
 
+function ofertasEmCacheDaClinica(id) {
+  try {
+    const offers = JSON.parse(sessionStorage.getItem(RESULTADOS_CACHE) || "[]");
+    return offers.filter((offer) => offer.clinicId === id || offer.id === id);
+  } catch {
+    return [];
+  }
+}
+
 export async function getEstablishment(id) {
   const resposta = await apiRequest(`/api/clinics/${encodeURIComponent(id)}`);
   const clinica = resposta?.clinica;
   if (!clinica) return null;
 
-  const ofertasEmCache = await getEstablishmentOffers(id);
+  const ofertasEmCache = ofertasEmCacheDaClinica(id);
   const ofertaConhecida = ofertasEmCache[0];
   const ofertas = (clinica.ofertas ?? []).map((oferta) => ({
     id: `${id}:${oferta.codigoExame}`,
@@ -142,15 +151,6 @@ export async function getEstablishment(id) {
       : 0,
   }));
   return { clinic: clinica, offers: ofertas };
-}
-
-export async function getEstablishmentOffers(id) {
-  try {
-    const offers = JSON.parse(sessionStorage.getItem(RESULTADOS_CACHE) || "[]");
-    return offers.filter((offer) => offer.clinicId === id || offer.id === id);
-  } catch {
-    return [];
-  }
 }
 
 export async function getClinicReviews(uid, { limit = 20, cursor } = {}) {

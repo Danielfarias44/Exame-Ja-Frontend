@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "@/layouts/MainLayout";
 import RotaProtegida from "@/components/RotaProtegida";
 import { PERFIS } from "@/constants/perfis";
@@ -20,15 +20,34 @@ const LayoutLogado = lazy(() => import("@/layouts/LayoutLogado"));
 const Perfil = lazy(() => import("@/pages/paciente_logado/Perfil"));
 const Notificacoes = lazy(() => import("@/pages/paciente_logado/Notificacoes"));
 const Chat = lazy(() => import("@/pages/paciente_logado/Chat"));
-const MapaCompleto = lazy(() => import("@/pages/paciente_logado/MapaCompleto"));
 const Agendamento = lazy(() => import("@/pages/paciente_logado/Agendamento"));
 const MeusAgendamentos = lazy(() => import("@/pages/paciente_logado/MeusAgendamentos"));
 const Historico = lazy(() => import("@/pages/paciente_logado/Historico"));
 const Avaliacao = lazy(() => import("@/pages/paciente_logado/Avaliacao"));
-const RecursoIndisponivel = lazy(() => import("@/pages/paciente_logado/RecursoIndisponivel"));
 const ClinicaDashboard = lazy(() => import("@/pages/clinica/ClinicaDashboard"));
 const ClinicaChat = lazy(() => import("@/pages/clinica/ClinicaChat"));
+const LayoutPainel = lazy(() => import("@/layouts/LayoutPainel"));
 const AdminClinicas = lazy(() => import("@/pages/admin/AdminClinicas"));
+const AdminEstabelecimentos = lazy(() => import("@/pages/admin/AdminEstabelecimentos"));
+const AdminUsuarios = lazy(() => import("@/pages/admin/AdminUsuarios"));
+const AdminDenuncias = lazy(() => import("@/pages/admin/AdminDenuncias"));
+
+const MODO_TESTE = import.meta.env.VITE_MODO_TESTE === "true";
+
+const LINKS_ADMIN = [
+  { rota: "/admin", rotulo: "Fila de aprovação", exato: true },
+  { rota: "/admin/clinicas", rotulo: "Clínicas" },
+  { rota: "/admin/usuarios", rotulo: "Usuários" },
+  { rota: "/admin/denuncias", rotulo: "Denúncias" },
+];
+
+const LINKS_CLINICA = [
+  { rota: "/clinica", rotulo: "Painel", exato: true },
+  { rota: "/clinica/chat", rotulo: "Conversas" },
+];
+const TesteCadastro = lazy(() => import("@/pages/teste/TesteCadastro"));
+const TesteLogin = lazy(() => import("@/pages/teste/TesteLogin"));
+const TesteAdmin = lazy(() => import("@/pages/teste/TesteAdmin"));
 
 function BuscaLayout() {
   const sessao = useSessao();
@@ -49,6 +68,14 @@ export default function AppRoutes() {
           <Route path="/cadastro" element={<PaginaCadastro />} />
           <Route path="/login" element={<PaginaLogin />} />
           <Route path="/recuperar-acesso" element={<RecuperacaoAcesso />} />
+          {MODO_TESTE && (
+            <>
+              <Route path="/teste" element={<Navigate to="/teste/cadastro" replace />} />
+              <Route path="/teste/cadastro" element={<TesteCadastro />} />
+              <Route path="/teste/admin" element={<TesteAdmin />} />
+              <Route path="/teste/login" element={<TesteLogin />} />
+            </>
+          )}
         </Route>
 
         {/* Área logada protegida do paciente */}
@@ -61,7 +88,7 @@ export default function AppRoutes() {
           }
         >
           <Route index element={<SearchResults />} />
-          <Route path="comparar" element={<RecursoIndisponivel titulo="Comparação lado a lado indisponível" descricao="A API não oferece um comparador. Consulte as clínicas na busca e ordene as ofertas por distância ou preço." />} />
+          <Route path="comparar" element={<Navigate to="/busca" replace />} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="agendar" element={<Agendamento />} />
           <Route path="agendamentos" element={<MeusAgendamentos />} />
@@ -69,13 +96,16 @@ export default function AppRoutes() {
           <Route path="avaliacao" element={<Avaliacao />} />
           <Route path="notificacoes" element={<Notificacoes />} />
           <Route path="chat" element={<Chat />} />
-          <Route path="mapa" element={<MapaCompleto />} />
+          <Route path="mapa" element={<Navigate to="/busca" replace />} />
           <Route path="estabelecimento/:id" element={<EstablishmentDetails />} />
           <Route path="*" element={<Navigate to="/paciente" replace />} />
         </Route>
 
-        <Route path="/admin" element={<RotaProtegida perfilPermitido={PERFIS.ADMIN}><Outlet /></RotaProtegida>}>
+        <Route path="/admin" element={<RotaProtegida perfilPermitido={PERFIS.ADMIN}><LayoutPainel rotaInicio="/admin" nomeArea="Administração" links={LINKS_ADMIN} /></RotaProtegida>}>
           <Route index element={<AdminClinicas />} />
+          <Route path="clinicas" element={<AdminEstabelecimentos />} />
+          <Route path="usuarios" element={<AdminUsuarios />} />
+          <Route path="denuncias" element={<AdminDenuncias />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Route>
 
@@ -83,7 +113,7 @@ export default function AppRoutes() {
           path="/clinica"
           element={
             <RotaProtegida perfilPermitido={PERFIS.CLINICA}>
-              <Outlet />
+              <LayoutPainel rotaInicio="/clinica" nomeArea="Área da clínica" links={LINKS_CLINICA} />
             </RotaProtegida>
           }
         >

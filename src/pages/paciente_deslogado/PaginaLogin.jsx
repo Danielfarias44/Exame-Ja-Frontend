@@ -19,18 +19,10 @@ import LogoAutenticacao from "./LogoAutenticacao";
 import FeedbackErro from "@/components/ui/FeedbackErro";
 import { PERFIS, ROTA_INICIAL_PERFIL } from "@/constants/perfis";
 import { entrarComEmailESenha, reenviarVerificacaoEmail } from "@/services/autenticacaoService";
+import { destinoInternoSeguro } from "@/utils/rotasOferta";
 
 function obterDestinoSeguro(redirectParam, perfil) {
-  const rotaPadrao = ROTA_INICIAL_PERFIL[perfil] || "/";
-  if (
-    redirectParam &&
-    redirectParam.startsWith("/") &&
-    !redirectParam.startsWith("//") &&
-    !redirectParam.startsWith("/\\")
-  ) {
-    return redirectParam;
-  }
-  return rotaPadrao;
+  return destinoInternoSeguro(redirectParam, ROTA_INICIAL_PERFIL[perfil] || "/");
 }
 
 export default function PaginaLogin() {

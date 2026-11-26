@@ -39,7 +39,7 @@ export default function Agendamento() {
 
   useEffect(() => {
     let ativo = true;
-    if (!clinicaUid || !nomeExame) return () => { ativo = false; };
+    if (!clinicaUid || !codigoExame) return () => { ativo = false; };
 
     const intervalo = janelaDisponibilidade();
     Promise.allSettled([
@@ -69,7 +69,7 @@ export default function Agendamento() {
       setStatus("error");
     });
     return () => { ativo = false; };
-  }, [clinicaUid, nomeExame, tentativa]);
+  }, [clinicaUid, codigoExame, tentativa]);
 
   function tentarNovamente() {
     setErro("");
@@ -84,8 +84,7 @@ export default function Agendamento() {
     try {
       await createAppointment({
         clinicaUid,
-        nomeExame,
-        ...(codigoExame ? { codigoExame } : {}),
+        codigoExame,
         dataHora: horarioSelecionado,
       });
       navegar("/paciente/agendamentos?novo=1", { replace: true });
@@ -96,7 +95,7 @@ export default function Agendamento() {
   }
 
   const voltarParaBusca = <Button asChild><Link to="/paciente">Voltar para a busca</Link></Button>;
-  if (!clinicaUid || !nomeExame) return <Container py="var(--space-8)"><ErrorState title="Agendamento inválido" description="Abra esta tela a partir de uma oferta de exame para escolher a clínica e o exame." action={voltarParaBusca} /></Container>;
+  if (!clinicaUid || !codigoExame) return <Container py="var(--space-8)"><ErrorState title="Agendamento inválido" description="Abra esta tela a partir de uma oferta de exame para escolher a clínica e o exame." action={voltarParaBusca} /></Container>;
   if (status === "loading") return <Container py="var(--space-8)"><ListSkeleton count={2} /></Container>;
   if (status === "error") return <Container py="var(--space-8)"><ErrorState title="Não foi possível carregar o agendamento" description={erro} onRetry={tentarNovamente} action={voltarParaBusca} /></Container>;
 
@@ -106,7 +105,7 @@ export default function Agendamento() {
       <Card>
         <Stack as="form" onSubmit={enviarSolicitacao} gap={4}>
           <Text fontWeight="var(--weight-bold)">{clinica?.nomeFantasia || "Clínica selecionada"}</Text>
-          <Text color="var(--color-text-muted)">{nomeExame}{codigoExame ? ` · TUSS ${codigoExame}` : ""}</Text>
+          <Text color="var(--color-text-muted)">{nomeExame || "Exame selecionado"} · TUSS {codigoExame}</Text>
           <Select
             name="horarioAgendamento"
             label="Horários disponíveis"

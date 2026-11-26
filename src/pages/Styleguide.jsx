@@ -1,8 +1,13 @@
 // Catálogo de tudo que já existe no design system. Serve para conferir o visual dos
 // componentes em todas as variações. Rota: /styleguide
+import { useState } from "react";
 import { Flex, Heading, Stack, Text } from "@chakra-ui/react";
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
+import CampoTexto from "@/components/ui/CampoTexto";
+import ConfirmacaoInline from "@/components/ui/ConfirmacaoInline";
+import SeletorConvenios from "@/components/ui/SeletorConvenios";
+import { ID_CONTEUDO } from "@/components/ui/PularParaConteudo";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
@@ -29,6 +34,19 @@ const gruposDeExames = exameCategorias.map((categoria) => ({
 
 const opcoesRaio = [1, 3, 5, 10, 20].map((km) => ({ value: String(km), label: `${km} km` }));
 const opcoesConvenio = mockConvenios.map((nome) => ({ value: nome, label: nome }));
+
+function SeletorExemplo() {
+  const [selecionados, setSelecionados] = useState(["amil", "unimed"]);
+  return (
+    <SeletorConvenios
+      legenda="Convênios aceitos pela clínica"
+      convenios={mockConvenios.map((nome) => ({ id: nome.toLowerCase().replace(/\W+/g, "-"), nome }))}
+      selecionados={selecionados}
+      onChange={setSelecionados}
+      erro={selecionados.length < 5 ? "Escolha de 5 a 10 convênios aceitos pela clínica." : undefined}
+    />
+  );
+}
 
 function Section({ title, children }) {
   return (
@@ -132,6 +150,48 @@ export default function Styleguide() {
             required
           />
         </Stack>
+      </Section>
+
+      <Section title="Campo de texto">
+        <Stack gap="var(--space-4)" maxW="420px">
+          <CampoTexto label="Nome completo" helperText="Como aparece no documento" required />
+          <CampoTexto label="E-mail" type="email" error="Informe um e-mail válido" />
+          <CampoTexto label="Motivo da rejeição" multiline helperText="De 10 a 500 caracteres" />
+        </Stack>
+      </Section>
+
+      <Section title="Seleção de convênios">
+        <SeletorExemplo />
+      </Section>
+
+      <Section title="Confirmação na página">
+        <Text color="var(--color-text-muted)" fontSize="var(--text-xs)">
+          Substitui as caixas do navegador. Recebe o foco ao abrir e pode exigir um motivo.
+        </Text>
+        <Stack gap="var(--space-4)" maxW="520px">
+          <ConfirmacaoInline
+            pergunta="Cancelar este agendamento?"
+            rotuloConfirmar="Sim, cancelar"
+            rotuloVoltar="Manter agendamento"
+            focarAoAbrir={false}
+            onConfirmar={() => {}}
+            onCancelar={() => {}}
+          />
+          <ConfirmacaoInline
+            pergunta="Recusar a solicitação de Hemograma?"
+            rotuloConfirmar="Recusar solicitação"
+            motivo={{ rotulo: "Motivo da recusa", ajuda: "De 3 a 300 caracteres.", minimo: 3, maximo: 300 }}
+            focarAoAbrir={false}
+            onConfirmar={() => {}}
+            onCancelar={() => {}}
+          />
+        </Stack>
+      </Section>
+
+      <Section title="Pular para o conteúdo">
+        <Text color="var(--color-text-muted)" fontSize="var(--text-xs)">
+          Fica escondido até receber foco pelo Tab. Todo layout deve ter um, apontando para o main com id={`"${ID_CONTEUDO}"`}.
+        </Text>
       </Section>
 
       <Section title="Alertas">
