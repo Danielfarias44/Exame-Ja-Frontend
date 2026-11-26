@@ -1,7 +1,63 @@
 import { PERFIS } from "@/constants/perfis";
-import { apiPostWithCsrf, apiRequest } from "@/services/httpClient";
+import { apiPostWithCsrf, apiRequest, apiRequestWithCsrf } from "@/services/httpClient";
 
 const SESSAO_STORAGE_KEY = "exameja_sessao_ativa_v1";
+const CONVENIO_PENDENTE_KEY = "exameja_convenio_pendente_v1";
+
+function lerConveniosPendentes() {
+  try {
+    const salvo = JSON.parse(localStorage.getItem(CONVENIO_PENDENTE_KEY) || "{}");
+    return salvo && typeof salvo === "object" && !Array.isArray(salvo) ? salvo : {};
+  } catch {
+    return {};
+  }
+}
+
+function gravarConveniosPendentes(pendentes) {
+  try {
+    if (Object.keys(pendentes).length === 0) localStorage.removeItem(CONVENIO_PENDENTE_KEY);
+    else localStorage.setItem(CONVENIO_PENDENTE_KEY, JSON.stringify(pendentes));
+  } catch {
+    return;
+  }
+}
+
+function guardarConvenioPendente(email, convenioId) {
+  const chave = (email || "").trim().toLowerCase();
+  if (!chave || !convenioId) return;
+  gravarConveniosPendentes({ ...lerConveniosPendentes(), [chave]: convenioId });
+}
+
+async function aplicarConvenioPendente(email) {
+  const chave = (email || "").trim().toLowerCase();
+  const pendentes = lerConveniosPendentes();
+  const convenioId = pendentes[chave];
+  if (!convenioId) return;
+  try {
+    const { usuario } = await apiRequest("/api/users/me");
+    if (!Array.isArray(usuario?.convenios) || usuario.convenios.length === 0) {
+      await apiRequestWithCsrf("/api/users/me", "PATCH", { convenios: [convenioId] });
+    }
+    delete pendentes[chave];
+    gravarConveniosPendentes(pendentes);
+  } catch {
+    return;
+  }
+}
+
+async function contaEhAdministrador() {
+  try {
+    await apiRequest("/api/admin/clinics?limit=1");
+    return true;
+  } catch (erro) {
+    if (erro.status === 401 || erro.status === 403) return false;
+    throw erro;
+  }
+}
+
+export function ehPaciente(sessao) {
+  return sessao?.autenticado === true && sessao.perfil === PERFIS.PACIENTE;
+}
 
 function perfilFrontend(usuario) {
   if (usuario?.administrador === true) return PERFIS.ADMIN;
@@ -50,9 +106,21 @@ export function obterSessaoAtual() {
 }
 
 export async function validarSessaoAtual() {
-  // Session cookie is checked by protected API calls. Local session keeps
-  // navigation immediate; 401 responses clear it through httpClient events.
-  return obterSessaoAtual();
+  let usuario;
+  try {
+    ({ usuario } = await apiRequest("/api/auth/me"));
+  } catch (erro) {
+    if (erro.status === 401 || erro.status === 403) {
+      limparSessaoLocal();
+      return null;
+    }
+    throw erro;
+  }
+  const idServidor = usuario?.id ?? usuario?.uid;
+  const local = obterSessaoAtual();
+  if (local && local.id === idServidor) return local;
+  const administrador = usuario?.administrador === true || await contaEhAdministrador();
+  return salvarSessao({ ...usuario, administrador });
 }
 
 export function limparSessaoLocal() {
@@ -89,7 +157,7 @@ export async function entrarComEmailESenha({ email, senha, perfil = PERFIS.PACIE
   const tipoEsperado = perfil === PERFIS.PACIENTE ? "cliente" : perfil === PERFIS.CLINICA ? "clinica" : null;
   if (!tipoEsperado && perfil !== PERFIS.ADMIN) throw new Error("Este tipo de conta não pode entrar por este formulário.");
 
-  const [csrf] = await Promise.all([apiRequest("/api/auth/csrf")]);
+  const csrf = await apiRequest("/api/auth/csrf");
   if (!csrf?.csrfToken) throw new Error("Não foi possível iniciar a validação de segurança. Tente novamente.");
   const credenciais = await apiRequest("/api/auth/login", {
     method: "POST",
@@ -99,10 +167,7 @@ export async function entrarComEmailESenha({ email, senha, perfil = PERFIS.PACIE
   if (!credenciais?.token || !credenciais?.usuario) {
     throw new Error("O servidor não retornou os dados necessários para iniciar a sessão.");
   }
-  const tipoCompativel = perfil === PERFIS.ADMIN
-    ? credenciais.usuario.administrador === true
-    : credenciais.usuario.tipo === tipoEsperado && credenciais.usuario.administrador !== true;
-  if (!tipoCompativel) {
+  if (perfil !== PERFIS.ADMIN && credenciais.usuario.tipo !== tipoEsperado) {
     throw new Error("Essa conta pertence a outro tipo de perfil. Selecione o perfil correto.");
   }
 
@@ -112,11 +177,29 @@ export async function entrarComEmailESenha({ email, senha, perfil = PERFIS.PACIE
       headers: { Authorization: `Bearer ${credenciais.token}` },
       body: JSON.stringify({}),
     });
-    return salvarSessao(credenciais.usuario);
   } catch (erro) {
     limparSessaoLocal();
     throw erro;
   }
+
+  if (perfil === PERFIS.ADMIN) {
+    let administrador = credenciais.usuario.administrador === true;
+    try {
+      administrador = administrador || await contaEhAdministrador();
+    } catch (erro) {
+      await encerrarSessao().catch(() => limparSessaoLocal());
+      throw erro;
+    }
+    if (!administrador) {
+      await encerrarSessao().catch(() => limparSessaoLocal());
+      throw new Error("Esta conta não tem acesso de administrador. Entre como paciente ou clínica.");
+    }
+    return salvarSessao({ ...credenciais.usuario, administrador: true });
+  }
+
+  const sessao = salvarSessao({ ...credenciais.usuario, administrador: false });
+  if (perfil === PERFIS.PACIENTE) await aplicarConvenioPendente(email);
+  return sessao;
 }
 
 export async function registrarPaciente(dados) {
@@ -127,8 +210,8 @@ export async function registrarPaciente(dados) {
     senha: dados.senha,
     cpf: dados.cpf,
     telefone: dados.telefone || dados.celular || "",
-    convenios: dados.convenioId ? [dados.convenioId] : [],
   });
+  guardarConvenioPendente(dados.email, dados.convenioId);
   return resposta;
 }
 
@@ -146,7 +229,6 @@ export async function registrarClinica(dados) {
     telefone: dados.telefone || dados.celular || "",
     endereco: (dados.endereco || dados.bairro || "").trim(),
     declaracaoVinculo: dados.declaracaoVinculo || "Declaro que sou responsável e tenho vínculo autorizado com esta clínica.",
-    conveniosAceitos: dados.conveniosAceitos || [],
   });
   return resposta;
 }

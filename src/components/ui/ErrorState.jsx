@@ -4,6 +4,7 @@ export default function ErrorState({
   title = "Não foi possível carregar",
   description = "Verifique sua conexão e tente novamente.",
   onRetry,
+  action,
 }) {
   return (
     <Flex
@@ -43,10 +44,15 @@ export default function ErrorState({
         {title}
       </Heading>
       <Text color="var(--color-text)" fontSize="var(--text-sm)" maxW="48ch">{description}</Text>
-      {onRetry && (
-        <Button variant="outline" onClick={onRetry}>
-          Tentar novamente
-        </Button>
+      {(onRetry || action) && (
+        <Flex gap="var(--space-2)" wrap="wrap" justify="center">
+          {onRetry && (
+            <Button variant="outline" onClick={onRetry}>
+              Tentar novamente
+            </Button>
+          )}
+          {action}
+        </Flex>
       )}
     </Flex>
   );

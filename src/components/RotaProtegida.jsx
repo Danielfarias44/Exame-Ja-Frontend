@@ -1,5 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Box } from "@chakra-ui/react";
+import ErrorState from "@/components/ui/ErrorState";
 import { ROTA_INICIAL_PERFIL } from "@/constants/perfis";
 import { obterSessaoAtual, limparSessaoLocal, validarSessaoAtual } from "@/services/autenticacaoService";
 
@@ -40,7 +42,17 @@ export default function RotaProtegida({
   }, []);
 
   if (validando) return null;
-  if (falhaValidacao) return <p role="alert" style={{ padding: "2rem" }}>Não foi possível validar sua sessão com o servidor. Verifique a conexão e tente novamente.</p>;
+  if (falhaValidacao) {
+    return (
+      <Box p="var(--space-8)">
+        <ErrorState
+          title="Não foi possível validar sua sessão"
+          description="O servidor não respondeu. Verifique a conexão e tente novamente."
+          onRetry={() => window.location.reload()}
+        />
+      </Box>
+    );
+  }
 
   if (!sessao?.autenticado) {
     const destino = encodeURIComponent(location.pathname + location.search);

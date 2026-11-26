@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Box, Button, Container, Grid, Heading, Input, SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { Box, Container, Grid, Heading, Input, SimpleGrid, Stack, Text } from "@chakra-ui/react";
 import { apiRequest, cacheSearchResults, getExamCatalog, getInsurances, searchExamOffers } from "@/services/api";
-import { apiRequestWithCsrf } from "@/services/httpClient";
-import { obterSessaoAtual } from "@/services/autenticacaoService";
+import { ehPaciente } from "@/services/autenticacaoService";
+import { useSessao } from "@/hooks/useSessao";
+import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import Select from "@/components/ui/Select";
 import EmptyState from "@/components/ui/EmptyState";
@@ -18,60 +19,97 @@ const ordenacoes = [
   { value: "preco", label: "Menor preço" },
 ];
 const raios = [5, 10, 20, 30, 50].map((km) => ({ value: String(km), label: `Até ${km} km` }));
+const TAMANHO_PAGINA = 20;
+
+const estiloCampo = {
+  minH: "var(--touch-target-min)",
+  bg: "var(--color-surface)",
+  color: "var(--color-text)",
+  fontFamily: "var(--font-body)",
+  fontSize: "var(--text-sm)",
+  borderWidth: "var(--border-width-strong)",
+  borderColor: "var(--color-border)",
+  borderRadius: "var(--radius-md)",
+  _focusVisible: {
+    outline: "var(--border-width-strong) solid var(--color-focus)",
+    outlineOffset: "2px",
+    borderColor: "var(--color-focus)",
+  },
+};
+
+const estiloRotulo = {
+  display: "block",
+  fontSize: "var(--text-sm)",
+  fontWeight: "var(--weight-bold)",
+  mb: "var(--space-1)",
+};
+
+function lerLocalizacaoDaUrl(searchParams) {
+  const latitude = Number(searchParams.get("latitude"));
+  const longitude = Number(searchParams.get("longitude"));
+  return searchParams.get("latitude") && searchParams.get("longitude")
+    && Number.isFinite(latitude) && Number.isFinite(longitude)
+    ? { latitude, longitude }
+    : null;
+}
+
+function calcularProximoOffset(pagina) {
+  return pagina.offset + pagina.limit < pagina.total ? pagina.offset + pagina.limit : null;
+}
 
 export default function SearchResults() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const sessao = useSessao();
+  const paciente = ehPaciente(sessao);
+  const estaLogado = Boolean(sessao?.autenticado);
+  const idEndereco = useId();
+  const idPrecoMinimo = useId();
+  const idPrecoMaximo = useId();
+  const campoExameRef = useRef(null);
+  const botaoLocalizacaoRef = useRef(null);
+  const campoPrecoMinimoRef = useRef(null);
+  const convenioVeioDaUrl = useRef(Boolean(searchParams.get("convenioId")));
+
   const [catalogo, setCatalogo] = useState([]);
   const [convenios, setConvenios] = useState([]);
   const [codigoExame, setCodigoExame] = useState(searchParams.get("codigoExame") || "");
   const [convenioId, setConvenioId] = useState(searchParams.get("convenioId") || "");
-  const [convenioPacienteId, setConvenioPacienteId] = useState("");
   const [ordenar, setOrdenar] = useState(searchParams.get("ordenar") || "distancia");
   const [raioKm, setRaioKm] = useState(searchParams.get("raioKm") || "10");
   const [precoMinimo, setPrecoMinimo] = useState(searchParams.get("precoMinimo") || "");
   const [precoMaximo, setPrecoMaximo] = useState(searchParams.get("precoMaximo") || "");
-  const [endereco, setEndereco] = useState(searchParams.get("endereco") || "");
-  const [localizacao, setLocalizacao] = useState(() => {
-    const latitude = Number(searchParams.get("latitude"));
-    const longitude = Number(searchParams.get("longitude"));
-    return Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude } : null;
-  });
+  const [endereco, setEndereco] = useState("");
+  const [localizacao, setLocalizacao] = useState(() => lerLocalizacaoDaUrl(searchParams));
+  const [rotuloLocalizacao, setRotuloLocalizacao] = useState(() => (lerLocalizacaoDaUrl(searchParams) ? "Local da última busca" : ""));
   const [centroMapa, setCentroMapa] = useState(localizacao);
   const [ofertas, setOfertas] = useState([]);
   const [total, setTotal] = useState(0);
   const [clinicasSemCoordenadas, setClinicasSemCoordenadas] = useState(0);
   const [erro, setErro] = useState("");
+  const [erroBusca, setErroBusca] = useState("");
   const [erroCatalogo, setErroCatalogo] = useState("");
   const [erroConvenios, setErroConvenios] = useState("");
   const [erroLocalizacao, setErroLocalizacao] = useState("");
-  const [status, setStatus] = useState("idle");
+  const [status, setStatus] = useState(() => (searchParams.get("codigoExame") && lerLocalizacaoDaUrl(searchParams) ? "loading" : "idle"));
   const [carregandoCatalogo, setCarregandoCatalogo] = useState(true);
   const [localizando, setLocalizando] = useState(false);
   const [geocodificando, setGeocodificando] = useState(false);
-  const [buscando, setBuscando] = useState(false);
   const [paginaCatalogo, setPaginaCatalogo] = useState(1);
   const [temMaisExames, setTemMaisExames] = useState(false);
   const [carregandoMaisExames, setCarregandoMaisExames] = useState(false);
   const [proximoOffset, setProximoOffset] = useState(null);
   const [carregandoMaisResultados, setCarregandoMaisResultados] = useState(false);
   const [tentativaBusca, setTentativaBusca] = useState(0);
-  const estaLogado = Boolean(obterSessaoAtual()?.autenticado);
 
-  function limparResultados() {
-    setOfertas([]);
-    setTotal(0);
-    setProximoOffset(null);
-    setClinicasSemCoordenadas(0);
-    setStatus("idle");
-    setErro("");
-    setBuscando(false);
-  }
-
-  function limparLocalizacaoSalva() {
-    const params = new URLSearchParams(searchParams);
-    ["latitude", "longitude", "endereco", "codigoExame"].forEach((chave) => params.delete(chave));
-    setSearchParams(params, { replace: true });
-  }
+  const codigoUrl = searchParams.get("codigoExame") || "";
+  const convenioUrl = searchParams.get("convenioId") || "";
+  const ordenarUrl = searchParams.get("ordenar") || "distancia";
+  const raioUrl = searchParams.get("raioKm") || "10";
+  const latitudeUrl = searchParams.get("latitude");
+  const longitudeUrl = searchParams.get("longitude");
+  const precoMinimoUrl = searchParams.get("precoMinimo") || "";
+  const precoMaximoUrl = searchParams.get("precoMaximo") || "";
+  const buscaAtiva = Boolean(codigoUrl && latitudeUrl && longitudeUrl);
 
   useEffect(() => {
     let ativo = true;
@@ -82,41 +120,112 @@ export default function SearchResults() {
 
   useEffect(() => {
     let ativo = true;
-    setCarregandoCatalogo(true);
     getExamCatalog({ page: 1, limit: 100 }).then((pagina) => {
-        if (!ativo) return;
-        setErroCatalogo("");
-        setCatalogo(pagina.exams);
-        setPaginaCatalogo(pagina.currentPage);
-        setTemMaisExames(pagina.pages !== null ? pagina.currentPage < pagina.pages : pagina.exams.length === 100);
-      }).catch((falha) => { if (ativo) setErroCatalogo(falha.message || "Não foi possível carregar os exames."); })
-        .finally(() => { if (ativo) setCarregandoCatalogo(false); });
+      if (!ativo) return;
+      setErroCatalogo("");
+      setCatalogo(pagina.exams);
+      setPaginaCatalogo(pagina.currentPage);
+      setTemMaisExames(pagina.pages !== null ? pagina.currentPage < pagina.pages : pagina.exams.length === 100);
+    }).catch((falha) => { if (ativo) setErroCatalogo(falha.message || "Não foi possível carregar os exames."); })
+      .finally(() => { if (ativo) setCarregandoCatalogo(false); });
     return () => { ativo = false; };
   }, []);
 
   useEffect(() => {
-    if (!estaLogado || convenioId) return;
+    if (!paciente || convenioVeioDaUrl.current) return undefined;
     let ativo = true;
     apiRequest("/api/users/me").then(({ usuario }) => {
       const planoDoPaciente = usuario?.convenios?.[0];
-      if (!ativo) return;
-      setConvenioPacienteId(planoDoPaciente || "");
-      if (planoDoPaciente) {
-        setConvenioId(planoDoPaciente);
-        setSearchParams((params) => { const novos = new URLSearchParams(params); novos.set("convenioId", planoDoPaciente); return novos; }, { replace: true });
-      }
+      if (ativo && planoDoPaciente) setConvenioId((atual) => atual || planoDoPaciente);
     }).catch(() => {});
     return () => { ativo = false; };
-  }, [estaLogado, convenioId, setSearchParams]);
+  }, [paciente]);
+
+  useEffect(() => {
+    if (!buscaAtiva) return undefined;
+    let ativo = true;
+    searchExamOffers({
+      codigoExame: codigoUrl,
+      latitude: Number(latitudeUrl),
+      longitude: Number(longitudeUrl),
+      convenioId: convenioUrl,
+      ordenar: ordenarUrl,
+      raioKm: raioUrl,
+      precoMinimo: precoMinimoUrl,
+      precoMaximo: precoMaximoUrl,
+      limit: TAMANHO_PAGINA,
+      offset: 0,
+    }).then((resultado) => {
+      if (!ativo) return;
+      cacheSearchResults(resultado.offers);
+      setOfertas(resultado.offers);
+      setTotal(resultado.total);
+      setClinicasSemCoordenadas(Number(resultado.raw?.clinicasSemCoordenadas) || 0);
+      setProximoOffset(calcularProximoOffset(resultado));
+      if (resultado.location) {
+        setCentroMapa({ latitude: resultado.location.latitude, longitude: resultado.location.longitude });
+      }
+      setStatus("success");
+    }).catch((falha) => {
+      if (!ativo) return;
+      setErroBusca(falha.message || "Não foi possível buscar clínicas.");
+      setStatus("error");
+    });
+    return () => { ativo = false; };
+  }, [buscaAtiva, codigoUrl, convenioUrl, ordenarUrl, raioUrl, latitudeUrl, longitudeUrl, precoMinimoUrl, precoMaximoUrl, tentativaBusca]);
 
   const clinicasNoMapa = useMemo(() => {
     const porClinica = new Map();
     ofertas.forEach((oferta) => {
       const anterior = porClinica.get(oferta.clinicId);
-      if (!anterior || oferta.price < anterior.price) porClinica.set(oferta.clinicId, { ...oferta, id: oferta.clinicId });
+      const maisBarata = Number.isFinite(oferta.price)
+        && (!anterior || !Number.isFinite(anterior.price) || oferta.price < anterior.price);
+      if (!anterior || maisBarata) porClinica.set(oferta.clinicId, { ...oferta, id: oferta.clinicId });
     });
     return [...porClinica.values()];
   }, [ofertas]);
+
+  function executarBusca(alteracoes = {}) {
+    const valores = { codigoExame, convenioId, ordenar, raioKm, precoMinimo, precoMaximo, localizacao, ...alteracoes };
+    setErro("");
+    if (!valores.codigoExame) {
+      setErro("Selecione o exame que deseja encontrar.");
+      campoExameRef.current?.focus();
+      return;
+    }
+    if (!valores.localizacao) {
+      setErroLocalizacao("Use sua localização ou informe um endereço antes de buscar.");
+      botaoLocalizacaoRef.current?.focus();
+      return;
+    }
+    if (valores.precoMinimo && valores.precoMaximo && Number(valores.precoMinimo) > Number(valores.precoMaximo)) {
+      setErro("O preço mínimo não pode ser maior que o preço máximo.");
+      campoPrecoMinimoRef.current?.focus();
+      return;
+    }
+    const params = new URLSearchParams({
+      codigoExame: valores.codigoExame,
+      latitude: String(valores.localizacao.latitude),
+      longitude: String(valores.localizacao.longitude),
+      ordenar: valores.ordenar,
+      raioKm: valores.raioKm,
+    });
+    if (valores.convenioId) params.set("convenioId", valores.convenioId);
+    if (valores.precoMinimo) params.set("precoMinimo", valores.precoMinimo);
+    if (valores.precoMaximo) params.set("precoMaximo", valores.precoMaximo);
+    setErroBusca("");
+    setStatus("loading");
+    setSearchParams(params);
+    setTentativaBusca((atual) => atual + 1);
+  }
+
+  function alterarFiltro(definir, chave) {
+    return (evento) => {
+      const valor = evento.target.value;
+      definir(valor);
+      if (buscaAtiva && (chave !== "codigoExame" || valor)) executarBusca({ [chave]: valor });
+    };
+  }
 
   async function carregarMaisExames() {
     if (!temMaisExames || carregandoMaisExames) return;
@@ -129,17 +238,16 @@ export default function SearchResults() {
       });
       setPaginaCatalogo(pagina.currentPage);
       setTemMaisExames(pagina.pages !== null ? pagina.currentPage < pagina.pages : pagina.exams.length === 100);
-    } catch (falha) { setErroCatalogo(falha.message); }
+    } catch (falha) { setErroCatalogo(falha.message || "Não foi possível carregar mais exames."); }
     finally { setCarregandoMaisExames(false); }
   }
 
-  function aplicarLocalizacao(coordenadas, textoEndereco = "") {
+  function aplicarLocalizacao(coordenadas, rotulo) {
     setLocalizacao(coordenadas);
     setCentroMapa(coordenadas);
-    setEndereco(textoEndereco);
+    setRotuloLocalizacao(rotulo);
     setErroLocalizacao("");
-    limparResultados();
-    limparLocalizacaoSalva();
+    if (codigoExame) executarBusca({ localizacao: coordenadas });
   }
 
   function usarMinhaLocalizacao() {
@@ -149,7 +257,8 @@ export default function SearchResults() {
     }
     setLocalizando(true);
     navigator.geolocation.getCurrentPosition(({ coords }) => {
-      aplicarLocalizacao({ latitude: coords.latitude, longitude: coords.longitude });
+      setEndereco("");
+      aplicarLocalizacao({ latitude: coords.latitude, longitude: coords.longitude }, "Sua localização atual");
       setLocalizando(false);
     }, () => {
       setErroLocalizacao("Não foi possível obter sua localização. Confira a permissão do navegador ou informe um endereço.");
@@ -170,85 +279,6 @@ export default function SearchResults() {
     finally { setGeocodificando(false); }
   }
 
-  async function buscar(evento) {
-    evento?.preventDefault?.();
-    setErro("");
-    if (!codigoExame) { setErro("Selecione o exame que deseja encontrar."); return; }
-    if (!localizacao) { setErroLocalizacao("Use sua localização ou informe um endereço antes de buscar."); return; }
-    if (estaLogado && !convenioId) { setErro("Selecione seu convênio para receber recomendações compatíveis."); return; }
-    if (precoMinimo && precoMaximo && Number(precoMinimo) > Number(precoMaximo)) { setErro("O preço mínimo não pode ser maior que o preço máximo."); return; }
-    setBuscando(true);
-    if (estaLogado && convenioPacienteId !== convenioId) {
-      try {
-        await apiRequestWithCsrf("/api/users/me", "PATCH", { convenios: [convenioId] });
-        setConvenioPacienteId(convenioId);
-      } catch (falha) {
-        setErro(falha.message || "Não foi possível salvar seu convênio no perfil.");
-        setBuscando(false);
-        return;
-      }
-    }
-    const params = new URLSearchParams({
-      codigoExame,
-      latitude: String(localizacao.latitude),
-      longitude: String(localizacao.longitude),
-      ordenar,
-      raioKm,
-    });
-    if (convenioId) params.set("convenioId", convenioId);
-    if (precoMinimo) params.set("precoMinimo", precoMinimo);
-    if (precoMaximo) params.set("precoMaximo", precoMaximo);
-    setSearchParams(params);
-    setBuscando(true);
-    setStatus("loading");
-    setTentativaBusca((atual) => atual + 1);
-  }
-
-  const codigoUrl = searchParams.get("codigoExame") || "";
-  const convenioUrl = searchParams.get("convenioId") || "";
-  const ordenarUrl = searchParams.get("ordenar") || "distancia";
-  const raioUrl = searchParams.get("raioKm") || "10";
-  const latitudeUrl = searchParams.get("latitude");
-  const longitudeUrl = searchParams.get("longitude");
-  const precoMinimoUrl = searchParams.get("precoMinimo") || "";
-  const precoMaximoUrl = searchParams.get("precoMaximo") || "";
-
-  useEffect(() => {
-    if (!codigoUrl || !latitudeUrl || !longitudeUrl) {
-      setOfertas([]); setTotal(0); setProximoOffset(null); setStatus("idle"); setBuscando(false);
-      return;
-    }
-    let ativo = true;
-    setStatus("loading"); setErro(""); setOfertas([]); setTotal(0);
-    searchExamOffers({
-      codigoExame: codigoUrl,
-      latitude: Number(latitudeUrl),
-      longitude: Number(longitudeUrl),
-      convenioId: convenioUrl,
-      ordenar: ordenarUrl,
-      raioKm: raioUrl,
-      precoMinimo: precoMinimoUrl,
-      precoMaximo: precoMaximoUrl,
-      limit: 20,
-      offset: 0,
-    }).then((resultado) => {
-      if (!ativo) return;
-      cacheSearchResults(resultado.offers);
-      setOfertas(resultado.offers);
-      setTotal(resultado.total);
-      setClinicasSemCoordenadas(Number(resultado.raw?.clinicasSemCoordenadas) || 0);
-      setProximoOffset(resultado.offset + resultado.limit < resultado.total ? resultado.offset + resultado.limit : null);
-      if (resultado.location) {
-        setCentroMapa({ latitude: resultado.location.latitude, longitude: resultado.location.longitude });
-      }
-      setStatus("success"); setBuscando(false);
-    }).catch((falha) => {
-      if (!ativo) return;
-      setErro(falha.message || "Não foi possível buscar clínicas."); setStatus("error"); setBuscando(false);
-    });
-    return () => { ativo = false; };
-  }, [codigoUrl, convenioUrl, ordenarUrl, raioUrl, latitudeUrl, longitudeUrl, precoMinimoUrl, precoMaximoUrl, tentativaBusca]);
-
   async function carregarMaisResultados() {
     if (proximoOffset === null || carregandoMaisResultados) return;
     setCarregandoMaisResultados(true);
@@ -262,7 +292,7 @@ export default function SearchResults() {
         raioKm: raioUrl,
         precoMinimo: precoMinimoUrl,
         precoMaximo: precoMaximoUrl,
-        limit: 20,
+        limit: TAMANHO_PAGINA,
         offset: proximoOffset,
       });
       setOfertas((atuais) => {
@@ -271,89 +301,109 @@ export default function SearchResults() {
         cacheSearchResults(atualizadas);
         return atualizadas;
       });
-      setClinicasSemCoordenadas(Number(pagina.raw?.clinicasSemCoordenadas) || clinicasSemCoordenadas);
-      setProximoOffset(pagina.offset + pagina.limit < pagina.total ? pagina.offset + pagina.limit : null);
+      setClinicasSemCoordenadas((atual) => Number(pagina.raw?.clinicasSemCoordenadas) || atual);
+      setProximoOffset(calcularProximoOffset(pagina));
     } catch (falha) { setErro(falha.message || "Não foi possível carregar mais clínicas."); }
     finally { setCarregandoMaisResultados(false); }
   }
 
   const exameSelecionado = catalogo.find((exame) => exame.codigo === codigoUrl);
+  const nomeExameBuscado = exameSelecionado?.nome || ofertas[0]?.exam;
+  const opcoesExame = catalogo.map((exame) => ({ value: exame.codigo, label: `${exame.nome} (${exame.codigo})` }));
+  if (codigoExame && !catalogo.some((exame) => exame.codigo === codigoExame)) {
+    const nome = ofertas.find((oferta) => oferta.examCode === codigoExame)?.exam;
+    opcoesExame.unshift({ value: codigoExame, label: nome ? `${nome} (${codigoExame})` : `Exame ${codigoExame}` });
+  }
+  const statusVisivel = buscaAtiva ? status : "idle";
 
   return (
-    <Container maxW="var(--container-max)" px={{ base: 4, md: 6 }} py={{ base: 6, md: 8 }} pb={{ base: "110px", md: 12 }}>
+    <Container maxW="var(--container-max)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py={{ base: "var(--space-6)", md: "var(--space-8)" }}>
       <PageHeader title="Encontre clínicas perto de você" description="Escolha um exame, informe onde procurar e compare opções por distância, preço e convênio." />
 
-      <Grid templateColumns={{ base: "1fr", xl: "minmax(320px, 0.85fr) minmax(0, 1.5fr)" }} gap={{ base: 5, xl: 6 }} mt={6} alignItems="start">
-        <Stack gap={5} p={{ base: 4, md: 6 }} bg="var(--color-surface)" border="1px solid var(--color-border-soft)" borderRadius="var(--radius-lg)" boxShadow="var(--shadow-sm)">
+      <Grid templateColumns={{ base: "1fr", xl: "minmax(20rem, 0.85fr) minmax(0, 1.5fr)" }} gap={{ base: "var(--space-4)", xl: "var(--space-6)" }} mt="var(--space-6)" alignItems="start">
+        <Stack gap="var(--space-4)" p={{ base: "var(--space-4)", md: "var(--space-6)" }} bg="var(--color-surface)" borderWidth="var(--border-width)" borderStyle="solid" borderColor="var(--color-border-soft)" borderRadius="var(--radius-lg)" boxShadow="var(--shadow-sm)">
           <Box>
             <Heading as="h2" fontSize="var(--text-lg)">O que você precisa?</Heading>
-            <Text fontSize="sm" color="var(--color-text-muted)" mt={1}>A busca usa ofertas publicadas pelas clínicas.</Text>
+            <Text fontSize="var(--text-sm)" color="var(--color-text-muted)" mt="var(--space-1)">A busca usa ofertas publicadas pelas clínicas.</Text>
           </Box>
-          <Stack gap={2}>
-            <Select name="codigoExame" label="Exame do catálogo TUSS" placeholder={carregandoCatalogo ? "Carregando exames…" : "Selecione um exame"} options={catalogo.map((exame) => ({ value: exame.codigo, label: `${exame.nome} (${exame.codigo})` }))} value={codigoExame} onChange={(event) => { setCodigoExame(event.target.value); limparResultados(); }} disabled={carregandoCatalogo} required />
-            {temMaisExames && <Button type="button" size="sm" variant="outline" onClick={carregarMaisExames} disabled={carregandoMaisExames}>{carregandoMaisExames ? "Carregando…" : "Carregar mais exames"}</Button>}
-            {erroCatalogo && <Text role="alert" fontSize="sm" color="var(--color-error)">{erroCatalogo}</Text>}
+          <Stack gap="var(--space-2)">
+            <Select ref={campoExameRef} name="codigoExame" label="Exame do catálogo TUSS" placeholder={carregandoCatalogo ? "Carregando exames…" : "Selecione um exame"} options={opcoesExame} value={codigoExame} onChange={alterarFiltro(setCodigoExame, "codigoExame")} disabled={carregandoCatalogo} required />
+            {temMaisExames && <Button type="button" variant="outline" onClick={carregarMaisExames} disabled={carregandoMaisExames}>{carregandoMaisExames ? "Carregando…" : "Carregar mais exames"}</Button>}
+            {erroCatalogo && <Text role="alert" fontSize="var(--text-sm)" color="var(--color-error)">{erroCatalogo}</Text>}
           </Stack>
 
-          <Box h="1px" bg="var(--color-border-soft)" />
-          <Stack gap={2}>
+          <Box h="var(--border-width)" bg="var(--color-border-soft)" />
+          <Stack gap="var(--space-2)">
             <Text fontWeight="var(--weight-bold)" fontSize="var(--text-sm)">Onde procurar?</Text>
-            <Button type="button" variant="outline" onClick={usarMinhaLocalizacao} disabled={localizando}>{localizando ? "Obtendo localização…" : "Usar minha localização"}</Button>
-            <Text textAlign="center" fontSize="xs" color="var(--color-text-muted)">ou informe um endereço</Text>
-            <Stack as="form" onSubmit={localizarEndereco} direction={{ base: "column", sm: "row" }} gap={2}>
-              <Input aria-label="Endereço para busca" value={endereco} onChange={(event) => { setEndereco(event.target.value); setLocalizacao(null); setCentroMapa(null); limparResultados(); limparLocalizacaoSalva(); }} placeholder="Rua, bairro, cidade ou CEP" />
-              <Button type="submit" variant="outline" disabled={geocodificando || !endereco.trim()}>{geocodificando ? "Localizando…" : "Usar endereço"}</Button>
+            <Button ref={botaoLocalizacaoRef} type="button" variant="outline" onClick={usarMinhaLocalizacao} disabled={localizando}>{localizando ? "Obtendo localização…" : "Usar minha localização"}</Button>
+            <Stack as="form" onSubmit={localizarEndereco} gap="var(--space-2)">
+              <Text as="label" htmlFor={idEndereco} {...estiloRotulo}>Ou informe um endereço</Text>
+              <Stack direction={{ base: "column", sm: "row" }} gap="var(--space-2)">
+                <Input id={idEndereco} {...estiloCampo} value={endereco} onChange={(evento) => setEndereco(evento.target.value)} placeholder="Rua, bairro, cidade ou CEP" autoComplete="street-address" />
+                <Button type="submit" variant="outline" disabled={geocodificando || !endereco.trim()}>{geocodificando ? "Localizando…" : "Usar endereço"}</Button>
+              </Stack>
             </Stack>
-            {localizacao && <Text fontSize="xs" color="var(--color-success)">{endereco || "Localização atual definida"}</Text>}
-            {erroLocalizacao && <Text role="alert" fontSize="sm" color="var(--color-error)">{erroLocalizacao}</Text>}
+            {localizacao && <Text fontSize="var(--text-sm)" color="var(--color-text)" aria-live="polite"><Text as="span" aria-hidden="true">✓ </Text>Buscando perto de: {rotuloLocalizacao || "local definido"}</Text>}
+            {erroLocalizacao && <Text role="alert" fontSize="var(--text-sm)" color="var(--color-error)">{erroLocalizacao}</Text>}
           </Stack>
 
-          <Box h="1px" bg="var(--color-border-soft)" />
+          <Box h="var(--border-width)" bg="var(--color-border-soft)" />
           <Heading as="h3" fontSize="var(--text-sm)">Filtros da busca</Heading>
-          <Select name="convenioId" label="Convênio" placeholder={estaLogado ? "Selecione seu convênio" : "Todas as clínicas"} options={convenios.map((item) => ({ value: item.id, label: item.name }))} value={convenioId} onChange={(event) => { setConvenioId(event.target.value); limparResultados(); }} required={estaLogado} />
-          {erroConvenios && <Text role="alert" fontSize="sm" color="var(--color-error)">{erroConvenios}</Text>}
-          <SimpleGrid columns={2} gap={3}>
-            <Select name="raioKm" label="Distância máxima" options={raios} value={raioKm} onChange={(event) => { setRaioKm(event.target.value); limparResultados(); }} />
-            <Select name="ordenar" label="Ordenar por" options={ordenacoes} value={ordenar} onChange={(event) => { setOrdenar(event.target.value); limparResultados(); }} />
+          <Select name="convenioId" label="Convênio" placeholder="Todos os convênios" options={convenios.map((item) => ({ value: item.id, label: item.name }))} value={convenioId} onChange={alterarFiltro(setConvenioId, "convenioId")} helperText={paciente ? "Preenchido com o convênio do seu perfil. Você pode trocar só nesta busca." : undefined} />
+          {erroConvenios && <Text role="alert" fontSize="var(--text-sm)" color="var(--color-error)">{erroConvenios}</Text>}
+          <SimpleGrid columns={{ base: 1, sm: 2 }} gap="var(--space-3)">
+            <Select name="raioKm" label="Distância máxima" options={raios} value={raioKm} onChange={alterarFiltro(setRaioKm, "raioKm")} />
+            <Select name="ordenar" label="Ordenar por" options={ordenacoes} value={ordenar} onChange={alterarFiltro(setOrdenar, "ordenar")} />
           </SimpleGrid>
-          <SimpleGrid columns={2} gap={3}>
-            <label><Text fontSize="sm" fontWeight="var(--weight-bold)" mb={1}>Preço mínimo</Text><Input type="number" min="0" step="0.01" value={precoMinimo} onChange={(event) => { setPrecoMinimo(event.target.value); limparResultados(); }} placeholder="R$ 0" /></label>
-            <label><Text fontSize="sm" fontWeight="var(--weight-bold)" mb={1}>Preço máximo</Text><Input type="number" min="0" step="0.01" value={precoMaximo} onChange={(event) => { setPrecoMaximo(event.target.value); limparResultados(); }} placeholder="Sem limite" /></label>
+          <SimpleGrid columns={{ base: 1, sm: 2 }} gap="var(--space-3)">
+            <Box>
+              <Text as="label" htmlFor={idPrecoMinimo} {...estiloRotulo}>Preço mínimo (R$)</Text>
+              <Input ref={campoPrecoMinimoRef} id={idPrecoMinimo} {...estiloCampo} type="number" inputMode="decimal" min="0" step="0.01" value={precoMinimo} onChange={(evento) => setPrecoMinimo(evento.target.value)} />
+            </Box>
+            <Box>
+              <Text as="label" htmlFor={idPrecoMaximo} {...estiloRotulo}>Preço máximo (R$)</Text>
+              <Input id={idPrecoMaximo} {...estiloCampo} type="number" inputMode="decimal" min="0" step="0.01" value={precoMaximo} onChange={(evento) => setPrecoMaximo(evento.target.value)} placeholder="Sem limite" />
+            </Box>
           </SimpleGrid>
-          {erro && <Text role="alert" color="var(--color-error)" fontSize="sm">{erro}</Text>}
-          <Button type="button" onClick={buscar} disabled={buscando || carregandoCatalogo}>{buscando ? "Buscando clínicas…" : "Buscar clínicas"}</Button>
+          {erro && <Text role="alert" color="var(--color-error)" fontSize="var(--text-sm)">{erro}</Text>}
+          <Button type="button" onClick={() => executarBusca()} disabled={carregandoCatalogo || statusVisivel === "loading"}>{statusVisivel === "loading" ? "Buscando clínicas…" : buscaAtiva ? "Atualizar busca" : "Buscar clínicas"}</Button>
         </Stack>
 
-        <Stack gap={4}>
-          <Box bg="var(--color-surface)" border="1px solid var(--color-border-soft)" borderRadius="var(--radius-lg)" overflow="hidden" boxShadow="var(--shadow-sm)">
-            {centroMapa ? <EstablishmentMap key={`${centroMapa.latitude}-${centroMapa.longitude}`} establishments={clinicasNoMapa} center={centroMapa} zoom={13} label="Mapa de clínicas próximas" /> : (
-              <FlexMapaVazio />
-            )}
+        <Stack gap="var(--space-4)">
+          <Box bg="var(--color-surface)" borderWidth="var(--border-width)" borderStyle="solid" borderColor="var(--color-border-soft)" borderRadius="var(--radius-lg)" overflow="hidden" boxShadow="var(--shadow-sm)">
+            {centroMapa ? <EstablishmentMap key={`${centroMapa.latitude}-${centroMapa.longitude}`} establishments={clinicasNoMapa} center={centroMapa} zoom={13} label="Mapa de clínicas próximas" /> : <MapaVazio />}
           </Box>
           <Box>
-            <Heading as="h2" fontSize="var(--text-lg)">{exameSelecionado ? `Ofertas de ${exameSelecionado.nome}` : "Clínicas recomendadas"}</Heading>
-            <Text fontSize="sm" color="var(--color-text-muted)" mt={1} aria-live="polite">
-              {status === "loading" ? "Buscando ofertas…" : status === "success" ? `${total} ${total === 1 ? "oferta encontrada" : "ofertas encontradas"}` : "Informe localização e exame para ver clínicas no mapa."}
+            <Heading as="h2" fontSize="var(--text-lg)">{nomeExameBuscado ? `Ofertas de ${nomeExameBuscado}` : "Clínicas recomendadas"}</Heading>
+            <Text fontSize="var(--text-sm)" color="var(--color-text-muted)" mt="var(--space-1)" aria-live="polite">
+              {statusVisivel === "loading" ? "Buscando ofertas…" : statusVisivel === "success" ? `${total} ${total === 1 ? "oferta encontrada" : "ofertas encontradas"}` : "Informe localização e exame para ver clínicas no mapa."}
             </Text>
+            {statusVisivel === "success" && ofertas.length > 0 && clinicasSemCoordenadas > 0 && (
+              <Text fontSize="var(--text-sm)" color="var(--color-text-muted)" mt="var(--space-1)">
+                {clinicasSemCoordenadas === 1
+                  ? "1 clínica com este exame não aparece no mapa porque ainda não tem o endereço localizado."
+                  : `${clinicasSemCoordenadas} clínicas com este exame não aparecem no mapa porque ainda não têm o endereço localizado.`}
+              </Text>
+            )}
           </Box>
-          {status === "loading" && <ListSkeleton count={3} />}
-          {status === "error" && <ErrorState title="A busca não foi concluída" description={erro} onRetry={buscar} />}
-          {status === "success" && ofertas.length === 0 && <EmptyState title="Nenhuma oferta compatível encontrada" description={clinicasSemCoordenadas > 0 ? `${clinicasSemCoordenadas} clínicas não aparecem porque ainda não têm coordenadas atualizadas. Também pode não haver ofertas publicadas para este exame e convênio; tente ampliar a distância ou alterar os filtros.` : "Não há ofertas publicadas para este exame e localização com os filtros escolhidos. Tente ampliar a distância, alterar o convênio ou buscar outro exame."} />}
-          {ofertas.map((oferta) => <EstablishmentCard key={oferta.id} establishment={oferta} actions={<OfferActions oferta={oferta} estaLogado={estaLogado} />} />)}
-          {proximoOffset !== null && <Button type="button" variant="outline" onClick={carregarMaisResultados} disabled={carregandoMaisResultados}>{carregandoMaisResultados ? "Carregando clínicas…" : "Carregar mais clínicas"}</Button>}
+          {statusVisivel === "loading" && <ListSkeleton count={3} />}
+          {statusVisivel === "error" && <ErrorState title="A busca não foi concluída" description={erroBusca} onRetry={() => executarBusca()} />}
+          {statusVisivel === "success" && ofertas.length === 0 && <EmptyState title="Nenhuma oferta compatível encontrada" description={clinicasSemCoordenadas > 0 ? `${clinicasSemCoordenadas} clínicas não aparecem porque ainda não têm o endereço localizado. Também pode não haver ofertas publicadas para este exame e convênio; tente ampliar a distância ou alterar os filtros.` : "Não há ofertas publicadas para este exame e localização com os filtros escolhidos. Tente ampliar a distância, alterar o convênio ou buscar outro exame."} />}
+          {statusVisivel === "success" && ofertas.map((oferta) => <EstablishmentCard key={oferta.id} establishment={oferta} actions={<OfferActions oferta={oferta} ehPaciente={paciente} estaLogado={estaLogado} />} />)}
+          {statusVisivel === "success" && proximoOffset !== null && <Button type="button" variant="outline" onClick={carregarMaisResultados} disabled={carregandoMaisResultados}>{carregandoMaisResultados ? "Carregando clínicas…" : "Carregar mais clínicas"}</Button>}
         </Stack>
       </Grid>
     </Container>
   );
 }
 
-function FlexMapaVazio() {
+function MapaVazio() {
   return (
-    <Box minH={{ base: "280px", md: "420px" }} display="grid" placeItems="center" px={6} py={10} textAlign="center" bg="var(--color-bg)">
-      <Stack maxW="360px" gap={2}>
-        <Text fontSize="2xl" aria-hidden="true">⌖</Text>
-        <Heading as="h3" fontSize="md">Seu mapa de clínicas</Heading>
-        <Text fontSize="sm" color="var(--color-text-muted)">Use sua localização ou informe um endereço para centralizar a busca e ver as opções mais próximas.</Text>
+    <Box minH="var(--map-height)" display="grid" placeItems="center" px="var(--space-6)" py="var(--space-8)" textAlign="center" bg="var(--color-bg)">
+      <Stack maxW="48ch" gap="var(--space-2)">
+        <Text fontSize="var(--text-2xl)" aria-hidden="true">⌖</Text>
+        <Heading as="h3" fontSize="var(--text-base)">Seu mapa de clínicas</Heading>
+        <Text fontSize="var(--text-sm)" color="var(--color-text-muted)">Use sua localização ou informe um endereço para centralizar a busca e ver as opções mais próximas.</Text>
       </Stack>
     </Box>
   );

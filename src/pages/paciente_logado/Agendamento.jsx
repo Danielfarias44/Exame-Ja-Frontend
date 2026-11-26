@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { Button, Container, Stack, Text } from "@chakra-ui/react";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Container, Stack, Text } from "@chakra-ui/react";
+import Button from "@/components/ui/Button";
+import Select from "@/components/ui/Select";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import ErrorState from "@/components/ui/ErrorState";
@@ -33,6 +35,7 @@ export default function Agendamento() {
   const [status, setStatus] = useState("loading");
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
 
   useEffect(() => {
     let ativo = true;
@@ -50,7 +53,9 @@ export default function Agendamento() {
       const primeiraPagina = disponibilidadeResultado.value;
       let slots = primeiraPagina.horarios ?? [];
       let cursor = primeiraPagina.proximoCursor;
-      while (cursor) {
+      const cursoresLidos = new Set();
+      while (cursor && !cursoresLidos.has(cursor) && ativo) {
+        cursoresLidos.add(cursor);
         const pagina = await getClinicAvailability(clinicaUid, { ...intervalo, cursor });
         slots = slots.concat(pagina.horarios ?? []);
         cursor = pagina.proximoCursor;
@@ -64,7 +69,13 @@ export default function Agendamento() {
       setStatus("error");
     });
     return () => { ativo = false; };
-  }, [clinicaUid, nomeExame]);
+  }, [clinicaUid, nomeExame, tentativa]);
+
+  function tentarNovamente() {
+    setErro("");
+    setStatus("loading");
+    setTentativa((atual) => atual + 1);
+  }
 
   async function enviarSolicitacao(evento) {
     evento.preventDefault();
@@ -84,23 +95,29 @@ export default function Agendamento() {
     }
   }
 
-  if (!clinicaUid || !nomeExame) return <Container py={8}><ErrorState title="Agendamento inválido" description="Abra esta tela a partir de uma oferta de exame para escolher a clínica e o exame." /></Container>;
-  if (status === "loading") return <Container py={8}><ListSkeleton count={2} /></Container>;
-  if (status === "error") return <Container py={8}><ErrorState title="Não foi possível carregar o agendamento" description={erro} /></Container>;
+  const voltarParaBusca = <Button asChild><Link to="/paciente">Voltar para a busca</Link></Button>;
+  if (!clinicaUid || !nomeExame) return <Container py="var(--space-8)"><ErrorState title="Agendamento inválido" description="Abra esta tela a partir de uma oferta de exame para escolher a clínica e o exame." action={voltarParaBusca} /></Container>;
+  if (status === "loading") return <Container py="var(--space-8)"><ListSkeleton count={2} /></Container>;
+  if (status === "error") return <Container py="var(--space-8)"><ErrorState title="Não foi possível carregar o agendamento" description={erro} onRetry={tentarNovamente} action={voltarParaBusca} /></Container>;
 
   return (
     <Container maxW="760px" px={{ base: 4, md: 6 }} py={8} pb={{ base: "110px", md: 12 }}>
       <PageHeader title="Solicitar agendamento" description="Escolha um horário publicado pela clínica. A solicitação ficará pendente até a confirmação da unidade." />
       <Card>
         <Stack as="form" onSubmit={enviarSolicitacao} gap={4}>
-          <Text fontWeight="bold">{clinica?.nomeFantasia || `Clínica ${clinicaUid}`}</Text>
+          <Text fontWeight="var(--weight-bold)">{clinica?.nomeFantasia || "Clínica selecionada"}</Text>
           <Text color="var(--color-text-muted)">{nomeExame}{codigoExame ? ` · TUSS ${codigoExame}` : ""}</Text>
-          <label htmlFor="horarioAgendamento">Horários disponíveis</label>
-          <select id="horarioAgendamento" value={horarioSelecionado} onChange={(evento) => setHorarioSelecionado(evento.target.value)} required>
-            <option value="">Selecione um horário</option>
-            {horarios.map(({ dataHora }) => <option key={dataHora} value={dataHora}>{formatarHorario(dataHora)}</option>)}
-          </select>
-          {horarios.length === 0 && <Text color="var(--color-text-muted)">A clínica não publicou horários disponíveis nos próximos 30 dias.</Text>}
+          <Select
+            name="horarioAgendamento"
+            label="Horários disponíveis"
+            placeholder={horarios.length ? "Selecione um horário" : "Nenhum horário disponível"}
+            options={horarios.map(({ dataHora }) => ({ value: dataHora, label: formatarHorario(dataHora) }))}
+            value={horarioSelecionado}
+            onChange={(evento) => setHorarioSelecionado(evento.target.value)}
+            disabled={horarios.length === 0}
+            required
+          />
+          {horarios.length === 0 && <Text color="var(--color-text-muted)">A clínica não publicou horários disponíveis nos próximos 30 dias. Tente outra clínica ou converse com esta pelo chat.</Text>}
           <FeedbackErro mensagem={erro} titulo="Não foi possível solicitar o horário" />
           <Button type="submit" disabled={!horarioSelecionado || enviando}>{enviando ? "Enviando solicitação..." : "Solicitar horário"}</Button>
         </Stack>

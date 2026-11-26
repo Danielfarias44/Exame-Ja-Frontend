@@ -3,7 +3,8 @@ import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import MainLayout from "@/layouts/MainLayout";
 import RotaProtegida from "@/components/RotaProtegida";
 import { PERFIS } from "@/constants/perfis";
-import { obterSessaoAtual } from "@/services/autenticacaoService";
+import { ehPaciente } from "@/services/autenticacaoService";
+import { useSessao } from "@/hooks/useSessao";
 
 const LayoutPublico = lazy(() => import("@/layouts/LayoutPublico"));
 const PaginaInicial = lazy(() => import("@/pages/paciente_deslogado/PaginaInicial"));
@@ -30,9 +31,8 @@ const ClinicaChat = lazy(() => import("@/pages/clinica/ClinicaChat"));
 const AdminClinicas = lazy(() => import("@/pages/admin/AdminClinicas"));
 
 function BuscaLayout() {
-  return obterSessaoAtual()?.perfil === PERFIS.PACIENTE
-    ? <LayoutLogado />
-    : <LayoutPublico />;
+  const sessao = useSessao();
+  return ehPaciente(sessao) ? <LayoutLogado /> : <LayoutPublico />;
 }
 
 export default function AppRoutes() {
@@ -42,6 +42,7 @@ export default function AppRoutes() {
         {/* Área pública e autenticação */}
         <Route element={<BuscaLayout />}>
           <Route path="/busca" element={<SearchResults />} />
+          <Route path="/estabelecimento/:id" element={<EstablishmentDetails />} />
         </Route>
         <Route element={<LayoutPublico />}>
           <Route path="/" element={<PaginaInicial />} />
@@ -93,7 +94,6 @@ export default function AppRoutes() {
 
         {/* Demais telas do fluxo público */}
         <Route element={<MainLayout />}>
-          <Route path="/estabelecimento/:id" element={<EstablishmentDetails />} />
           <Route path="/styleguide" element={<Styleguide />} />
         </Route>
       </Routes>

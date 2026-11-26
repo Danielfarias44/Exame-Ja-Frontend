@@ -95,7 +95,6 @@ const ESTADO_INICIAL_FORM = {
   aceiteTermos: false,
   declaracaoVinculoAceita: false,
   convenioId: "",
-  conveniosAceitos: [],
 };
 
 export default function PaginaCadastro() {
@@ -112,6 +111,8 @@ export default function PaginaCadastro() {
   const [cadastroConcluido, setCadastroConcluido] = useState(false);
   const [erroEnvio, setErroEnvio] = useState("");
   const [convenios, setConvenios] = useState([]);
+  const [erroConvenios, setErroConvenios] = useState("");
+  const [tentativaConvenios, setTentativaConvenios] = useState(0);
 
   useEffect(() => {
     const paramPerfil = searchParams.get("perfil");
@@ -122,8 +123,20 @@ export default function PaginaCadastro() {
   }, [searchParams]);
 
   useEffect(() => {
-    listarConvenios().then(setConvenios).catch(() => setConvenios([]));
-  }, []);
+    let ativo = true;
+    listarConvenios()
+      .then((lista) => {
+        if (!ativo) return;
+        setConvenios(lista);
+        setErroConvenios("");
+      })
+      .catch((falha) => {
+        if (!ativo) return;
+        setConvenios([]);
+        setErroConvenios(falha.message || "Não foi possível carregar a lista de convênios.");
+      });
+    return () => { ativo = false; };
+  }, [tentativaConvenios]);
 
   function alternarPerfil(novoPerfil) {
     setPerfil(novoPerfil);
@@ -146,16 +159,12 @@ export default function PaginaCadastro() {
     }
   }
 
-  function alternarConvenioClinica(id) {
-    setDados((atuais) => ({
-      ...atuais,
-      conveniosAceitos: atuais.conveniosAceitos.includes(id)
-        ? atuais.conveniosAceitos.filter((convenioId) => convenioId !== id)
-        : atuais.conveniosAceitos.length < 10
-          ? [...atuais.conveniosAceitos, id]
-          : atuais.conveniosAceitos,
-    }));
-    setErros((atuais) => ({ ...atuais, conveniosAceitos: "" }));
+  function focarPrimeiroErro(errosEncontrados) {
+    const campos = Object.keys(errosEncontrados)
+      .map((campo) => document.getElementById(campo) || document.querySelector(`[name="${campo}"]`))
+      .filter(Boolean)
+      .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+    campos[0]?.focus();
   }
 
   function validarFormulario() {
@@ -189,9 +198,6 @@ export default function PaginaCadastro() {
       if (!dados.endereco.trim()) {
         novosErros.endereco = "Informe o endereço completo da unidade.";
       }
-      if (dados.conveniosAceitos.length < 5) {
-        novosErros.conveniosAceitos = "Selecione pelo menos cinco convênios aceitos pela unidade.";
-      }
       if (!dados.declaracaoVinculoAceita) {
         novosErros.declaracaoVinculoAceita = "Confirme sua relação com a clínica.";
       }
@@ -218,6 +224,7 @@ export default function PaginaCadastro() {
     }
 
     setErros(novosErros);
+    if (Object.keys(novosErros).length > 0) focarPrimeiroErro(novosErros);
     return Object.keys(novosErros).length === 0;
   }
 
@@ -238,7 +245,6 @@ export default function PaginaCadastro() {
           email: dados.email.trim(),
           senha: dados.senha,
           declaracaoVinculo: "Declaro que sou responsável e tenho vínculo autorizado com esta clínica.",
-          conveniosAceitos: dados.conveniosAceitos,
         });
       } else {
         await registrarPaciente({
@@ -508,8 +514,13 @@ export default function PaginaCadastro() {
                     />
 
                     <Box>
-                      <Select name="convenioId" label="Convênio obrigatório" placeholder="Selecione seu convênio" value={dados.convenioId} onChange={(evento) => atualizarCampo("convenioId", evento.target.value)} options={convenios.map((convenio) => ({ value: convenio.id, label: convenio.nome }))} required />
-                      {erros.convenioId && <Text fontSize="0.78rem" color="var(--color-error)" mt={1}>{erros.convenioId}</Text>}
+                      <Select name="convenioId" label="Convênio obrigatório" placeholder={erroConvenios ? "Lista indisponível" : "Selecione seu convênio"} value={dados.convenioId} onChange={(evento) => atualizarCampo("convenioId", evento.target.value)} options={convenios.map((convenio) => ({ value: convenio.id, label: convenio.nome }))} error={erros.convenioId} helperText="Ele fica salvo no seu perfil no primeiro acesso." required />
+                      {erroConvenios && (
+                        <Flex role="alert" mt="var(--space-2)" gap="var(--space-2)" align="center" wrap="wrap">
+                          <Text fontSize="var(--text-sm)" color="var(--color-error)">{erroConvenios}</Text>
+                          <Button type="button" variant="outline" size="sm" onClick={() => setTentativaConvenios((atual) => atual + 1)}>Tentar novamente</Button>
+                        </Flex>
+                      )}
                     </Box>
 
                     <CampoTexto
@@ -547,17 +558,18 @@ export default function PaginaCadastro() {
                       />
                     </SimpleGrid>
 
-                    <Box>
-                      <Text fontWeight="var(--weight-bold)" mb={1}>Convênios aceitos ({dados.conveniosAceitos.length}/10 selecionados · mínimo 5)</Text>
-                      <Text fontSize="0.82rem" color="var(--color-text-muted)" mb={3}>Selecione pelo menos cinco. Usaremos os IDs do catálogo para recomendar sua clínica a pacientes compatíveis.</Text>
-                      <Flex wrap="wrap" gap={2}>
-                        {convenios.map((convenio) => {
-                          const selecionado = dados.conveniosAceitos.includes(convenio.id);
-                          const limiteAtingido = !selecionado && dados.conveniosAceitos.length >= 10;
-                          return <Button key={convenio.id} type="button" size="sm" variant={selecionado ? "solid" : "outline"} disabled={limiteAtingido} onClick={() => alternarConvenioClinica(convenio.id)}>{convenio.nome}</Button>;
-                        })}
-                      </Flex>
-                      {erros.conveniosAceitos && <Text role="alert" fontSize="0.78rem" color="var(--color-error)" mt={2}>{erros.conveniosAceitos}</Text>}
+                    <Box
+                      p="var(--space-3)"
+                      bg="var(--color-info-soft)"
+                      borderRadius="var(--radius-md)"
+                      borderWidth="var(--border-width)"
+                      borderStyle="solid"
+                      borderColor="var(--color-info)"
+                    >
+                      <Text fontWeight="var(--weight-bold)" fontSize="var(--text-sm)">Convênios aceitos</Text>
+                      <Text fontSize="var(--text-sm)" color="var(--color-text)">
+                        Depois que o cadastro for aprovado, você escolhe no painel da clínica de 5 a 10 convênios aceitos.
+                      </Text>
                     </Box>
 
                     <CampoTexto

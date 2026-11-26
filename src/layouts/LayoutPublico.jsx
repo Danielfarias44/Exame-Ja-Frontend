@@ -18,6 +18,7 @@ import {
 } from "react-router-dom";
 import AlternadorTema from "@/components/layout/AlternadorTema";
 import { useTema } from "@/hooks/useTema";
+import { rotaCadastroComRetorno, rotaLoginComRetorno } from "@/utils/rotasOferta";
 import logoHorizontal from "@/assets/exame-ja_horizontal.png";
 
 const LINKS_NAVEGACAO = [
@@ -36,6 +37,11 @@ export default function LayoutPublico() {
   const ocultarRodapeCta = ["/cadastro", "/login", "/recuperar-acesso"].includes(
     localizacao.pathname
   );
+  const destinoAposEntrar = ocultarRodapeCta
+    ? new URLSearchParams(localizacao.search).get("redirect")
+    : localizacao.pathname === "/" ? null : localizacao.pathname + localizacao.search;
+  const rotaEntrar = destinoAposEntrar ? rotaLoginComRetorno(destinoAposEntrar) : "/login";
+  const rotaCriarConta = destinoAposEntrar ? rotaCadastroComRetorno(destinoAposEntrar) : "/cadastro";
 
   useEffect(() => {
     setMenuMobileAberto(false);
@@ -191,7 +197,7 @@ export default function LayoutPublico() {
                   minH="var(--touch-target-min)"
                   borderRadius="var(--radius-md)"
                 >
-                  <RouterLink to="/login">Entrar</RouterLink>
+                  <RouterLink to={rotaEntrar}>Entrar</RouterLink>
                 </Button>
 
                 <Button
@@ -211,7 +217,7 @@ export default function LayoutPublico() {
                   boxShadow="var(--shadow-sm)"
                   transition="all var(--duration-fast) var(--ease-standard)"
                 >
-                  <RouterLink to="/cadastro">Criar conta</RouterLink>
+                  <RouterLink to={rotaCriarConta}>Criar conta</RouterLink>
                 </Button>
               </HStack>
 
@@ -324,7 +330,7 @@ export default function LayoutPublico() {
                   minH="46px"
                   w="100%"
                 >
-                  <RouterLink to="/login">Entrar</RouterLink>
+                  <RouterLink to={rotaEntrar}>Entrar</RouterLink>
                 </Button>
 
                 <Button
@@ -336,7 +342,7 @@ export default function LayoutPublico() {
                   minH="46px"
                   w="100%"
                 >
-                  <RouterLink to="/cadastro">Criar conta</RouterLink>
+                  <RouterLink to={rotaCriarConta}>Criar conta</RouterLink>
                 </Button>
               </SimpleGrid>
             </Box>
