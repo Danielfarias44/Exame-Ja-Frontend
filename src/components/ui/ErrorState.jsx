@@ -24,12 +24,12 @@ export default function ErrorState({
       <Flex
         align="center"
         justify="center"
-        boxSize="42px"
+        boxSize="var(--icon-lg)"
         borderRadius="var(--radius-full)"
         bg="var(--color-error)"
         color="var(--color-text-on-primary)"
-        fontSize="xl"
-        fontWeight="bold"
+        fontSize="var(--text-xl)"
+        fontWeight="var(--weight-bold)"
         aria-hidden="true"
       >
         !

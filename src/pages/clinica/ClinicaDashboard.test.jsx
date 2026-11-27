@@ -3,6 +3,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderizar } from "@/test/renderizar";
 import { apiRequest, apiRequestWithCsrf } from "@/services/httpClient";
+import { listAppointments, updateAppointment } from "@/services/api";
 import ClinicaDashboard from "./ClinicaDashboard";
 
 vi.mock("@/services/httpClient", () => ({ apiRequest: vi.fn(), apiRequestWithCsrf: vi.fn() }));
@@ -60,5 +61,25 @@ describe("ClinicaDashboard – convênios", () => {
     const checklist = screen.getByRole("region", { name: "Para aparecer na busca" });
     const item = within(checklist).getByText(/0 agora/).closest("li");
     expect(within(item).getByText("Pendente:")).toBeInTheDocument();
+  });
+});
+
+describe("ClinicaDashboard – pedidos", () => {
+  it("lista o pedido pendente primeiro e mostra a confirmação dentro da seção de pedidos", async () => {
+    const pedidos = [
+      { id: "a2", status: "confirmado", nomeExame: "Raio-X", dataHora: "2026-12-01T10:00:00Z", clienteNome: "Dois" },
+      { id: "a1", status: "pendente", nomeExame: "Hemograma", dataHora: "2026-12-01T09:00:00Z", clienteNome: "Um" },
+    ];
+    vi.mocked(listAppointments).mockResolvedValue({ agendamentos: pedidos, proximoCursor: null });
+    vi.mocked(updateAppointment).mockResolvedValue({});
+    renderizar(<ClinicaDashboard />);
+    const secao = await screen.findByRole("region", { name: /Pedidos de agendamento/ });
+    const itens = within(secao).getAllByRole("listitem");
+    expect(within(itens[0]).getByText("Hemograma")).toBeInTheDocument();
+    expect(within(itens[0]).getByText("Aguardando confirmação")).toBeInTheDocument();
+    await userEvent.click(within(itens[0]).getByRole("button", { name: "Confirmar" }));
+    expect(updateAppointment).toHaveBeenCalledWith("a1", { acao: "confirmar" });
+    expect(await within(secao).findByText("Solicitação confirmada.")).toBeInTheDocument();
+    vi.mocked(listAppointments).mockResolvedValue({ agendamentos: [], proximoCursor: null });
   });
 });

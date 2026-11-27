@@ -97,7 +97,7 @@ export default function TesteCadastro() {
   }
 
   return (
-    <Container maxW="820px" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
+    <Container maxW="var(--container-md)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
       <NavegacaoTeste />
       <PageHeader
         title="Contas de teste"
@@ -127,13 +127,13 @@ export default function TesteCadastro() {
               helperText="Gerada automaticamente e salva só neste navegador. Cada conta guarda a senha com que foi criada."
             />
             <Select
-              label="Convênio do paciente e do admin"
+              label="Convênio base dos pacientes e do admin"
               placeholder={convenios.length ? undefined : "Carregando convênios…"}
               options={conveniosAceitosPeloBack(convenios).map(({ id, nome }) => ({ value: id, label: nome }))}
               value={estado.convenioId}
               onChange={(evento) => atualizar((atual) => ({ ...atual, convenioId: evento.target.value }))}
               error={erroConvenios}
-              helperText={`Só aparecem os convênios com ID que o back aceita (${conveniosAceitosPeloBack(convenios).length} de ${convenios.length}). As clínicas de teste recebem os 5 primeiros.`}
+              helperText={`Só aparecem os convênios com ID que o back aceita (${conveniosAceitosPeloBack(convenios).length} de ${convenios.length}). Os pacientes 2 e 3 recebem os convênios seguintes da lista, e cada clínica recebe 5 convênios numa combinação diferente.`}
             />
           </Stack>
         </Card>
@@ -158,6 +158,7 @@ export default function TesteCadastro() {
             ...(conta.endereco ? [["Endereço", conta.endereco]] : []),
             ...(dados?.razaoSocial ? [["CNPJ", dados.cnpj], ["Razão social", dados.razaoSocial]] : []),
             ...(dados?.conveniosAceitos ? [["Convênios", dados.conveniosAceitos.join(", ")]] : []),
+            ...(dados?.convenioId ? [["Convênio", convenios.find(({ id }) => id === dados.convenioId)?.nome || dados.convenioId]] : []),
             ...(dados?.cpf ? [["CPF gerado", dados.cpf]] : []),
             ...(dados?.senha ? [["Senha", dados.senha]] : []),
             ...(dados?.uid ? [["UID", dados.uid]] : []),

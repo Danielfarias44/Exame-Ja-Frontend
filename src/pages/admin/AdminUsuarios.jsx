@@ -26,7 +26,7 @@ export default function AdminUsuarios() {
   const lista = useListaPaginada(buscarPagina);
 
   return (
-    <Container maxW="960px" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
+    <Container maxW="var(--container-md)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
       <PageHeader
         title="Usuários"
         description="Pacientes e clínicas cadastrados, dos mais novos para os mais antigos. Consulta apenas: as ações sobre clínicas ficam em Clínicas."
@@ -34,10 +34,10 @@ export default function AdminUsuarios() {
       <Stack gap="var(--space-4)">
         <Flex as="fieldset" gap="var(--space-4)" wrap="wrap" border="none" p={0} m={0}>
           <legend className="sr-only">Filtrar usuários</legend>
-          <Flex flex="1" minW="220px" maxW="320px">
+          <Flex flex="1" minW="var(--width-field-min)" maxW="var(--width-field)">
             <Select label="Tipo de conta" options={OPCOES_TIPO} value={tipo} onChange={(evento) => setTipo(evento.target.value)} />
           </Flex>
-          <Flex flex="1" minW="220px" maxW="320px">
+          <Flex flex="1" minW="var(--width-field-min)" maxW="var(--width-field)">
             <Select label="Situação" options={OPCOES_STATUS} value={status} onChange={(evento) => setStatus(evento.target.value)} />
           </Flex>
         </Flex>

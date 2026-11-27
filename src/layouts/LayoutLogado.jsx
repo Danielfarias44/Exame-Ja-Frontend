@@ -1,14 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link as RouterLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Flex,
-  HStack,
-  Text,
-} from "@chakra-ui/react";
+import { Badge, Box, Container, Flex, HStack, Text } from "@chakra-ui/react";
+import Button from "@/components/ui/Button";
 import logoClara from "@/assets/exame-ja_horizontal.png";
 import { encerrarSessao, obterSessaoAtual } from "@/services/autenticacaoService";
 import { apiRequest } from "@/services/httpClient";
@@ -39,12 +32,13 @@ const LINKS_BARRA_INFERIOR = [
     ),
   },
   {
-    rotulo: "Buscar",
-    rota: "/busca",
+    rotulo: "Mapa",
+    rota: "/paciente/mapa",
     icone: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+        <line x1="8" y1="2" x2="8" y2="18" />
+        <line x1="16" y1="6" x2="16" y2="22" />
       </svg>
     ),
   },
@@ -71,7 +65,7 @@ const LINKS_BARRA_INFERIOR = [
 
 const LINKS_DESKTOP = [
   { rotulo: "Início", rota: "/paciente" },
-  { rotulo: "Buscar no Mapa", rota: "/busca" },
+  { rotulo: "Mapa de clínicas", rota: "/paciente/mapa" },
   { rotulo: "Agendamentos", rota: "/paciente/agendamentos" },
   { rotulo: "Histórico", rota: "/paciente/historico" },
   { rotulo: "Chat", rota: "/paciente/chat" },
@@ -140,11 +134,11 @@ export default function LayoutLogado() {
         top={0}
         zIndex={30}
         bg="var(--color-surface)"
-        borderBottom="1px solid var(--color-border-soft)"
+        borderBottom="var(--border-width) solid var(--color-border-soft)"
         boxShadow="var(--shadow-sm)"
       >
-        <Container maxW="1160px" px={{ base: 4, md: 6 }}>
-          <Flex h="66px" align="center" justify="space-between" gap={3}>
+        <Container maxW="var(--container-max)" px={{ base: "var(--space-4)", md: "var(--space-6)" }}>
+          <Flex h="var(--header-height)" align="center" justify="space-between" gap="var(--space-3)">
             <RouterLink
               to="/paciente"
               style={{ display: "inline-flex", alignItems: "center" }}
@@ -152,7 +146,7 @@ export default function LayoutLogado() {
               <img
                 src={logoClara}
                 alt="Exame Já"
-                style={{ height: "32px", width: "auto" }}
+                style={{ height: "var(--icon-md)", width: "auto" }}
                 className={ehEscuro ? "logo-tema-escuro" : undefined}
               />
             </RouterLink>
@@ -161,7 +155,7 @@ export default function LayoutLogado() {
             <HStack
               as="nav"
               display={{ base: "none", lg: "flex" }}
-              gap={1}
+              gap="var(--space-1)"
               aria-label="Navegação do paciente"
             >
               {LINKS_DESKTOP.map((item) => {
@@ -170,8 +164,8 @@ export default function LayoutLogado() {
                   <Box
                     key={item.rota}
                     asChild
-                    px={3.5}
-                    py={2}
+                    px="var(--space-4)"
+                    py="var(--space-2)"
                     borderRadius="var(--radius-md)"
                     bg={ativo ? "var(--color-primary-soft)" : "transparent"}
                     color={
@@ -181,7 +175,7 @@ export default function LayoutLogado() {
                     }
                     fontFamily="var(--font-heading)"
                     fontWeight={ativo ? "var(--weight-bold)" : 600}
-                    fontSize="0.88rem"
+                    fontSize="var(--text-xs)"
                     transition="all var(--duration-fast) var(--ease-standard)"
                     _hover={{
                       bg: "var(--color-primary-soft)",
@@ -195,16 +189,16 @@ export default function LayoutLogado() {
             </HStack>
 
             {/* Ações Direita: Tema + Sino de Notificações + Avatar Circular */}
-            <HStack gap={2.5}>
+            <HStack gap="var(--space-3)">
               <Button
                 type="button"
                 size="sm"
                 variant="ghost"
-                boxSize="38px"
+                boxSize="var(--icon-md)"
                 p={0}
                 borderRadius="var(--radius-full)"
                 bg="var(--color-bg)"
-                border="1px solid var(--color-border-soft)"
+                border="var(--border-width) solid var(--color-border-soft)"
                 color="var(--color-text)"
                 onClick={alternarTema}
                 aria-label="Alternar tema"
@@ -216,12 +210,12 @@ export default function LayoutLogado() {
                 asChild
                 size="sm"
                 variant="ghost"
-                boxSize="40px"
+                boxSize="var(--icon-md)"
                 p={0}
                 position="relative"
                 borderRadius="var(--radius-full)"
                 bg="var(--color-bg)"
-                border="1px solid var(--color-border-soft)"
+                border="var(--border-width) solid var(--color-border-soft)"
                 color="var(--color-text)"
                 aria-label="Notificações"
                 title="Notificações"
@@ -243,15 +237,15 @@ export default function LayoutLogado() {
                   {naoLidas > 0 && (
                     <Badge
                       position="absolute"
-                      top="-2px"
-                      right="-2px"
-                      minW="17px"
-                      h="17px"
-                      px={1}
+                      top="calc(var(--space-1) * -1)"
+                      right="calc(var(--space-1) * -1)"
+                      minW="var(--icon-sm)"
+                      h="var(--icon-sm)"
+                      px="var(--space-1)"
                       borderRadius="var(--radius-full)"
                       bg="var(--color-accent)"
-                      color="#ffffff"
-                      fontSize="0.65rem"
+                      color="var(--color-text-on-accent)"
+                      fontSize="var(--text-xs)"
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
@@ -264,13 +258,13 @@ export default function LayoutLogado() {
 
               <Box
                 asChild
-                boxSize="40px"
+                boxSize="var(--icon-md)"
                 borderRadius="var(--radius-full)"
                 bg="var(--color-primary)"
                 color="var(--color-text-on-primary)"
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize="0.82rem"
+                fontSize="var(--text-xs)"
                 display="inline-flex"
                 alignItems="center"
                 justifyContent="center"
@@ -288,10 +282,10 @@ export default function LayoutLogado() {
         </Container>
       </Box>
 
-      {erroSaida && <Text role="alert" textAlign="center" color="var(--color-error)" fontSize="var(--text-sm)" py={2}>{erroSaida}</Text>}
+      {erroSaida && <Text role="alert" textAlign="center" color="var(--color-error)" fontSize="var(--text-sm)" py="var(--space-2)">{erroSaida}</Text>}
 
       {/* Conteúdo das Telas */}
-      <Box as="main" id={ID_CONTEUDO} tabIndex={-1} flex="1" pb={{ base: "86px", lg: 12 }} _focus={{ outline: "none" }}>
+      <Box as="main" id={ID_CONTEUDO} tabIndex={-1} flex="1" pb={{ base: "calc(var(--bottom-nav-offset) - var(--space-6))", lg: "var(--space-12)" }} _focus={{ outline: "none" }}>
         <Outlet />
       </Box>
 
@@ -304,12 +298,12 @@ export default function LayoutLogado() {
         left={0}
         right={0}
         zIndex={30}
-        bg="#153250"
-        color="#ffffff"
-        borderTop="1px solid rgba(255, 255, 255, 0.1)"
+        bg="var(--color-inverse-bg)"
+        color="var(--color-inverse-text)"
+        borderTop="var(--border-width) solid var(--color-inverse-border)"
         boxShadow="var(--shadow-md)"
-        px={2}
-        py={2}
+        px="var(--space-2)"
+        py="var(--space-2)"
         aria-label="Navegação inferior"
       >
         <Flex justify="space-around" align="center">
@@ -320,18 +314,18 @@ export default function LayoutLogado() {
                 key={item.rota}
                 asChild
                 flex="1"
-                py={1}
+                py="var(--space-1)"
                 borderRadius="var(--radius-md)"
-                color={ativo ? "#ffffff" : "rgba(255, 255, 255, 0.65)"}
+                color={ativo ? "var(--color-inverse-text)" : "var(--color-inverse-muted)"}
                 transition="all var(--duration-fast) var(--ease-standard)"
               >
                 <RouterLink to={item.rota}>
-                  <Flex direction="column" align="center" gap={1}>
+                  <Flex direction="column" align="center" gap="var(--space-1)">
                     {item.icone}
                     <Text
                       fontFamily="var(--font-heading)"
                       fontWeight={ativo ? "var(--weight-bold)" : 500}
-                      fontSize="0.68rem"
+                      fontSize="var(--text-xs)"
                       lineHeight="1"
                     >
                       {item.rotulo}

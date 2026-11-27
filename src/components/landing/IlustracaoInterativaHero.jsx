@@ -64,10 +64,10 @@ export default function IlustracaoInterativaHero() {
     <Box
       position="relative"
       w="100%"
-      maxW={{ base: "100%", sm: "440px", lg: "470px" }}
+      maxW={{ base: "100%", sm: "var(--width-text)", lg: "var(--width-text)" }}
       mx="auto"
-      py={{ base: 4, md: 6 }}
-      px={{ base: 2, sm: 4 }}
+      py={{ base: "var(--space-4)", md: "var(--space-6)" }}
+      px={{ base: "var(--space-2)", sm: "var(--space-4)" }}
       onMouseMove={lidarComMovimentoPonteiro}
       onMouseLeave={resetarPonteiro}
     >
@@ -113,10 +113,10 @@ export default function IlustracaoInterativaHero() {
       {/* Formas geométricas flutuantes nos cantos */}
       <Box
         position="absolute"
-        top="12px"
-        left={{ base: "8px", sm: "16px" }}
-        boxSize="36px"
-        borderRadius="10px"
+        top="var(--space-3)"
+        left={{ base: "var(--space-2)", sm: "var(--space-4)" }}
+        boxSize="var(--icon-md)"
+        borderRadius="var(--radius-md)"
         bg="var(--color-accent)"
         opacity="0.85"
         transform={`rotate(18deg) translate(${deslocamento.x * -0.6}px, ${deslocamento.y * -0.6}px)`}
@@ -126,10 +126,10 @@ export default function IlustracaoInterativaHero() {
       />
       <Box
         position="absolute"
-        bottom="14px"
-        right={{ base: "12px", sm: "22px" }}
-        boxSize="42px"
-        borderRadius="full"
+        bottom="var(--space-3)"
+        right={{ base: "var(--space-3)", sm: "var(--space-6)" }}
+        boxSize="var(--icon-lg)"
+        borderRadius="var(--radius-full)"
         bg="var(--color-primary)"
         opacity="0.8"
         className="forma-pulso"
@@ -143,23 +143,23 @@ export default function IlustracaoInterativaHero() {
         zIndex={1}
         className="landing-cartao"
         bg="var(--color-surface)"
-        border="1px solid var(--color-border-soft)"
+        border="var(--border-width) solid var(--color-border-soft)"
         borderRadius="var(--radius-lg)"
         boxShadow="var(--shadow-lg)"
-        p={{ base: 4, sm: 5 }}
+        p={{ base: "var(--space-4)", sm: "var(--space-6)" }}
         transform={`translate(${deslocamento.x * 0.4}px, ${deslocamento.y * 0.4}px)`}
         transition="transform 180ms ease-out"
       >
         {/* Cabeçalho do cartão */}
-        <Flex align="center" justify="space-between" gap={2} mb={4}>
-          <HStack gap={2}>
+        <Flex align="center" justify="space-between" gap="var(--space-2)" mb="var(--space-4)">
+          <HStack gap="var(--space-2)">
             <Flex
               align="center"
               justify="center"
-              boxSize="34px"
+              boxSize="var(--icon-md)"
               borderRadius="var(--radius-md)"
               bg="var(--color-primary)"
-              color="#ffffff"
+              color="var(--color-text-on-primary)"
               flexShrink={0}
             >
               <svg
@@ -181,14 +181,14 @@ export default function IlustracaoInterativaHero() {
               <Text
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize="0.88rem"
+                fontSize="var(--text-xs)"
                 color="var(--color-text)"
               >
                 Prévia da experiência
               </Text>
               <Text
                 fontFamily="var(--font-body)"
-                fontSize="0.72rem"
+                fontSize="var(--text-xs)"
                 color="var(--color-text-muted)"
               >
                 {cenario.distancia}
@@ -199,12 +199,12 @@ export default function IlustracaoInterativaHero() {
           <Badge
             bg={cenario.corSeloBg}
             color={cenario.corSeloTexto}
-            px={2.5}
-            py={1}
+            px="var(--space-3)"
+            py="var(--space-1)"
             borderRadius="var(--radius-full)"
             fontFamily="var(--font-heading)"
             fontWeight="var(--weight-bold)"
-            fontSize="0.72rem"
+            fontSize="var(--text-xs)"
           >
             {cenario.selo}
           </Badge>
@@ -214,31 +214,31 @@ export default function IlustracaoInterativaHero() {
         <Box
           key={cenario.id}
           className="cenario-entrada"
-          p={4}
+          p="var(--space-4)"
           borderRadius="var(--radius-md)"
           bg="var(--color-bg)"
-          border="1px solid var(--color-border-soft)"
-          mb={4}
+          border="var(--border-width) solid var(--color-border-soft)"
+          mb="var(--space-4)"
         >
           <Flex
             direction={{ base: "column", sm: "row" }}
             justify="space-between"
             align={{ base: "flex-start", sm: "center" }}
-            gap={2}
-            mb={2}
+            gap="var(--space-2)"
+            mb="var(--space-2)"
           >
             <Box>
               <Text
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize="1.05rem"
+                fontSize="var(--text-sm)"
                 color="var(--color-text)"
               >
                 {cenario.exame}
               </Text>
               <Text
                 fontFamily="var(--font-body)"
-                fontSize="0.76rem"
+                fontSize="var(--text-xs)"
                 color="var(--color-text-muted)"
               >
                 {cenario.clinica}
@@ -248,7 +248,7 @@ export default function IlustracaoInterativaHero() {
             <Text
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize="1.15rem"
+              fontSize="var(--text-base)"
               color="var(--color-success)"
               flexShrink={0}
             >
@@ -258,9 +258,9 @@ export default function IlustracaoInterativaHero() {
 
           <Text
             fontFamily="var(--font-body)"
-            fontSize="0.75rem"
+            fontSize="var(--text-xs)"
             color="var(--color-text)"
-            pt={2}
+            pt="var(--space-2)"
             borderTop="1px dashed var(--color-border-soft)"
           >
             {cenario.observacao}
@@ -268,16 +268,16 @@ export default function IlustracaoInterativaHero() {
         </Box>
 
         {/* Seletor interativo de cenários (100% responsivo, sem colisão) */}
-        <VStack align="stretch" gap={2}>
+        <VStack align="stretch" gap="var(--space-2)">
           <Text
             fontFamily="var(--font-body)"
-            fontSize="0.7rem"
+            fontSize="var(--text-xs)"
             color="var(--color-text-muted)"
           >
             Alterne para ver como o Exame Já funciona:
           </Text>
 
-          <Flex gap={2} wrap="wrap">
+          <Flex gap="var(--space-2)" wrap="wrap">
             {CENARIOS_INTERATIVOS.map((item, idx) => {
               const ativo = idx === indiceAtivo;
               return (
@@ -288,19 +288,19 @@ export default function IlustracaoInterativaHero() {
                   onClick={() => setIndiceAtivo(idx)}
                   aria-pressed={ativo}
                   flex="1"
-                  minW="92px"
-                  minH="40px"
-                  px={3}
-                  py={1.5}
+                  minW="var(--space-16)"
+                  minH="var(--touch-target-min)"
+                  px="var(--space-3)"
+                  py="var(--space-2)"
                   borderRadius="var(--radius-md)"
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  fontSize="0.82rem"
+                  fontSize="var(--text-xs)"
                   cursor="pointer"
-                  border="1px solid"
+                  border="var(--border-width) solid"
                   borderColor={ativo ? "var(--color-accent)" : "var(--color-border-soft)"}
                   bg={ativo ? "var(--color-accent)" : "var(--color-surface)"}
-                  color={ativo ? "#ffffff" : "var(--color-text)"}
+                  color={ativo ? "var(--color-text-on-accent)" : "var(--color-text)"}
                   transition="all var(--duration-fast) var(--ease-standard)"
                   _hover={{
                     borderColor: "var(--color-accent)",

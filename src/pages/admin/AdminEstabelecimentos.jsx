@@ -96,13 +96,13 @@ export default function AdminEstabelecimentos() {
   }
 
   return (
-    <Container maxW="960px" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
+    <Container maxW="var(--container-md)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
       <PageHeader
         title="Clínicas"
         description="Todas as clínicas cadastradas, das mais novas para as mais antigas. Suspenda ou reative clínicas já aprovadas."
       />
       <Stack gap="var(--space-4)">
-        <Box maxW="320px">
+        <Box maxW="var(--width-field)">
           <Select
             label="Situação"
             options={OPCOES_STATUS}

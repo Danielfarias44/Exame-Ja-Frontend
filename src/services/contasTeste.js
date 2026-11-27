@@ -10,6 +10,10 @@ export const CNPJS_TESTE = [
   { cnpj: "00360305000104", razaoSocial: "CAIXA ECONOMICA FEDERAL" },
   { cnpj: "34028316000103", razaoSocial: "EMPRESA BRASILEIRA DE CORREIOS E TELEGRAFOS" },
   { cnpj: "33000167000101", razaoSocial: "PETROLEO BRASILEIRO S A PETROBRAS" },
+  { cnpj: "04902979000144", razaoSocial: "BANCO DA AMAZONIA SA" },
+  { cnpj: "05055009000113", razaoSocial: "MUNICIPIO DE BELEM" },
+  { cnpj: "05054937000163", razaoSocial: "SECRETARIA DE ESTADO DE EDUCACAO" },
+  { cnpj: "29979036000140", razaoSocial: "INSTITUTO NACIONAL DO SEGURO SOCIAL" },
 ];
 
 export const CONTAS_TESTE = [
@@ -21,6 +25,26 @@ export const CONTAS_TESTE = [
     sufixoEmail: "exameja-paciente",
     telefone: "(91) 99999-0001",
     descricao: "Paciente com convênio, para buscar e agendar.",
+  },
+  {
+    id: "paciente-2",
+    perfil: PERFIS.PACIENTE,
+    titulo: "Paciente Teste 2",
+    nome: "Paciente Teste Dois",
+    sufixoEmail: "exameja-paciente2",
+    telefone: "(91) 99999-0003",
+    deslocamentoConvenio: 1,
+    descricao: "Segundo paciente, com o convênio seguinte da lista, para ver a mesma clínica com outro plano.",
+  },
+  {
+    id: "paciente-3",
+    perfil: PERFIS.PACIENTE,
+    titulo: "Paciente Teste 3",
+    nome: "Paciente Teste Três",
+    sufixoEmail: "exameja-paciente3",
+    telefone: "(91) 99999-0004",
+    deslocamentoConvenio: 2,
+    descricao: "Terceiro paciente, com outro convênio, para testar pedidos de vários pacientes na mesma clínica.",
   },
   {
     id: "admin",
@@ -58,6 +82,46 @@ export const CONTAS_TESTE = [
     endereco: "Travessa Padre Eutíquio, 1000, Belém, PA",
     descricao: "Para rejeitar, corrigir e reenviar pelo painel da clínica, e ver voltar à fila.",
   },
+  {
+    id: "clinica-umarizal",
+    perfil: PERFIS.CLINICA,
+    titulo: "Clínica Teste Umarizal",
+    nomeFantasia: "Clínica Teste Umarizal",
+    telefone: "(91) 3222-0004",
+    endereco: "Avenida Visconde de Souza Franco, 776, Umarizal, Belém, PA",
+    deslocamentoConvenios: 2,
+    descricao: "Para aprovar e ver no mapa de clínicas, no Umarizal, com outra combinação de convênios.",
+  },
+  {
+    id: "clinica-marco",
+    perfil: PERFIS.CLINICA,
+    titulo: "Laboratório Teste Marco",
+    nomeFantasia: "Laboratório Teste Marco",
+    telefone: "(91) 3222-0005",
+    endereco: "Avenida Almirante Barroso, 3000, Marco, Belém, PA",
+    deslocamentoConvenios: 4,
+    descricao: "Para aprovar e ver no mapa, no Marco, mais longe do centro.",
+  },
+  {
+    id: "clinica-batista-campos",
+    perfil: PERFIS.CLINICA,
+    titulo: "Clínica Teste Batista Campos",
+    nomeFantasia: "Clínica Teste Batista Campos",
+    telefone: "(91) 3222-0006",
+    endereco: "Rua dos Mundurucus, 1500, Batista Campos, Belém, PA",
+    deslocamentoConvenios: 6,
+    descricao: "Para aprovar e comparar preços com outras clínicas perto do centro.",
+  },
+  {
+    id: "clinica-pedreira",
+    perfil: PERFIS.CLINICA,
+    titulo: "Clínica Teste Pedreira",
+    nomeFantasia: "Clínica Teste Pedreira",
+    telefone: "(91) 3222-0007",
+    endereco: "Avenida Pedro Miranda, 1200, Pedreira, Belém, PA",
+    deslocamentoConvenios: 8,
+    descricao: "Para aprovar e testar o filtro de distância do mapa.",
+  },
 ];
 
 const FORMATO_ID_CONVENIO = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -66,12 +130,19 @@ export function conveniosAceitosPeloBack(convenios) {
   return convenios.filter(({ id }) => typeof id === "string" && id.length <= 80 && FORMATO_ID_CONVENIO.test(id));
 }
 
-export function escolherConveniosDaClinica(convenios) {
+export function escolherConveniosDaClinica(convenios, deslocamento = 0) {
   const validos = conveniosAceitosPeloBack(convenios);
   if (validos.length < 5) {
     throw new Error(`O back exige de 5 a 10 convênios, mas só ${validos.length} dos ${convenios.length} convênios cadastrados têm ID no formato aceito (letras minúsculas, números e hífens). Peça para corrigir os IDs dos convênios no banco.`);
   }
-  return validos.slice(0, 5).map(({ id }) => id);
+  return Array.from({ length: 5 }, (_, indice) => validos[(deslocamento + indice) % validos.length].id);
+}
+
+export function escolherConvenioDoPaciente(convenios, convenioBase, deslocamento = 0) {
+  const validos = conveniosAceitosPeloBack(convenios);
+  const posicao = validos.findIndex(({ id }) => id === convenioBase);
+  if (!deslocamento || posicao < 0) return convenioBase;
+  return validos[(posicao + deslocamento) % validos.length].id;
 }
 
 export const DECLARACAO_TESTE =
@@ -182,7 +253,7 @@ export async function cadastrarContaTeste(conta, estado, convenios = []) {
 
   try {
     if (conta.perfil === PERFIS.CLINICA) {
-      const conveniosAceitos = escolherConveniosDaClinica(convenios);
+      const conveniosAceitos = escolherConveniosDaClinica(convenios, conta.deslocamentoConvenios);
       const { resposta, opcao, recusados } = await cadastrarClinicaComCnpjLivre(conta, email, estado, conveniosAceitos);
       return {
         cnpjsUsados: [...new Set([...estado.cnpjsUsados, ...recusados, opcao.cnpj])],
@@ -190,6 +261,7 @@ export async function cadastrarContaTeste(conta, estado, convenios = []) {
       };
     }
     if (!estado.convenioId) throw new Error("Escolha o convênio do paciente de teste.");
+    const convenioId = escolherConvenioDoPaciente(convenios, estado.convenioId, conta.deslocamentoConvenio);
     const cpf = gerarCpf();
     const resposta = await registrarPaciente({
       nome: conta.nome,
@@ -197,11 +269,11 @@ export async function cadastrarContaTeste(conta, estado, convenios = []) {
       senha: estado.senha,
       cpf,
       telefone: conta.telefone,
-      convenioId: estado.convenioId,
+      convenioId,
     });
     return {
       cnpjsUsados: estado.cnpjsUsados,
-      conta: { email, senha: estado.senha, uid: resposta?.usuario?.uid || "", cpf, cadastradaEm: new Date().toISOString() },
+      conta: { email, senha: estado.senha, uid: resposta?.usuario?.uid || "", cpf, convenioId, cadastradaEm: new Date().toISOString() },
     };
   } catch (erro) {
     if (erroDeEmailExistente(erro)) {

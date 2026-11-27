@@ -72,15 +72,15 @@ export default function Notificacoes() {
   }
 
   const naoLidas = notificacoes.filter((item) => !item.lida).length;
-  if (status === "loading") return <Container py={8}><Text>Carregando notificações...</Text></Container>;
-  if (status === "error") return <Container py={8}><ErrorState title="Não foi possível carregar as notificações" description={erro} /></Container>;
+  if (status === "loading") return <Container py="var(--space-8)"><Text>Carregando notificações...</Text></Container>;
+  if (status === "error") return <Container py="var(--space-8)"><ErrorState title="Não foi possível carregar as notificações" description={erro} /></Container>;
 
   return (
-    <Container maxW="880px" px={{ base: 4, md: 6 }} py={{ base: 6, md: 8 }} pb={{ base: "110px", md: 12 }}>
+    <Container maxW="var(--container-md)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py={{ base: "var(--space-6)", md: "var(--space-8)" }} pb={{ base: "var(--bottom-nav-offset)", md: "var(--space-12)" }}>
       <PageHeader title="Notificações" description="Avisos enviados pelo backend para sua conta." badge={naoLidas > 0 && <StatusBadge solid>{naoLidas} {naoLidas === 1 ? "não lida" : "não lidas"}</StatusBadge>} />
-      {erro && <Text role="alert" color="var(--color-error)" mt={4}>{erro}</Text>}
+      {erro && <Text role="alert" color="var(--color-error)" mt="var(--space-4)">{erro}</Text>}
       {notificacoes.length === 0 ? <EmptyState title="Nenhuma notificação" description="Novos avisos da sua conta aparecerão aqui." /> : (
-        <Stack gap="var(--space-4)" mt={5}>
+        <Stack gap="var(--space-4)" mt="var(--space-6)">
           {notificacoes.map((item) => (
             <Card key={item.id} borderWidth="var(--border-width-strong)" borderColor={item.lida ? "var(--color-border-soft)" : "var(--color-primary)"}>
               <Flex justify="space-between" align={{ base: "flex-start", sm: "center" }} direction={{ base: "column", sm: "row" }} gap="var(--space-3)">

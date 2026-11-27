@@ -58,7 +58,7 @@ export default function SeletorConvenios({
               cursor={bloqueado ? "not-allowed" : "pointer"}
               color={bloqueado ? "var(--color-text-muted)" : "var(--color-text)"}
               fontSize="var(--text-sm)"
-              _focusWithin={{ outline: "var(--border-width-strong) solid var(--color-focus)", outlineOffset: "2px" }}
+              _focusWithin={{ outline: "var(--border-width-strong) solid var(--color-focus)", outlineOffset: "var(--focus-offset)" }}
             >
               <input
                 id={indice === 0 ? idPrimeiro : undefined}

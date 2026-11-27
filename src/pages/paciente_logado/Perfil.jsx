@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Container, Input, SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { Box, Container, SimpleGrid, Stack, Text } from "@chakra-ui/react";
 import { apiRequest, apiRequestWithCsrf } from "@/services/httpClient";
 import { atualizarNomeSessao } from "@/services/autenticacaoService";
 import PageHeader from "@/components/ui/PageHeader";
 import ErrorState from "@/components/ui/ErrorState";
+import Card from "@/components/ui/Card";
+import CampoTexto from "@/components/ui/CampoTexto";
+import Select from "@/components/ui/Select";
+import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
+import FeedbackErro from "@/components/ui/FeedbackErro";
+import ListSkeleton from "@/components/ui/Skeleton";
 
 export default function Perfil() {
   const [perfil, setPerfil] = useState(null);
   const [convenios, setConvenios] = useState([]);
-  const [conveniosSelecionados, setConveniosSelecionados] = useState([]);
+  const [convenioId, setConvenioId] = useState("");
   const [status, setStatus] = useState("loading");
+  const [tentativa, setTentativa] = useState(0);
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
@@ -22,7 +30,7 @@ export default function Perfil() {
         const usuario = perfilData.usuario;
         setPerfil({ nome: usuario.nome ?? "", telefone: usuario.telefone ?? "", email: usuario.email ?? "", cpfCadastrado: usuario.cpfCadastrado });
         setConvenios(conveniosData.convenios ?? []);
-        setConveniosSelecionados(Array.isArray(usuario.convenios) ? usuario.convenios : []);
+        setConvenioId(Array.isArray(usuario.convenios) ? usuario.convenios[0] ?? "" : "");
         setStatus("ready");
       })
       .catch((falha) => {
@@ -31,10 +39,12 @@ export default function Perfil() {
         setStatus("error");
       });
     return () => { ativo = false; };
-  }, []);
+  }, [tentativa]);
 
-  function alternarConvenio(id) {
-    setConveniosSelecionados([id]);
+  function tentarNovamente() {
+    setErro("");
+    setStatus("loading");
+    setTentativa((atual) => atual + 1);
   }
 
   async function salvar(evento) {
@@ -46,14 +56,12 @@ export default function Perfil() {
       const resultado = await apiRequestWithCsrf("/api/users/me", "PATCH", {
         nome: perfil.nome.trim(),
         telefone: perfil.telefone.trim(),
-              convenios: conveniosSelecionados,
+        convenios: convenioId ? [convenioId] : [],
       });
       if (resultado.usuario) {
         const nome = resultado.usuario.nome ?? perfil.nome;
         setPerfil((atual) => ({ ...atual, nome, telefone: resultado.usuario.telefone ?? atual.telefone }));
-        setConveniosSelecionados(Array.isArray(resultado.usuario.convenios)
-          ? resultado.usuario.convenios
-          : conveniosSelecionados);
+        if (Array.isArray(resultado.usuario.convenios)) setConvenioId(resultado.usuario.convenios[0] ?? "");
         atualizarNomeSessao(nome);
       }
       setMensagem(resultado.message || "Perfil atualizado.");
@@ -64,35 +72,46 @@ export default function Perfil() {
     }
   }
 
-  if (status === "loading") return <Container py={8}><Text>Carregando perfil...</Text></Container>;
-  if (status === "error") return <Container py={8}><ErrorState title="Não foi possível carregar o perfil" description={erro} /></Container>;
-
-  return (
-    <Container maxW="880px" px={{ base: 4, md: 6 }} py={{ base: 6, md: 8 }} pb={{ base: "110px", md: 12 }}>
-      <PageHeader title="Meu perfil" description="Atualize os dados que o backend permite editar e seus convênios." />
-      <Box as="form" onSubmit={salvar} mt={6} p={{ base: 5, md: 6 }} bg="var(--color-surface)" border="1px solid var(--color-border-soft)" borderRadius="var(--radius-lg)">
-        <Stack gap={5}>
-          {erro && <Text role="alert" color="var(--color-error)">{erro}</Text>}
-          {mensagem && <Text role="status" color="var(--color-success)">{mensagem}</Text>}
-          <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
-            <label>Nome<Input value={perfil.nome} onChange={(evento) => setPerfil({ ...perfil, nome: evento.target.value })} maxLength={120} required /></label>
-            <label>E-mail<Input type="email" value={perfil.email} readOnly /></label>
-            <label>Telefone<Input type="tel" value={perfil.telefone} onChange={(evento) => setPerfil({ ...perfil, telefone: evento.target.value })} maxLength={30} required /></label>
-            <Box><Text fontSize="sm" fontWeight="bold">CPF</Text><Text>{perfil.cpfCadastrado ? "Cadastrado (não pode ser alterado)" : "Não informado"}</Text></Box>
-          </SimpleGrid>
-          <Box>
-            <Text fontWeight="bold" mb={2}>Convênio (obrigatório)</Text>
-            <Text fontSize="sm" color="var(--color-text-muted)" mb={3}>Selecione um único convênio. Clique novamente para removê-lo.</Text>
-            <Stack direction="row" wrap="wrap" gap={2}>
-              {convenios.map((convenio) => {
-                const selecionado = conveniosSelecionados.includes(convenio.id);
-                return <Button key={convenio.id} type="button" size="sm" variant={selecionado ? "solid" : "outline"} onClick={() => alternarConvenio(convenio.id)}>{convenio.nome}</Button>;
-              })}
-            </Stack>
-          </Box>
-          <Button type="submit" disabled={salvando}>{salvando ? "Salvando..." : "Salvar alterações"}</Button>
-        </Stack>
-      </Box>
+  const container = (conteudo) => (
+    <Container maxW="var(--container-md)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py={{ base: "var(--space-6)", md: "var(--space-8)" }} pb={{ base: "var(--bottom-nav-offset)", md: "var(--space-12)" }}>
+      <PageHeader title="Meu perfil" description="Atualize seus dados de contato e o convênio usado nas buscas." />
+      {conteudo}
     </Container>
+  );
+
+  if (status === "loading") return container(<ListSkeleton count={1} />);
+  if (status === "error") return container(<ErrorState title="Não foi possível carregar o perfil" description={erro} onRetry={tentarNovamente} />);
+
+  return container(
+    <Card as="section" aria-labelledby="titulo-dados-perfil">
+      <Stack as="form" onSubmit={salvar} gap="var(--space-6)">
+        <Text as="h2" id="titulo-dados-perfil" className="sr-only">Dados do perfil</Text>
+        <SimpleGrid columns={{ base: 1, md: 2 }} gap="var(--space-4)">
+          <CampoTexto label="Nome" value={perfil.nome} onChange={(evento) => setPerfil({ ...perfil, nome: evento.target.value })} maxLength={120} autoComplete="name" required />
+          <CampoTexto label="E-mail" type="email" value={perfil.email} readOnly helperText="O e-mail não pode ser alterado por aqui." />
+          <CampoTexto label="Telefone" type="tel" value={perfil.telefone} onChange={(evento) => setPerfil({ ...perfil, telefone: evento.target.value })} maxLength={30} autoComplete="tel" required />
+          <Box>
+            <Text fontSize="var(--text-sm)" fontWeight="var(--weight-bold)" color="var(--color-text)">CPF</Text>
+            <Text mt="var(--space-2)" fontSize="var(--text-sm)" color="var(--color-text-muted)">
+              {perfil.cpfCadastrado ? "Cadastrado (não pode ser alterado)" : "Não informado"}
+            </Text>
+          </Box>
+        </SimpleGrid>
+        <Select
+          label="Convênio"
+          placeholder="Selecione seu convênio"
+          options={convenios.map((convenio) => ({ value: convenio.id, label: convenio.nome }))}
+          value={convenioId}
+          onChange={(evento) => setConvenioId(evento.target.value)}
+          helperText="Ele já vem selecionado no filtro da busca. Você pode trocar quando quiser."
+          required
+        />
+        <FeedbackErro mensagem={erro} titulo="Não foi possível salvar o perfil" />
+        {mensagem && <Alert status="success" role="status">{mensagem}</Alert>}
+        <Box>
+          <Button type="submit" disabled={salvando}>{salvando ? "Salvando…" : "Salvar alterações"}</Button>
+        </Box>
+      </Stack>
+    </Card>
   );
 }

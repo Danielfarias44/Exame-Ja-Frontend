@@ -7,6 +7,7 @@ import {
   conveniosAceitosPeloBack,
   emailComApelido,
   escolherConveniosDaClinica,
+  escolherConvenioDoPaciente,
   emailDaConta,
   gerarCpf,
   lerEstadoTeste,
@@ -86,6 +87,27 @@ describe("convênios aceitos pelo back", () => {
   it("escolhe os 5 primeiros convênios válidos", () => {
     expect(escolherConveniosDaClinica(CONVENIOS_VALIDOS)).toEqual(["amil", "hapvida", "unimed", "bradesco-saude", "geap-saude"]);
   });
+
+  it("dá a cada clínica uma combinação diferente, voltando ao início da lista", () => {
+    expect(escolherConveniosDaClinica(CONVENIOS_VALIDOS, 2)).toEqual(["unimed", "bradesco-saude", "geap-saude", "cassi", "amil"]);
+    expect(escolherConveniosDaClinica(CONVENIOS_VALIDOS, 4)).toEqual(["geap-saude", "cassi", "amil", "hapvida", "unimed"]);
+  });
+
+  it("dá aos pacientes extras o convênio seguinte ao escolhido", () => {
+    expect(escolherConvenioDoPaciente(CONVENIOS_VALIDOS, "unimed")).toBe("unimed");
+    expect(escolherConvenioDoPaciente(CONVENIOS_VALIDOS, "unimed", 1)).toBe("bradesco-saude");
+    expect(escolherConvenioDoPaciente(CONVENIOS_VALIDOS, "cassi", 2)).toBe("hapvida");
+    expect(escolherConvenioDoPaciente(CONVENIOS_VALIDOS, "inexistente", 1)).toBe("inexistente");
+  });
+
+  it("tem 3 pacientes e 7 clínicas, com CNPJ de sobra para todas", () => {
+    const clinicas = CONTAS_TESTE.filter((conta) => conta.perfil === "clinica");
+    expect(clinicas).toHaveLength(7);
+    expect(CONTAS_TESTE.filter((conta) => conta.perfil === "paciente")).toHaveLength(3);
+    expect(CNPJS_TESTE.length).toBeGreaterThanOrEqual(clinicas.length + 2);
+    expect(new Set(CONTAS_TESTE.map(({ id }) => id)).size).toBe(CONTAS_TESTE.length);
+    expect(new Set(clinicas.map(({ endereco }) => endereco)).size).toBe(clinicas.length);
+  });
 });
 
 describe("estado das contas de teste", () => {
@@ -110,6 +132,16 @@ describe("estado das contas de teste", () => {
 });
 
 describe("cadastrarContaTeste", () => {
+  it("cadastra o segundo paciente com o convênio seguinte da lista", async () => {
+    vi.mocked(registrarPaciente).mockResolvedValue({ usuario: { uid: "uid-p2" } });
+    const segundo = CONTAS_TESTE.find(({ id }) => id === "paciente-2");
+    const { conta } = await cadastrarContaTeste(segundo, estado(), CONVENIOS_VALIDOS);
+    const enviado = vi.mocked(registrarPaciente).mock.calls[0][0];
+    expect(enviado.email).toBe("pessoa+exameja-paciente2@gmail.com");
+    expect(enviado.convenioId).toBe("bradesco-saude");
+    expect(conta.convenioId).toBe("bradesco-saude");
+  });
+
   it("cadastra o paciente com CPF válido e o convênio escolhido", async () => {
     vi.mocked(registrarPaciente).mockResolvedValue({ usuario: { uid: "uid-paciente" } });
     const { conta } = await cadastrarContaTeste(paciente, estado());

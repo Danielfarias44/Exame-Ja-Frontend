@@ -148,7 +148,7 @@ export default function ChatThread({ conversa, participante, focarAoAbrir, onVol
         aria-busy={status === "loading"}
         aria-label={`Mensagens com ${outraParte}`}
         tabIndex={0}
-        _focusVisible={{ outline: "var(--border-width-strong) solid var(--color-focus)", outlineOffset: "-2px" }}
+        _focusVisible={{ outline: "var(--border-width-strong) solid var(--color-focus)", outlineOffset: "calc(var(--focus-offset) * -1)" }}
       >
         {status === "loading" && (
           <Text fontSize="var(--text-sm)" color="var(--color-text-muted)">

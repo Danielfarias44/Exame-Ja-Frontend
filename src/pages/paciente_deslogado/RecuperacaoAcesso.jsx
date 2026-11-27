@@ -1,16 +1,7 @@
 import { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Flex,
-  Heading,
-  Input,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Badge, Box, Container, Flex, Heading, Input, Text, VStack } from "@chakra-ui/react";
+import Button from "@/components/ui/Button";
 import LogoAutenticacao from "./LogoAutenticacao";
 import FeedbackErro from "@/components/ui/FeedbackErro";
 import { solicitarRecuperacaoSenha } from "@/services/autenticacaoService";
@@ -43,26 +34,26 @@ export default function RecuperacaoAcesso() {
 
   return (
     <Container
-      maxW="480px"
-      px={{ base: 4, md: 6 }}
-      py={{ base: 6, md: 12 }}
+      maxW="var(--width-text)"
+      px={{ base: "var(--space-4)", md: "var(--space-6)" }}
+      py={{ base: "var(--space-6)", md: "var(--space-12)" }}
       className="animar-entrada"
     >
       <LogoAutenticacao />
 
       <Box
         bg="var(--color-surface)"
-        border="1px solid var(--color-border-soft)"
-        borderRadius="24px"
-        p={{ base: 5, sm: 8 }}
+        border="var(--border-width) solid var(--color-border-soft)"
+        borderRadius="var(--radius-lg)"
+        p={{ base: "var(--space-6)", sm: "var(--space-8)" }}
         boxShadow="var(--shadow-md)"
       >
         {enviado ? (
-          <VStack align="center" textAlign="center" gap={4} py={3}>
+          <VStack align="center" textAlign="center" gap="var(--space-4)" py="var(--space-3)">
             <Flex
               align="center"
               justify="center"
-              boxSize="54px"
+              boxSize="var(--icon-lg)"
               borderRadius="var(--radius-full)"
               bg="var(--color-success-soft)"
               color="var(--color-success)"
@@ -85,7 +76,7 @@ export default function RecuperacaoAcesso() {
               as="h1"
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize="1.5rem"
+              fontSize="var(--text-xl)"
               color="var(--color-text)"
             >
               Link enviado para seu e-mail!
@@ -93,7 +84,7 @@ export default function RecuperacaoAcesso() {
 
             <Text
               fontFamily="var(--font-body)"
-              fontSize="0.88rem"
+              fontSize="var(--text-xs)"
               color="var(--color-text-muted)"
             >
               Enviamos as instruções de redefinição de senha para{" "}
@@ -103,8 +94,8 @@ export default function RecuperacaoAcesso() {
 
             <Flex
               direction={{ base: "column", sm: "row" }}
-              gap={3}
-              pt={2}
+              gap="var(--space-3)"
+              pt="var(--space-2)"
               w="100%"
               justify="center"
             >
@@ -115,8 +106,8 @@ export default function RecuperacaoAcesso() {
                 color="var(--color-text-on-primary)"
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                px={7}
-                minH="46px"
+                px="var(--space-8)"
+                minH="var(--touch-target-min)"
                 borderRadius="var(--radius-md)"
               >
                 <RouterLink to="/login">Voltar para o login</RouterLink>
@@ -129,8 +120,8 @@ export default function RecuperacaoAcesso() {
                 color="var(--color-text)"
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                px={5}
-                minH="46px"
+                px="var(--space-6)"
+                minH="var(--touch-target-min)"
                 borderRadius="var(--radius-md)"
                 onClick={() => setEnviado(false)}
               >
@@ -140,17 +131,17 @@ export default function RecuperacaoAcesso() {
           </VStack>
         ) : (
           <>
-            <Box mb={6}>
+            <Box mb="var(--space-6)">
               <Badge
-                mb={2.5}
-                px={3}
-                py={1}
+                mb="var(--space-3)"
+                px="var(--space-3)"
+                py="var(--space-1)"
                 borderRadius="var(--radius-full)"
                 bg="var(--color-primary-soft)"
                 color="var(--color-primary)"
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize="0.75rem"
+                fontSize="var(--text-xs)"
               >
                 Recuperação de acesso
               </Badge>
@@ -159,16 +150,16 @@ export default function RecuperacaoAcesso() {
                 as="h1"
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize={{ base: "1.4rem", md: "1.7rem" }}
+                fontSize={{ base: "var(--text-xl)", md: "var(--text-2xl)" }}
                 color="var(--color-text)"
-                mb={1.5}
+                mb="var(--space-2)"
               >
                 Esqueceu sua senha?
               </Heading>
 
               <Text
                 fontFamily="var(--font-body)"
-                fontSize="0.88rem"
+                fontSize="var(--text-xs)"
                 color="var(--color-text-muted)"
               >
                 Informe o e-mail cadastrado na conta para enviarmos o link de
@@ -179,7 +170,7 @@ export default function RecuperacaoAcesso() {
             <Box mb={erro ? 4 : 0}><FeedbackErro mensagem={erro} titulo="Não foi possível enviar as instruções" /></Box>
 
             <Box as="form" onSubmit={lidarComEnvio} noValidate>
-              <VStack align="stretch" gap={4}>
+              <VStack align="stretch" gap="var(--space-4)">
                 <Box>
                   <Box
                     as="label"
@@ -187,9 +178,9 @@ export default function RecuperacaoAcesso() {
                     display="block"
                     fontFamily="var(--font-heading)"
                     fontWeight={600}
-                    fontSize="0.88rem"
+                    fontSize="var(--text-xs)"
                     color="var(--color-text)"
-                    mb={1.5}
+                    mb="var(--space-2)"
                   >
                     E-mail cadastrado
                   </Box>
@@ -199,7 +190,7 @@ export default function RecuperacaoAcesso() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="voce@email.com"
-                    minH="46px"
+                    minH="var(--touch-target-min)"
                     bg="var(--color-bg)"
                     color="var(--color-text)"
                     borderColor="var(--color-border-soft)"
@@ -215,7 +206,7 @@ export default function RecuperacaoAcesso() {
                   color="var(--color-text-on-primary)"
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  minH="48px"
+                  minH="var(--touch-target-min)"
                   w="100%"
                   borderRadius="var(--radius-md)"
                 >
@@ -225,12 +216,12 @@ export default function RecuperacaoAcesso() {
             </Box>
 
             <Text
-              mt={6}
-              pt={5}
-              borderTop="1px solid var(--color-border-soft)"
+              mt="var(--space-6)"
+              pt="var(--space-6)"
+              borderTop="var(--border-width) solid var(--color-border-soft)"
               textAlign="center"
               fontFamily="var(--font-body)"
-              fontSize="0.88rem"
+              fontSize="var(--text-xs)"
               color="var(--color-text-muted)"
             >
               Lembrou a senha?{" "}

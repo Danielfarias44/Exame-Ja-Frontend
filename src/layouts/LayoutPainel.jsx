@@ -51,7 +51,7 @@ export default function LayoutPainel({ rotaInicio, nomeArea, links }) {
                 <img
                   src={logoClara}
                   alt=""
-                  style={{ height: "32px", width: "auto", display: "block" }}
+                  style={{ height: "var(--icon-md)", width: "auto", display: "block" }}
                   className={tema === "dark" ? "logo-tema-escuro" : undefined}
                 />
               </RouterLink>
@@ -78,7 +78,7 @@ export default function LayoutPainel({ rotaInicio, nomeArea, links }) {
                   fontWeight={ativo ? "var(--weight-bold)" : "var(--weight-semibold)"}
                   fontSize="var(--text-sm)"
                   textDecoration={ativo ? "underline" : "none"}
-                  textUnderlineOffset="4px"
+                  textUnderlineOffset="var(--space-1)"
                   transition="all var(--duration-fast) var(--ease-standard)"
                   _hover={{ bg: "var(--color-primary-soft)", color: "var(--color-primary)" }}
                 >

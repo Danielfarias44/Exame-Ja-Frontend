@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Button, Container, Flex, Stack, Text } from "@chakra-ui/react";
+import { Container, Flex, Stack, Text } from "@chakra-ui/react";
+import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import ListSkeleton from "@/components/ui/Skeleton";
 import ConfirmacaoInline from "@/components/ui/ConfirmacaoInline";
-import { rotuloStatusAgendamento } from "@/utils/statusAgendamento";
+import StatusBadge from "@/components/ui/StatusBadge";
+import { rotuloStatusAgendamento, tomStatusAgendamento } from "@/utils/statusAgendamento";
 import { listAppointments, updateAppointment } from "@/services/api";
 
 function paraData(valor) {
@@ -78,34 +80,37 @@ export default function MeusAgendamentos() {
     }
   }
 
-  if (status === "loading") return <Container py={8}><ListSkeleton count={3} /></Container>;
-  if (status === "error") return <Container py={8}><ErrorState title="Agendamentos indisponíveis" description={erro} onRetry={() => { setStatus("loading"); setErro(""); carregar().catch((falha) => { setErro(falha.message); setStatus("error"); }); }} /></Container>;
+  if (status === "loading") return <Container py="var(--space-8)"><ListSkeleton count={3} /></Container>;
+  if (status === "error") return <Container py="var(--space-8)"><ErrorState title="Agendamentos indisponíveis" description={erro} onRetry={() => { setStatus("loading"); setErro(""); carregar().catch((falha) => { setErro(falha.message); setStatus("error"); }); }} /></Container>;
 
   return (
-    <Container maxW="960px" px={{ base: 4, md: 6 }} py={8} pb={{ base: "110px", md: 12 }}>
-      <PageHeader title="Meus agendamentos" description="Acompanhe as solicitações e os horários confirmados pelas clínicas." actions={<Flex gap={2} wrap="wrap"><Button asChild variant="outline"><Link to="/paciente/historico">Histórico</Link></Button><Button asChild><Link to="/busca">Buscar exames</Link></Button></Flex>} />
-      {recemCriado && <Text role="status" color="var(--color-success)" mb={4}>Solicitação enviada. Ela ficará pendente até a clínica responder.</Text>}
-      {erro && <Text role="alert" color="var(--color-error)" mb={4}>{erro}</Text>}
+    <Container maxW="var(--container-md)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)" pb={{ base: "var(--bottom-nav-offset)", md: "var(--space-12)" }}>
+      <PageHeader title="Meus agendamentos" description="Acompanhe as solicitações e os horários confirmados pelas clínicas." actions={<Flex gap="var(--space-2)" wrap="wrap"><Button asChild variant="outline"><Link to="/paciente/historico">Histórico</Link></Button><Button asChild><Link to="/busca">Buscar exames</Link></Button></Flex>} />
+      {recemCriado && <Text role="status" color="var(--color-success)" mb="var(--space-4)">Solicitação enviada. Ela ficará pendente até a clínica responder.</Text>}
+      {erro && <Text role="alert" color="var(--color-error)" mb="var(--space-4)">{erro}</Text>}
       {agendamentos.length === 0
         ? <EmptyState title="Você ainda não tem agendamentos" description="Encontre uma oferta e solicite um horário disponível." />
-        : <Stack as="ul" listStyle="none" p={0} gap={4}>
+        : <Stack as="ul" listStyle="none" p={0} gap="var(--space-4)">
           {agendamentos.map((agendamento) => {
             const data = paraData(agendamento.dataHora);
             const podeCancelar = ["pendente", "confirmado"].includes(agendamento.status);
-            return <li key={agendamento.id}><Card><Flex justify="space-between" align={{ base: "stretch", sm: "center" }} direction={{ base: "column", sm: "row" }} gap={4}>
-              <Stack gap={1}>
-                <Text fontWeight="var(--weight-bold)">{agendamento.nomeExame}</Text>
+            return <li key={agendamento.id}><Card><Flex justify="space-between" align={{ base: "stretch", sm: "center" }} direction={{ base: "column", sm: "row" }} gap="var(--space-4)">
+              <Stack gap="var(--space-1)">
+                <Flex align="center" gap="var(--space-2)" wrap="wrap">
+                  <Text fontWeight="var(--weight-bold)">{agendamento.nomeExame}</Text>
+                  <StatusBadge tone={tomStatusAgendamento(agendamento.status)}>{rotuloStatusAgendamento(agendamento.status)}</StatusBadge>
+                </Flex>
                 <Text fontSize="var(--text-xs)" color="var(--color-text-muted)">{data && !Number.isNaN(data.getTime()) ? data.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" }) : "Horário não informado"}</Text>
                 <Text fontSize="var(--text-xs)" color="var(--color-text-muted)">Clínica: {nomeDaClinica(agendamento)}</Text>
-                <Text fontSize="var(--text-xs)">{rotuloStatusAgendamento(agendamento.status)}{agendamento.motivo ? ` · ${agendamento.motivo}` : ""}</Text>
+                {agendamento.motivo && <Text fontSize="var(--text-xs)" color="var(--color-text)">Motivo: {agendamento.motivo}</Text>}
               </Stack>
-              {podeCancelar && confirmando !== agendamento.id && <Button type="button" variant="outline" colorPalette="red" disabled={Boolean(acaoAtiva)} onClick={() => setConfirmando(agendamento.id)}>Cancelar solicitação</Button>}
+              {podeCancelar && confirmando !== agendamento.id && <Button type="button" variant="outline" disabled={Boolean(acaoAtiva)} onClick={() => setConfirmando(agendamento.id)}>Cancelar solicitação</Button>}
             </Flex>
-            {confirmando === agendamento.id && <Stack mt={4}><ConfirmacaoInline pergunta="Cancelar este agendamento? A clínica será avisada e o horário pode voltar a ficar disponível." rotuloConfirmar="Sim, cancelar" rotuloEnviando="Cancelando…" rotuloVoltar="Manter agendamento" ocupado={acaoAtiva === agendamento.id} onConfirmar={() => cancelar(agendamento.id)} onCancelar={() => setConfirmando("")} /></Stack>}
+            {confirmando === agendamento.id && <Stack mt="var(--space-4)"><ConfirmacaoInline pergunta="Cancelar este agendamento? A clínica será avisada e o horário pode voltar a ficar disponível." rotuloConfirmar="Sim, cancelar" rotuloEnviando="Cancelando…" rotuloVoltar="Manter agendamento" ocupado={acaoAtiva === agendamento.id} onConfirmar={() => cancelar(agendamento.id)} onCancelar={() => setConfirmando("")} /></Stack>}
             </Card></li>;
           })}
         </Stack>}
-      {proximoCursor && <Button mt={4} variant="outline" onClick={carregarMais} disabled={carregandoMais}>{carregandoMais ? "Carregando..." : "Carregar mais"}</Button>}
+      {proximoCursor && <Button mt="var(--space-4)" variant="outline" onClick={carregarMais} disabled={carregandoMais}>{carregandoMais ? "Carregando..." : "Carregar mais"}</Button>}
     </Container>
   );
 }

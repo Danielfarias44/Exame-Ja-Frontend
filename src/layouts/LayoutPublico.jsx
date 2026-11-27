@@ -1,15 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  HStack,
-  Image,
-  SimpleGrid,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Box, Container, Flex, HStack, Image, SimpleGrid, Text, VStack } from "@chakra-ui/react";
+import Button from "@/components/ui/Button";
 import {
   Link as RouterLink,
   Outlet,
@@ -115,13 +106,13 @@ export default function LayoutPublico() {
         zIndex="var(--z-sticky, 1000)"
         bg="var(--color-header-bg, var(--color-surface))"
         backdropFilter="blur(12px)"
-        borderBottom="1px solid"
+        borderBottom="var(--border-width) solid"
         borderColor={paginaRolada ? "var(--color-border-soft)" : "transparent"}
         boxShadow={paginaRolada ? "var(--shadow-sm)" : "none"}
         transition="all var(--duration-base) var(--ease-standard)"
       >
-        <Container maxW="var(--container-max)" px={{ base: 4, md: 6 }} py={2.5}>
-          <Flex align="center" justify="space-between" gap={4}>
+        <Container maxW="var(--container-max)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-3)">
+          <Flex align="center" justify="space-between" gap="var(--space-4)">
             {/* Marca oficial adaptada ao tema */}
             <RouterLink
               to="/"
@@ -136,9 +127,9 @@ export default function LayoutPublico() {
               <Image
                 src={logoHorizontal}
                 alt="Exame Já"
-                h={{ base: "38px", sm: "44px", md: "48px" }}
+                h={{ base: "var(--logo-sm)", sm: "var(--logo-md)", md: "var(--logo-lg)" }}
                 w="auto"
-                maxW={{ base: "170px", md: "220px" }}
+                maxW={{ base: "var(--width-field)", md: "var(--width-field)" }}
                 objectFit="contain"
                 filter={ehEscuro ? "brightness(0) invert(1)" : "none"}
                 transition="filter var(--duration-base) var(--ease-standard)"
@@ -150,7 +141,7 @@ export default function LayoutPublico() {
               as="nav"
               aria-label="Navegação principal"
               display={{ base: "none", lg: "flex" }}
-              gap={6}
+              gap="var(--space-6)"
             >
               {LINKS_NAVEGACAO.map((item) => (
                 <RouterLink
@@ -160,7 +151,7 @@ export default function LayoutPublico() {
                   style={{
                     fontFamily: "var(--font-heading)",
                     fontWeight: 600,
-                    fontSize: "0.98rem",
+                    fontSize: "var(--text-sm)",
                     color: "var(--color-text-muted)",
                     textDecoration: "none",
                     padding: "0.5rem 0.25rem",
@@ -178,10 +169,10 @@ export default function LayoutPublico() {
             </HStack>
 
             {/* Ações à direita */}
-            <HStack gap={{ base: 2, md: 3 }}>
+            <HStack gap={{ base: "var(--space-2)", md: "var(--space-3)" }}>
               <AlternadorTema />
 
-              <HStack display={{ base: "none", md: "flex" }} gap={2.5}>
+              <HStack display={{ base: "none", md: "flex" }} gap="var(--space-3)">
                 <Button
                   asChild
                   variant="outline"
@@ -194,8 +185,8 @@ export default function LayoutPublico() {
                   }}
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  fontSize="0.95rem"
-                  px={5}
+                  fontSize="var(--text-sm)"
+                  px="var(--space-6)"
                   minH="var(--touch-target-min)"
                   borderRadius="var(--radius-md)"
                 >
@@ -212,8 +203,8 @@ export default function LayoutPublico() {
                   color="var(--color-text-on-primary)"
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  fontSize="0.95rem"
-                  px={5}
+                  fontSize="var(--text-sm)"
+                  px="var(--space-6)"
                   minH="var(--touch-target-min)"
                   borderRadius="var(--radius-md)"
                   boxShadow="var(--shadow-sm)"
@@ -237,7 +228,7 @@ export default function LayoutPublico() {
                 minW="var(--touch-target-min)"
                 minH="var(--touch-target-min)"
                 borderRadius="var(--radius-md)"
-                border="1px solid var(--color-border-soft)"
+                border="var(--border-width) solid var(--color-border-soft)"
                 bg="var(--color-surface)"
                 color="var(--color-text)"
                 cursor="pointer"
@@ -283,15 +274,15 @@ export default function LayoutPublico() {
             <Box
               id="menu-navegacao-mobile"
               display={{ base: "block", lg: "none" }}
-              mt={3}
-              p={4}
+              mt="var(--space-3)"
+              p="var(--space-4)"
               bg="var(--color-surface)"
-              border="1px solid var(--color-border-soft)"
+              border="var(--border-width) solid var(--color-border-soft)"
               borderRadius="var(--radius-lg)"
               boxShadow="var(--shadow-lg)"
               className="animar-entrada"
             >
-              <VStack align="stretch" gap={1}>
+              <VStack align="stretch" gap="var(--space-1)">
                 {LINKS_NAVEGACAO.map((item) => (
                   <RouterLink
                     key={item.rotulo}
@@ -305,7 +296,7 @@ export default function LayoutPublico() {
                       borderRadius: "var(--radius-md)",
                       fontFamily: "var(--font-heading)",
                       fontWeight: 600,
-                      fontSize: "1rem",
+                      fontSize: "var(--text-sm)",
                       color: "var(--color-text)",
                       textDecoration: "none",
                     }}
@@ -317,10 +308,10 @@ export default function LayoutPublico() {
 
               <SimpleGrid
                 columns={{ base: 1, sm: 2 }}
-                gap={3}
-                mt={4}
-                pt={4}
-                borderTop="1px solid var(--color-border-soft)"
+                gap="var(--space-3)"
+                mt="var(--space-4)"
+                pt="var(--space-4)"
+                borderTop="var(--border-width) solid var(--color-border-soft)"
               >
                 <Button
                   asChild
@@ -329,7 +320,7 @@ export default function LayoutPublico() {
                   color="var(--color-text)"
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  minH="46px"
+                  minH="var(--touch-target-min)"
                   w="100%"
                 >
                   <RouterLink to={rotaEntrar}>Entrar</RouterLink>
@@ -341,7 +332,7 @@ export default function LayoutPublico() {
                   color="var(--color-text-on-primary)"
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  minH="46px"
+                  minH="var(--touch-target-min)"
                   w="100%"
                 >
                   <RouterLink to={rotaCriarConta}>Criar conta</RouterLink>
@@ -358,22 +349,22 @@ export default function LayoutPublico() {
       </Box>
 
       {/* Rodapé institucional */}
-      <Box as="footer" bg="#162332" color="#f8fafc" mt="auto">
+      <Box as="footer" bg="var(--color-inverse-bg)" color="var(--color-inverse-text)" mt="auto">
         {!ocultarRodapeCta && (
           <Container
             maxW="var(--container-max)"
-            px={{ base: 4, md: 6 }}
-            pt={{ base: 10, md: 12 }}
-            pb={{ base: 8, md: 10 }}
+            px={{ base: "var(--space-4)", md: "var(--space-6)" }}
+            pt={{ base: "var(--space-12)", md: "var(--space-12)" }}
+            pb={{ base: "var(--space-8)", md: "var(--space-12)" }}
             textAlign="center"
           >
             <Image
               src={logoHorizontal}
               alt="Exame Já"
-              h="46px"
+              h="var(--touch-target-min)"
               w="auto"
               mx="auto"
-              mb={4}
+              mb="var(--space-4)"
               objectFit="contain"
               filter="brightness(0) invert(1)"
             />
@@ -381,18 +372,18 @@ export default function LayoutPublico() {
             <Text
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize={{ base: "1.35rem", md: "1.6rem" }}
-              mb={2}
+              fontSize={{ base: "var(--text-xl)", md: "var(--text-xl)" }}
+              mb="var(--space-2)"
             >
               Pronto para agendar sem surpresas no valor?
             </Text>
             <Text
               fontFamily="var(--font-body)"
               fontSize={{ base: "var(--text-xs)", md: "var(--text-sm)" }}
-              color="#cbd5e1"
-              maxW="540px"
+              color="var(--color-inverse-muted)"
+              maxW="var(--width-text)"
               mx="auto"
-              mb={6}
+              mb="var(--space-6)"
             >
               Comece a agilizar seus exames a partir de agora, é simples e rápido.
             </Text>
@@ -401,7 +392,7 @@ export default function LayoutPublico() {
               direction={{ base: "column", sm: "row" }}
               justify="center"
               align="center"
-              gap={3}
+              gap="var(--space-3)"
             >
               <Button
                 asChild
@@ -410,14 +401,14 @@ export default function LayoutPublico() {
                   bg: "var(--color-accent-hover)",
                   transform: "translateY(-2px)",
                 }}
-                color="#ffffff"
+                color="var(--color-inverse-text)"
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize="1rem"
-                px={8}
-                minH="48px"
+                fontSize="var(--text-sm)"
+                px="var(--space-8)"
+                minH="var(--touch-target-min)"
                 w={{ base: "100%", sm: "auto" }}
-                maxW="280px"
+                maxW="var(--width-field)"
                 borderRadius="var(--radius-md)"
                 boxShadow="var(--shadow-md)"
                 transition="all var(--duration-fast) var(--ease-standard)"
@@ -428,16 +419,17 @@ export default function LayoutPublico() {
               <Button
                 asChild
                 variant="outline"
-                borderColor="rgb(255 255 255 / 0.28)"
-                color="#ffffff"
-                _hover={{ bg: "rgb(255 255 255 / 0.08)" }}
+                borderColor="var(--color-inverse-border-strong)"
+                color="var(--color-inverse-text)"
+                bg="transparent"
+                _hover={{ bg: "var(--color-inverse-hover)" }}
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize="0.95rem"
-                px={6}
-                minH="48px"
+                fontSize="var(--text-sm)"
+                px="var(--space-6)"
+                minH="var(--touch-target-min)"
                 w={{ base: "100%", sm: "auto" }}
-                maxW="280px"
+                maxW="var(--width-field)"
                 borderRadius="var(--radius-md)"
               >
                 <RouterLink to="/cadastro?perfil=clinica">Sou uma clínica</RouterLink>
@@ -446,8 +438,8 @@ export default function LayoutPublico() {
           </Container>
         )}
 
-        <Box borderTop="1px solid rgb(255 255 255 / 0.1)" py={4} px={4} textAlign="center">
-          <Text fontFamily="var(--font-body)" fontSize="0.75rem" color="#94a3b8">
+        <Box borderTop="var(--border-width) solid var(--color-inverse-border)" py="var(--space-4)" px="var(--space-4)" textAlign="center">
+          <Text fontFamily="var(--font-body)" fontSize="var(--text-xs)" color="var(--color-inverse-muted)">
             Exame Já — Projeto SuperNova (Sebrae) • Transparência e agilidade em saúde
           </Text>
         </Box>

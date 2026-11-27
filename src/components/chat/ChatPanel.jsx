@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Box, Button as ChakraButton, Flex, Grid, Text } from "@chakra-ui/react";
+import { Box, Flex, Grid, Text } from "@chakra-ui/react";
+import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import ListSkeleton from "@/components/ui/Skeleton";
@@ -136,7 +137,7 @@ export default function ChatPanel({ participante, conversaInicialId, vazio }) {
         >
           {conversas.length} {conversas.length === 1 ? "conversa" : "conversas"}
         </Text>
-        <ChakraButton size="xs" variant="ghost" onClick={carregar}>Atualizar</ChakraButton>
+        <Button variant="ghost" onClick={carregar}>Atualizar</Button>
         </Flex>
         {erro && <Text role="status" px="var(--space-4)" py="var(--space-2)" fontSize="var(--text-xs)" color="var(--color-error)">{erro} A lista exibida pode estar desatualizada.</Text>}
         <ConversationList
@@ -145,7 +146,7 @@ export default function ChatPanel({ participante, conversaInicialId, vazio }) {
           souCliente={souCliente}
           onSelecionar={selecionar}
         />
-        {proximoCursor && <Box p="var(--space-3)"><ChakraButton w="100%" variant="outline" onClick={carregarMais} loading={carregandoMais}>Carregar mais conversas</ChakraButton></Box>}
+        {proximoCursor && <Box p="var(--space-3)"><Button w="100%" variant="outline" onClick={carregarMais} loading={carregandoMais}>Carregar mais conversas</Button></Box>}
       </Box>
 
       <Box display={{ base: abertaNoCelular ? "block" : "none", lg: "block" }} h={{ lg: "100%" }} minH={0}>

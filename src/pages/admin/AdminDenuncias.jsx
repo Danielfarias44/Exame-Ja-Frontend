@@ -51,7 +51,7 @@ export default function AdminDenuncias() {
   }
 
   return (
-    <Container maxW="960px" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
+    <Container maxW="var(--container-md)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
       <PageHeader
         title="Denúncias"
         description="Avaliações, mensagens e clínicas denunciadas por pacientes e clínicas, das mais novas para as mais antigas."
@@ -63,10 +63,10 @@ export default function AdminDenuncias() {
         </Alert>
         <Flex as="fieldset" gap="var(--space-4)" wrap="wrap" border="none" p={0} m={0}>
           <legend className="sr-only">Filtrar denúncias</legend>
-          <Flex flex="1" minW="220px" maxW="320px">
+          <Flex flex="1" minW="var(--width-field-min)" maxW="var(--width-field)">
             <Select label="Situação" options={OPCOES_STATUS} value={status} onChange={(evento) => { setMensagem(""); setStatus(evento.target.value); }} />
           </Flex>
-          <Flex flex="1" minW="220px" maxW="320px">
+          <Flex flex="1" minW="var(--width-field-min)" maxW="var(--width-field)">
             <Select label="O que foi denunciado" options={OPCOES_ALVO} value={alvoTipo} onChange={(evento) => { setMensagem(""); setAlvoTipo(evento.target.value); }} />
           </Flex>
         </Flex>

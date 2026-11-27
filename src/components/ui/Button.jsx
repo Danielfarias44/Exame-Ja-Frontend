@@ -4,8 +4,8 @@ const variants = {
   primary: {
     bg: "var(--color-primary)",
     color: "var(--color-text-on-primary)",
-    borderColor: "var(--color-primary)",
-    _hover: { bg: "var(--color-primary-hover)", borderColor: "var(--color-primary-hover)" },
+    borderColor: "transparent",
+    _hover: { bg: "var(--color-primary-hover)" },
   },
   outline: {
     bg: "var(--color-surface)",

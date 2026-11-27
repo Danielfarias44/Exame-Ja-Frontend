@@ -38,7 +38,7 @@ export default function LogoAutenticacao() {
   }, []);
 
   return (
-    <Flex justify="center" mb={{ base: 5, sm: 6 }}>
+    <Flex justify="center" mb={{ base: "var(--space-6)", sm: "var(--space-6)" }}>
       <Box
         asChild
         display="inline-flex"
@@ -52,7 +52,7 @@ export default function LogoAutenticacao() {
           <Image
             src={logoClaro}
             alt="Exame Já"
-            h={{ base: "38px", sm: "44px" }}
+            h={{ base: "var(--logo-sm)", sm: "var(--logo-md)" }}
             w="auto"
             objectFit="contain"
             filter={temaEscuro ? "brightness(0) invert(1)" : "none"}

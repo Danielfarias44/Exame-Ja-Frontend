@@ -60,6 +60,36 @@ export async function getExamCatalog({ page = 1, limit = 100 } = {}) {
   };
 }
 
+function adaptarClinicaMapa(clinica) {
+  return {
+    id: clinica.uid,
+    name: clinica.nomeFantasia,
+    address: clinica.endereco,
+    phone: clinica.telefone,
+    lat: clinica.latitude,
+    lng: clinica.longitude,
+    distanceKm: clinica.distanciaKm,
+    insurances: (clinica.conveniosAceitos ?? []).map(({ nome }) => nome),
+    insuranceIds: (clinica.conveniosAceitos ?? []).map(({ id }) => id),
+    rating: Number.isFinite(clinica.avaliacaoMedia) && clinica.quantidadeAvaliacoes > 0 ? clinica.avaliacaoMedia : null,
+    reviewsCount: Number.isSafeInteger(clinica.quantidadeAvaliacoes) ? clinica.quantidadeAvaliacoes : 0,
+  };
+}
+
+export async function getClinicsMap({ convenioId, raioKm } = {}) {
+  const params = new URLSearchParams();
+  if (convenioId) params.set("convenioId", convenioId);
+  if (raioKm) params.set("raioKm", String(raioKm));
+  const consulta = params.toString();
+  const data = await apiRequest(`/api/clinics/map${consulta ? `?${consulta}` : ""}`);
+  return {
+    clinics: (data?.clinicas ?? []).map(adaptarClinicaMapa),
+    center: data?.centro ?? null,
+    radiusKm: Number(data?.raioKm ?? raioKm ?? 30),
+    withoutCoordinates: Number(data?.clinicasSemCoordenadas ?? 0),
+  };
+}
+
 export async function getInsurances() {
   const data = await apiRequest("/api/convenios");
   return (data?.convenios ?? []).map(({ id, nome }) => ({ id, name: nome }));

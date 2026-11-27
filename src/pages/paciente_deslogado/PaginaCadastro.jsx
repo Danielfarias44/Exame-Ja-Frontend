@@ -4,19 +4,8 @@ import {
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Flex,
-  Heading,
-  HStack,
-  Input,
-  SimpleGrid,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Badge, Box, Container, Flex, Heading, HStack, Input, SimpleGrid, Text, VStack } from "@chakra-ui/react";
+import Button from "@/components/ui/Button";
 import LogoAutenticacao from "./LogoAutenticacao";
 import FeedbackErro from "@/components/ui/FeedbackErro";
 import {
@@ -273,29 +262,29 @@ export default function PaginaCadastro() {
   const ehClinica = perfil === "clinica";
   return (
     <Container
-      maxW="680px"
-      px={{ base: 4, md: 6 }}
-      py={{ base: 6, md: 10 }}
+      maxW="var(--container-sm)"
+      px={{ base: "var(--space-4)", md: "var(--space-6)" }}
+      py={{ base: "var(--space-6)", md: "var(--space-12)" }}
       className="animar-entrada"
     >
       <LogoAutenticacao />
 
       {/* Seletor de Perfil */}
       <Flex
-        p={1.5}
-        mb={6}
+        p="var(--space-2)"
+        mb="var(--space-6)"
         bg="var(--color-surface)"
-        border="1px solid var(--color-border-soft)"
+        border="var(--border-width) solid var(--color-border-soft)"
         borderRadius="var(--radius-lg)"
         boxShadow="var(--shadow-sm)"
-        gap={1.5}
+        gap="var(--space-2)"
       >
         <Box
           as="button"
           type="button"
           flex="1"
-          minH="44px"
-          px={{ base: 2.5, sm: 4 }}
+          minH="var(--touch-target-min)"
+          px={{ base: "var(--space-3)", sm: "var(--space-4)" }}
           borderRadius="var(--radius-md)"
           bg={!ehClinica ? "var(--color-primary)" : "transparent"}
           color={
@@ -303,7 +292,7 @@ export default function PaginaCadastro() {
           }
           fontFamily="var(--font-heading)"
           fontWeight="var(--weight-bold)"
-          fontSize={{ base: "0.84rem", sm: "0.95rem" }}
+          fontSize={{ base: "var(--text-xs)", sm: "var(--text-sm)" }}
           cursor="pointer"
           transition="all var(--duration-fast) var(--ease-standard)"
           onClick={() => alternarPerfil("paciente")}
@@ -315,14 +304,14 @@ export default function PaginaCadastro() {
           as="button"
           type="button"
           flex="1"
-          minH="44px"
-          px={{ base: 2.5, sm: 4 }}
+          minH="var(--touch-target-min)"
+          px={{ base: "var(--space-3)", sm: "var(--space-4)" }}
           borderRadius="var(--radius-md)"
           bg={ehClinica ? "var(--color-accent)" : "transparent"}
-          color={ehClinica ? "#ffffff" : "var(--color-text-muted)"}
+          color={ehClinica ? "var(--color-text-on-accent)" : "var(--color-text-muted)"}
           fontFamily="var(--font-heading)"
           fontWeight="var(--weight-bold)"
-          fontSize={{ base: "0.84rem", sm: "0.95rem" }}
+          fontSize={{ base: "var(--text-xs)", sm: "var(--text-sm)" }}
           cursor="pointer"
           transition="all var(--duration-fast) var(--ease-standard)"
           onClick={() => alternarPerfil("clinica")}
@@ -334,17 +323,17 @@ export default function PaginaCadastro() {
       {/* Card Principal */}
       <Box
         bg="var(--color-surface)"
-        border="1px solid var(--color-border-soft)"
-        borderRadius="24px"
-        p={{ base: 5, sm: 8 }}
+        border="var(--border-width) solid var(--color-border-soft)"
+        borderRadius="var(--radius-lg)"
+        p={{ base: "var(--space-6)", sm: "var(--space-8)" }}
         boxShadow="var(--shadow-md)"
       >
         {cadastroConcluido ? (
-          <VStack align="center" textAlign="center" gap={4} py={4}>
+          <VStack align="center" textAlign="center" gap="var(--space-4)" py="var(--space-4)">
             <Flex
               align="center"
               justify="center"
-              boxSize="56px"
+              boxSize="var(--icon-lg)"
               borderRadius="var(--radius-full)"
               bg="var(--color-success-soft)"
               color="var(--color-success)"
@@ -365,14 +354,14 @@ export default function PaginaCadastro() {
 
             {ehClinica && (
               <Badge
-                px={3}
-                py={1}
+                px="var(--space-3)"
+                py="var(--space-1)"
                 borderRadius="var(--radius-full)"
                 bg="var(--color-accent-soft)"
                 color="var(--color-accent)"
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize="0.76rem"
+                fontSize="var(--text-xs)"
               >
                 Status da conta: Pendente de aprovação
               </Badge>
@@ -382,7 +371,7 @@ export default function PaginaCadastro() {
               as="h1"
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize={{ base: "1.4rem", md: "1.7rem" }}
+              fontSize={{ base: "var(--text-xl)", md: "var(--text-2xl)" }}
               color="var(--color-text)"
             >
               {ehClinica
@@ -392,9 +381,9 @@ export default function PaginaCadastro() {
 
             <Text
               fontFamily="var(--font-body)"
-              fontSize="0.92rem"
+              fontSize="var(--text-sm)"
               color="var(--color-text-muted)"
-              maxW="470px"
+              maxW="var(--width-text)"
             >
               {ehClinica
                 ? `O cadastro da unidade ${dados.nomeFantasia} foi enviado. Verifique o e-mail corporativo e aguarde a análise antes de acessar as funções de clínica.`
@@ -403,8 +392,8 @@ export default function PaginaCadastro() {
 
             <Flex
               direction={{ base: "column", sm: "row" }}
-              gap={3}
-              pt={2}
+              gap="var(--space-3)"
+              pt="var(--space-2)"
               w="100%"
               justify="center"
             >
@@ -419,11 +408,11 @@ export default function PaginaCadastro() {
                     ? "var(--color-accent-hover)"
                     : "var(--color-primary-hover)",
                 }}
-                color={ehClinica ? "#ffffff" : "var(--color-text-on-primary)"}
+                color={ehClinica ? "var(--color-text-on-accent)" : "var(--color-text-on-primary)"}
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                px={7}
-                minH="46px"
+                px="var(--space-8)"
+                minH="var(--touch-target-min)"
                 borderRadius="var(--radius-md)"
               >
                 Ir para o login
@@ -437,8 +426,8 @@ export default function PaginaCadastro() {
                   color="var(--color-text)"
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  px={6}
-                  minH="46px"
+                  px="var(--space-6)"
+                  minH="var(--touch-target-min)"
                   borderRadius="var(--radius-md)"
                 >
                   <RouterLink to="/busca">Explorar exames</RouterLink>
@@ -448,11 +437,11 @@ export default function PaginaCadastro() {
           </VStack>
         ) : (
           <>
-            <Box mb={6}>
+            <Box mb="var(--space-6)">
               <Badge
-                mb={2.5}
-                px={3}
-                py={1}
+                mb="var(--space-3)"
+                px="var(--space-3)"
+                py="var(--space-1)"
                 borderRadius="var(--radius-full)"
                 bg={
                   ehClinica
@@ -464,7 +453,7 @@ export default function PaginaCadastro() {
                 }
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize="0.75rem"
+                fontSize="var(--text-xs)"
               >
                 {ehClinica
                   ? "Cadastro de Parceiro • B2B"
@@ -475,9 +464,9 @@ export default function PaginaCadastro() {
                 as="h1"
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize={{ base: "1.45rem", md: "1.8rem" }}
+                fontSize={{ base: "var(--text-xl)", md: "var(--text-2xl)" }}
                 color="var(--color-text)"
-                mb={1.5}
+                mb="var(--space-2)"
               >
                 {ehClinica
                   ? "Credencie sua clínica no Exame Já"
@@ -486,7 +475,7 @@ export default function PaginaCadastro() {
 
               <Text
                 fontFamily="var(--font-body)"
-                fontSize="0.88rem"
+                fontSize="var(--text-xs)"
                 color="var(--color-text-muted)"
               >
               {ehClinica
@@ -496,7 +485,7 @@ export default function PaginaCadastro() {
             </Box>
 
             <Box as="form" onSubmit={lidarComEnvio} noValidate>
-              <VStack align="stretch" gap={4}>
+              <VStack align="stretch" gap="var(--space-4)">
                 <FeedbackErro mensagem={erroEnvio} titulo="Não foi possível criar a conta" />
                 {!ehClinica ? (
                   <>
@@ -543,7 +532,7 @@ export default function PaginaCadastro() {
                   </>
                 ) : (
                   <>
-                    <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
+                    <SimpleGrid columns={{ base: 1, sm: 2 }} gap="var(--space-4)">
                       <CampoTexto
                         id="nomeFantasia"
                         rotulo="Nome fantasia da clínica"
@@ -593,7 +582,7 @@ export default function PaginaCadastro() {
                       erro={erros.razaoSocial}
                     />
 
-                    <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
+                    <SimpleGrid columns={{ base: 1, sm: 2 }} gap="var(--space-4)">
                       <CampoTexto
                         id="telefone"
                         rotulo="Telefone / WhatsApp de contato"
@@ -620,11 +609,11 @@ export default function PaginaCadastro() {
 
                 {ehClinica && (
                   <Box>
-                    <HStack align="flex-start" gap={2.5}>
-                      <Box as="input" id="declaracaoVinculoAceita" type="checkbox" checked={dados.declaracaoVinculoAceita} onChange={(e) => atualizarCampo("declaracaoVinculoAceita", e.target.checked)} mt={1} w="18px" h="18px" />
-                      <Box as="label" htmlFor="declaracaoVinculoAceita" fontSize="0.82rem" color="var(--color-text-muted)">Declaro que sou responsável e tenho vínculo autorizado com esta clínica.</Box>
+                    <HStack align="flex-start" gap="var(--space-3)">
+                      <Box as="input" id="declaracaoVinculoAceita" type="checkbox" checked={dados.declaracaoVinculoAceita} onChange={(e) => atualizarCampo("declaracaoVinculoAceita", e.target.checked)} mt="var(--space-1)" w="var(--icon-sm)" h="var(--icon-sm)" />
+                      <Box as="label" htmlFor="declaracaoVinculoAceita" fontSize="var(--text-xs)" color="var(--color-text-muted)">Declaro que sou responsável e tenho vínculo autorizado com esta clínica.</Box>
                     </HStack>
-                    {erros.declaracaoVinculoAceita && <Text fontSize="0.78rem" color="var(--color-error)" mt={1}>{erros.declaracaoVinculoAceita}</Text>}
+                    {erros.declaracaoVinculoAceita && <Text fontSize="var(--text-xs)" color="var(--color-error)" mt="var(--space-1)">{erros.declaracaoVinculoAceita}</Text>}
                   </Box>
                 )}
 
@@ -640,15 +629,15 @@ export default function PaginaCadastro() {
                   erro={erros.email}
                 />
 
-                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap="var(--space-4)">
                   <Box>
-                    <Flex justify="space-between" align="center" mb={1.5}>
+                    <Flex justify="space-between" align="center" mb="var(--space-2)">
                       <Box
                         as="label"
                         htmlFor="senha"
                         fontFamily="var(--font-heading)"
                         fontWeight={600}
-                        fontSize="0.88rem"
+                        fontSize="var(--text-xs)"
                         color="var(--color-text)"
                       >
                         Senha
@@ -659,7 +648,7 @@ export default function PaginaCadastro() {
                         onClick={() => setMostrarSenha((s) => !s)}
                         fontFamily="var(--font-heading)"
                         fontWeight={600}
-                        fontSize="0.78rem"
+                        fontSize="var(--text-xs)"
                         color="var(--color-primary)"
                         cursor="pointer"
                       >
@@ -672,7 +661,7 @@ export default function PaginaCadastro() {
                       value={dados.senha}
                       onChange={(e) => atualizarCampo("senha", e.target.value)}
                       placeholder="Mínimo 8 caracteres"
-                      minH="46px"
+                      minH="var(--touch-target-min)"
                       bg="var(--color-bg)"
                       color="var(--color-text)"
                       borderColor={
@@ -683,7 +672,7 @@ export default function PaginaCadastro() {
                       borderRadius="var(--radius-md)"
                     />
                     {erros.senha && (
-                      <Text fontSize="0.78rem" color="var(--color-error)" mt={1}>
+                      <Text fontSize="var(--text-xs)" color="var(--color-error)" mt="var(--space-1)">
                         {erros.senha}
                       </Text>
                     )}
@@ -701,8 +690,8 @@ export default function PaginaCadastro() {
                 </SimpleGrid>
 
                 {/* Aceite de Termos */}
-                <Box pt={1}>
-                  <HStack align="flex-start" gap={2.5}>
+                <Box pt="var(--space-1)">
+                  <HStack align="flex-start" gap="var(--space-3)">
                     <Box
                       as="input"
                       id="aceiteTermos"
@@ -711,16 +700,16 @@ export default function PaginaCadastro() {
                       onChange={(e) =>
                         atualizarCampo("aceiteTermos", e.target.checked)
                       }
-                      mt={1}
-                      w="18px"
-                      h="18px"
+                      mt="var(--space-1)"
+                      w="var(--icon-sm)"
+                      h="var(--icon-sm)"
                       cursor="pointer"
                     />
                     <Box
                       as="label"
                       htmlFor="aceiteTermos"
                       fontFamily="var(--font-body)"
-                      fontSize="0.82rem"
+                      fontSize="var(--text-xs)"
                       color="var(--color-text-muted)"
                       cursor="pointer"
                     >
@@ -729,7 +718,7 @@ export default function PaginaCadastro() {
                     </Box>
                   </HStack>
                   {erros.aceiteTermos && (
-                    <Text fontSize="0.78rem" color="var(--color-error)" mt={1}>
+                    <Text fontSize="var(--text-xs)" color="var(--color-error)" mt="var(--space-1)">
                       {erros.aceiteTermos}
                     </Text>
                   )}
@@ -746,13 +735,13 @@ export default function PaginaCadastro() {
                       ? "var(--color-accent-hover)"
                       : "var(--color-primary-hover)",
                   }}
-                  color={ehClinica ? "#ffffff" : "var(--color-text-on-primary)"}
+                  color={ehClinica ? "var(--color-text-on-accent)" : "var(--color-text-on-primary)"}
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  fontSize="1rem"
-                  minH="48px"
+                  fontSize="var(--text-sm)"
+                  minH="var(--touch-target-min)"
                   w="100%"
-                  mt={2}
+                  mt="var(--space-2)"
                   borderRadius="var(--radius-md)"
                   boxShadow="var(--shadow-sm)"
                 >
@@ -766,12 +755,12 @@ export default function PaginaCadastro() {
             </Box>
 
             <Text
-              mt={6}
-              pt={5}
-              borderTop="1px solid var(--color-border-soft)"
+              mt="var(--space-6)"
+              pt="var(--space-6)"
+              borderTop="var(--border-width) solid var(--color-border-soft)"
               textAlign="center"
               fontFamily="var(--font-body)"
-              fontSize="0.88rem"
+              fontSize="var(--text-xs)"
               color="var(--color-text-muted)"
             >
               Já possui cadastro?{" "}
@@ -813,9 +802,9 @@ function CampoTexto({
         display="block"
         fontFamily="var(--font-heading)"
         fontWeight={600}
-        fontSize="0.88rem"
+        fontSize="var(--text-xs)"
         color="var(--color-text)"
-        mb={1.5}
+        mb="var(--space-2)"
       >
         {rotulo}
       </Box>
@@ -827,7 +816,7 @@ function CampoTexto({
         onChange={(e) => aoMudar(e.target.value)}
         placeholder={placeholder}
         aria-invalid={Boolean(erro)}
-        minH="46px"
+        minH="var(--touch-target-min)"
         bg="var(--color-bg)"
         color="var(--color-text)"
         _placeholder={{ color: "var(--color-text-muted)" }}
@@ -835,7 +824,7 @@ function CampoTexto({
         borderRadius="var(--radius-md)"
       />
       {erro && (
-        <Text fontSize="0.78rem" color="var(--color-error)" mt={1}>
+        <Text fontSize="var(--text-xs)" color="var(--color-error)" mt="var(--space-1)">
           {erro}
         </Text>
       )}

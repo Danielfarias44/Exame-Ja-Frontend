@@ -20,7 +20,7 @@ export default function AlternadorTema() {
       minW="var(--touch-target-min)"
       minH="var(--touch-target-min)"
       borderRadius="var(--radius-full)"
-      border="1px solid var(--color-border-soft)"
+      border="var(--border-width) solid var(--color-border-soft)"
       bg="var(--color-surface)"
       color="var(--color-text)"
       cursor="pointer"

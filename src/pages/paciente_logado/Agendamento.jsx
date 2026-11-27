@@ -100,10 +100,10 @@ export default function Agendamento() {
   if (status === "error") return <Container py="var(--space-8)"><ErrorState title="Não foi possível carregar o agendamento" description={erro} onRetry={tentarNovamente} action={voltarParaBusca} /></Container>;
 
   return (
-    <Container maxW="760px" px={{ base: 4, md: 6 }} py={8} pb={{ base: "110px", md: 12 }}>
+    <Container maxW="var(--container-sm)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)" pb={{ base: "var(--bottom-nav-offset)", md: "var(--space-12)" }}>
       <PageHeader title="Solicitar agendamento" description="Escolha um horário publicado pela clínica. A solicitação ficará pendente até a confirmação da unidade." />
       <Card>
-        <Stack as="form" onSubmit={enviarSolicitacao} gap={4}>
+        <Stack as="form" onSubmit={enviarSolicitacao} gap="var(--space-4)">
           <Text fontWeight="var(--weight-bold)">{clinica?.nomeFantasia || "Clínica selecionada"}</Text>
           <Text color="var(--color-text-muted)">{nomeExame || "Exame selecionado"} · TUSS {codigoExame}</Text>
           <Select

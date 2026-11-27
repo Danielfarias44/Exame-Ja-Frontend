@@ -26,10 +26,10 @@ export default function Chat() {
 
   return (
     <Container
-      maxW="1120px"
-      px={{ base: 4, md: 6 }}
-      py={{ base: 6, md: 8 }}
-      pb={{ base: "110px", md: 12 }}
+      maxW="var(--container-max)"
+      px={{ base: "var(--space-4)", md: "var(--space-6)" }}
+      py={{ base: "var(--space-6)", md: "var(--space-8)" }}
+      pb={{ base: "var(--bottom-nav-offset)", md: "var(--space-12)" }}
       className="animar-entrada"
     >
       <PageHeader

@@ -7,7 +7,7 @@ export default function ChecklistVisibilidade({ itens }) {
   const faltando = itens.filter((item) => !item.feito).length;
 
   return (
-    <Card as="section" aria-labelledby="titulo-checklist" mb="var(--space-6)">
+    <Card as="section" aria-labelledby="titulo-checklist">
       <Stack gap="var(--space-3)">
         <SectionTitle id="titulo-checklist">Para aparecer na busca</SectionTitle>
         <Text fontSize="var(--text-sm)" color="var(--color-text-muted)">
@@ -18,7 +18,7 @@ export default function ChecklistVisibilidade({ itens }) {
         <Stack as="ul" listStyle="none" p={0} m={0} gap="var(--space-2)">
           {itens.map((item) => (
             <Flex as="li" key={item.texto} gap="var(--space-2)" align="flex-start">
-              <Box aria-hidden="true" color={item.feito ? "var(--color-success)" : "var(--color-text-muted)"} mt="2px" flexShrink={0}>
+              <Box aria-hidden="true" color={item.feito ? "var(--color-success)" : "var(--color-text-muted)"} mt="var(--space-1)" flexShrink={0}>
                 {item.feito ? <LuCircleCheck /> : <LuCircle />}
               </Box>
               <Box>

@@ -60,22 +60,22 @@ export default function SecaoFaq() {
   return (
     <Container
       id="perguntas-frequentes"
-      scrollMarginTop="90px"
-      maxW="860px"
-      px={{ base: 4, md: 6 }}
-      mt={{ base: 14, md: 20 }}
+      scrollMarginTop="var(--header-offset)"
+      maxW="var(--container-md)"
+      px={{ base: "var(--space-4)", md: "var(--space-6)" }}
+      mt={{ base: "var(--space-16)", md: "var(--space-16)" }}
       className="revelar-secao"
     >
-      <VStack align="center" textAlign="center" gap={2} mb={7}>
+      <VStack align="center" textAlign="center" gap="var(--space-2)" mb="var(--space-8)">
         <Badge
-          px={3}
-          py={1}
+          px="var(--space-3)"
+          py="var(--space-1)"
           borderRadius="var(--radius-full)"
           bg="var(--color-primary-soft)"
           color="var(--color-primary)"
           fontFamily="var(--font-heading)"
           fontWeight="var(--weight-bold)"
-          fontSize="0.76rem"
+          fontSize="var(--text-xs)"
         >
           Tire suas dúvidas
         </Badge>
@@ -84,21 +84,21 @@ export default function SecaoFaq() {
           as="h2"
           fontFamily="var(--font-heading)"
           fontWeight="var(--weight-bold)"
-          fontSize={{ base: "1.45rem", md: "1.8rem" }}
+          fontSize={{ base: "var(--text-xl)", md: "var(--text-2xl)" }}
           color="var(--color-text)"
         >
           Perguntas frequentes
         </Heading>
       </VStack>
 
-      <VStack align="stretch" gap={3}>
+      <VStack align="stretch" gap="var(--space-3)">
         {PERGUNTAS_FREQUENTES.map((item) => {
           const aberta = perguntaAberta === item.id;
           return (
             <Box
               key={item.id}
               bg="var(--color-surface)"
-              border="1px solid"
+              border="var(--border-width) solid"
               borderColor={aberta ? "var(--color-primary)" : "var(--color-border-soft)"}
               borderRadius="var(--radius-md)"
               boxShadow={aberta ? "var(--shadow-sm)" : "none"}
@@ -114,16 +114,16 @@ export default function SecaoFaq() {
                 w="100%"
                 align="center"
                 justify="space-between"
-                gap={4}
-                p={{ base: 4, md: 5 }}
-                minH="56px"
+                gap="var(--space-4)"
+                p={{ base: "var(--space-4)", md: "var(--space-6)" }}
+                minH="var(--icon-lg)"
                 textAlign="left"
                 cursor="pointer"
               >
                 <Text
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  fontSize={{ base: "0.95rem", md: "1.02rem" }}
+                  fontSize={{ base: "var(--text-sm)", md: "var(--text-sm)" }}
                   color="var(--color-text)"
                 >
                   {item.pergunta}
@@ -132,7 +132,7 @@ export default function SecaoFaq() {
                 <Flex
                   align="center"
                   justify="center"
-                  boxSize="30px"
+                  boxSize="var(--icon-md)"
                   borderRadius="var(--radius-full)"
                   bg={aberta ? "var(--color-primary)" : "var(--color-bg)"}
                   color={aberta ? "var(--color-text-on-primary)" : "var(--color-text-muted)"}
@@ -158,18 +158,18 @@ export default function SecaoFaq() {
               {aberta && (
                 <Box
                   id={`resposta-${item.id}`}
-                  px={{ base: 4, md: 5 }}
-                  pb={{ base: 4, md: 5 }}
+                  px={{ base: "var(--space-4)", md: "var(--space-6)" }}
+                  pb={{ base: "var(--space-4)", md: "var(--space-6)" }}
                   pt={0}
                   className="slide-carrossel-ativo"
                 >
                   <Text
                     fontFamily="var(--font-body)"
-                    fontSize="0.82rem"
+                    fontSize="var(--text-xs)"
                     lineHeight="var(--leading-normal)"
                     color="var(--color-text-muted)"
-                    pt={2}
-                    borderTop="1px solid var(--color-border-soft)"
+                    pt="var(--space-2)"
+                    borderTop="var(--border-width) solid var(--color-border-soft)"
                   >
                     {item.resposta}
                   </Text>

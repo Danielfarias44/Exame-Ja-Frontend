@@ -89,7 +89,7 @@ export default function SearchBar({
         boxShadow="var(--shadow-md)"
         _focusWithin={{
           outline: "var(--border-width-strong) solid var(--color-focus)",
-          outlineOffset: "2px",
+          outlineOffset: "var(--focus-offset)",
         }}
       >
         <Box color="var(--color-primary)" px="var(--space-2)" aria-hidden="true" flexShrink={0}>
@@ -121,8 +121,8 @@ export default function SearchBar({
         </Button>
       </Flex>
 
-      {temMais && <Button type="button" variant="outline" size="sm" mt={3} onClick={carregarMais} disabled={carregandoMais}>{carregandoMais ? "Carregando…" : "Carregar mais exames"}</Button>}
-      {erro && <Text role="alert" mt={2} fontSize="sm" color="var(--color-error)">{erro}</Text>}
+      {temMais && <Button type="button" variant="outline" size="sm" mt="var(--space-3)" onClick={carregarMais} disabled={carregandoMais}>{carregandoMais ? "Carregando…" : "Carregar mais exames"}</Button>}
+      {erro && <Text role="alert" mt="var(--space-2)" fontSize="var(--text-sm)" color="var(--color-error)">{erro}</Text>}
     </Box>
   );
 }

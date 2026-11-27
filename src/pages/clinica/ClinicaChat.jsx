@@ -8,7 +8,7 @@ export default function ClinicaChat() {
   const [participante] = useState(() => obterParticipanteAtual());
 
   return (
-    <Container maxW="1120px" px={{ base: 4, md: 6 }} py={{ base: 6, md: 8 }}>
+    <Container maxW="var(--container-max)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py={{ base: "var(--space-6)", md: "var(--space-8)" }}>
       <PageHeader title="Conversas com pacientes" description="Responda às dúvidas sobre exames, convênios e horários." />
       {participante && <ChatPanel participante={participante} vazio={{
         title: "Nenhuma conversa recebida",

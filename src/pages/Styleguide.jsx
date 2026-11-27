@@ -128,7 +128,7 @@ export default function Styleguide() {
 
 
       <Section title="Seleção">
-        <Stack gap="var(--space-4)" maxW="420px">
+        <Stack gap="var(--space-4)" maxW="var(--width-text)">
           <Select
             label="Tipo de exame"
             placeholder="Escolha um exame"
@@ -153,7 +153,7 @@ export default function Styleguide() {
       </Section>
 
       <Section title="Campo de texto">
-        <Stack gap="var(--space-4)" maxW="420px">
+        <Stack gap="var(--space-4)" maxW="var(--width-text)">
           <CampoTexto label="Nome completo" helperText="Como aparece no documento" required />
           <CampoTexto label="E-mail" type="email" error="Informe um e-mail válido" />
           <CampoTexto label="Motivo da rejeição" multiline helperText="De 10 a 500 caracteres" />
@@ -168,7 +168,7 @@ export default function Styleguide() {
         <Text color="var(--color-text-muted)" fontSize="var(--text-xs)">
           Substitui as caixas do navegador. Recebe o foco ao abrir e pode exigir um motivo.
         </Text>
-        <Stack gap="var(--space-4)" maxW="520px">
+        <Stack gap="var(--space-4)" maxW="var(--width-text)">
           <ConfirmacaoInline
             pergunta="Cancelar este agendamento?"
             rotuloConfirmar="Sim, cancelar"

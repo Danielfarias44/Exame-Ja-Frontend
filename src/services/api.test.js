@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiRequest } from "./httpClient";
-import { cacheSearchResults, getCachedClinicName, getEstablishment, getExamCatalog, searchExamOffers } from "./api";
+import { cacheSearchResults, getCachedClinicName, getClinicsMap, getEstablishment, getExamCatalog, searchExamOffers } from "./api";
 
 vi.mock("./httpClient", () => ({ apiRequest: vi.fn(), apiRequestWithCsrf: vi.fn() }));
 
@@ -113,5 +113,27 @@ describe("cache da busca", () => {
     expect(getCachedClinicName("outra")).toBe("Clínica");
     sessionStorage.setItem("exameja_resultados_busca_v1", "{quebrado");
     expect(getCachedClinicName("c1")).toBe("Clínica");
+  });
+});
+
+describe("getClinicsMap", () => {
+  it("chama o mapa sem parâmetros por padrão e traduz as clínicas para o formato da tela", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      centro: { latitude: -1.4558, longitude: -48.4902, nome: "Belém, PA" },
+      raioKm: 30,
+      clinicasSemCoordenadas: 2,
+      clinicas: [{ uid: "c1", nomeFantasia: "Clínica Nazaré", endereco: "Av. Nazaré, 500", latitude: -1.45, longitude: -48.48, distanciaKm: 0.6, conveniosAceitos: [{ id: "amil", nome: "Amil" }], avaliacaoMedia: 4, quantidadeAvaliacoes: 0 }],
+    });
+    const resultado = await getClinicsMap();
+    expect(apiRequest).toHaveBeenCalledWith("/api/clinics/map");
+    expect(resultado.center.nome).toBe("Belém, PA");
+    expect(resultado.withoutCoordinates).toBe(2);
+    expect(resultado.clinics[0]).toMatchObject({ id: "c1", name: "Clínica Nazaré", lat: -1.45, lng: -48.48, insurances: ["Amil"], rating: null });
+  });
+
+  it("envia só os filtros preenchidos", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({ clinicas: [] });
+    await getClinicsMap({ convenioId: "amil", raioKm: "10" });
+    expect(apiRequest).toHaveBeenCalledWith("/api/clinics/map?convenioId=amil&raioKm=10");
   });
 });

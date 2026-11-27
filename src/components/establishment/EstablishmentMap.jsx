@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Box } from "@chakra-ui/react";
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from "react-leaflet";
 import L from "leaflet";
@@ -18,6 +19,9 @@ export default function EstablishmentMap({
   zoom = 14,
   label = "Mapa das clínicas",
   center: centerProp,
+  altura = "var(--map-height)",
+  rotuloCentro = "Localização da busca",
+  rotaDetalhes,
 }) {
   const withCoords = establishments.filter((e) => Number.isFinite(e.lat) && Number.isFinite(e.lng));
   const possuiCentro = Number.isFinite(centerProp?.latitude) && Number.isFinite(centerProp?.longitude);
@@ -28,7 +32,7 @@ export default function EstablishmentMap({
     <Box
       role="region"
       aria-label={label}
-      h="var(--map-height)"
+      h={altura}
       overflow="hidden"
       borderWidth="var(--border-width)"
       borderStyle="solid"
@@ -43,13 +47,19 @@ export default function EstablishmentMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {possuiCentro && <CircleMarker center={center} radius={8} pathOptions={{ color: "#ffffff", weight: 3, fillColor: "#2563eb", fillOpacity: 1 }}><Popup>Localização da busca</Popup></CircleMarker>}
+        {possuiCentro && <CircleMarker center={center} radius={8} pathOptions={{ className: "marcador-usuario", weight: 3, fillOpacity: 1 }}><Popup>{rotuloCentro}</Popup></CircleMarker>}
         {withCoords.map((e) => (
           <Marker key={e.id} position={[e.lat, e.lng]}>
             <Popup>
               <strong>{e.name}</strong>
               <br />
               {e.address}
+              {rotaDetalhes && (
+                <>
+                  <br />
+                  <Link to={rotaDetalhes(e)}>Ver clínica</Link>
+                </>
+              )}
             </Popup>
           </Marker>
         ))}

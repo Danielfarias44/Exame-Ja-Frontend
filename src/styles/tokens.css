@@ -36,7 +36,16 @@
   --color-text-muted:      var(--gray-700);
   --color-text-highlight:  var(--blue-500);
   --color-text-on-primary: var(--white);
+  --color-text-on-accent:  var(--white);
   --color-disabled:        var(--gray-500);
+
+  --color-inverse-bg:      #162332;
+  --color-inverse-text:    #f8fafc;
+  --color-inverse-muted:   #cbd5e1;
+  --color-inverse-border:  rgb(255 255 255 / 0.12);
+  --color-inverse-border-strong: rgb(255 255 255 / 0.28);
+  --color-inverse-hover:   rgb(255 255 255 / 0.08);
+  --color-overlay:         rgb(15 23 34 / 0.85);
 
   --color-focus:           var(--purple-500);
 
@@ -75,6 +84,7 @@
 
   --leading-tight:  1.2;
   --leading-normal: 1.6;
+  --tracking-wide:  0.06em;
 
   /* ---------- 4. ESPAÇAMENTO ---------- */
   --space-1:  0.25rem;
@@ -113,8 +123,27 @@
 
   /* ---------- 9. LAYOUT ---------- */
   --container-max: 1200px;
+  --container-md:  960px;
+  --container-sm:  720px;
+  --width-text:    34rem;
+  --width-field:   20rem;
+  --width-field-min: 14rem;
+  --header-offset: 90px;
+  --header-height: 66px;
+  --bottom-nav-offset: 110px;
+  --icon-sm: 1.5rem;
+  --icon-md: 2rem;
+  --icon-lg: 3rem;
+  --logo-sm: 2.375rem;
+  --logo-md: 2.75rem;
+  --logo-lg: 3rem;
+  --media-sm: 13rem;
+  --media-md: 16.5rem;
+  --decor-lg: 21rem;
   --touch-target-min: 44px;
+  --focus-offset: 2px;
   --map-height: 22rem;
+  --map-height-lg: 34rem;
   --chat-height: 34rem;
 }
 
@@ -138,7 +167,9 @@
   --color-text:             #f1f5f9;
   --color-text-muted:       #a7b6c7;
   --color-text-highlight:   #63b3ed;
-  --color-text-on-primary:  #ffffff;
+  --color-text-on-primary:  #0f1722;
+  --color-text-on-accent:   #0f1722;
+  --color-inverse-bg:       #0b121c;
   --color-disabled:         #64748b;
 
   --color-focus:            #b187d6;

@@ -37,7 +37,7 @@ export default function AdminClinicas() {
   }
 
   return (
-    <Container maxW="960px" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
+    <Container maxW="var(--container-md)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
       <PageHeader
         title="Fila de aprovação"
         description="Cadastros de clínicas aguardando análise, do mais antigo para o mais novo. Só clínicas aprovadas aparecem na busca."

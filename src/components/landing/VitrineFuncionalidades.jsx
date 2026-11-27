@@ -10,9 +10,9 @@ const RECURSOS_DISPONIVEIS = [
   },
   {
     titulo: "Localização no mapa",
-    descricao: "Informe um endereço ou compartilhe sua localização para encontrar clínicas próximas.",
-    destino: "/busca",
-    rotulo: "Encontrar clínicas",
+    descricao: "Veja no mapa todas as clínicas aprovadas em Belém e região, com endereço e convênios.",
+    destino: "/mapa",
+    rotulo: "Abrir o mapa",
   },
   {
     titulo: "Filtros de convênio e preço",
@@ -30,21 +30,21 @@ const RECURSOS_DISPONIVEIS = [
 
 export default function VitrineFuncionalidades() {
   return (
-    <Container maxW="var(--container-max)" px={{ base: 4, md: 6 }} mt={{ base: 14, md: 20 }} className="revelar-secao">
-      <VStack align="stretch" gap={2} mb={6}>
-        <Heading as="h2" fontSize={{ base: "1.45rem", md: "1.8rem" }} color="var(--color-text)">
+    <Container maxW="var(--container-max)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} mt={{ base: "var(--space-16)", md: "var(--space-16)" }} className="revelar-secao">
+      <VStack align="stretch" gap="var(--space-2)" mb="var(--space-6)">
+        <Heading as="h2" fontSize={{ base: "var(--text-xl)", md: "var(--text-2xl)" }} color="var(--color-text)">
           O que você pode fazer no Exame Já
         </Heading>
         <Text color="var(--color-text-muted)">
           Consulte ofertas e informações cadastradas pelas clínicas parceiras.
         </Text>
       </VStack>
-      <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4}>
+      <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap="var(--space-4)">
         {RECURSOS_DISPONIVEIS.map((recurso) => (
-          <Box key={recurso.titulo} as={RouterLink} to={recurso.destino} className="landing-cartao" p={5} border="1px solid var(--color-border-soft)" borderRadius="var(--radius-lg)" bg="var(--color-surface)" _hover={{ borderColor: "var(--color-primary)" }}>
-            <Heading as="h3" fontSize="1rem" color="var(--color-text)" mb={2}>{recurso.titulo}</Heading>
-            <Text fontSize="0.82rem" color="var(--color-text-muted)" mb={3}>{recurso.descricao}</Text>
-            <Text fontSize="0.82rem" fontWeight="bold" color="var(--color-primary)">{recurso.rotulo} →</Text>
+          <Box key={recurso.titulo} as={RouterLink} to={recurso.destino} className="landing-cartao" p="var(--space-6)" border="var(--border-width) solid var(--color-border-soft)" borderRadius="var(--radius-lg)" bg="var(--color-surface)" _hover={{ borderColor: "var(--color-primary)" }}>
+            <Heading as="h3" fontSize="var(--text-sm)" color="var(--color-text)" mb="var(--space-2)">{recurso.titulo}</Heading>
+            <Text fontSize="var(--text-xs)" color="var(--color-text-muted)" mb="var(--space-3)">{recurso.descricao}</Text>
+            <Text fontSize="var(--text-xs)" fontWeight="var(--weight-bold)" color="var(--color-primary)">{recurso.rotulo} →</Text>
           </Box>
         ))}
       </SimpleGrid>

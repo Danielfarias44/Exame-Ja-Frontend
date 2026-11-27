@@ -1,17 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Flex,
-  Grid,
-  Heading,
-  SimpleGrid,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Badge, Box, Container, Flex, Grid, Heading, SimpleGrid, Text, VStack } from "@chakra-ui/react";
+import Button from "@/components/ui/Button";
 import { apiRequest } from "@/services/httpClient";
 
 /**
@@ -164,12 +154,12 @@ export default function SecaoConvenios() {
   return (
     <Box
       id="convenios"
-      scrollMarginTop="90px"
-      mt={{ base: 14, md: 22 }}
-      py={{ base: 10, md: 16 }}
+      scrollMarginTop="var(--header-offset)"
+      mt={{ base: "var(--space-16)", md: "var(--space-16)" }}
+      py={{ base: "var(--space-12)", md: "var(--space-16)" }}
       bg="var(--color-surface)"
-      borderTop="1px solid var(--color-border-soft)"
-      borderBottom="1px solid var(--color-border-soft)"
+      borderTop="var(--border-width) solid var(--color-border-soft)"
+      borderBottom="var(--border-width) solid var(--color-border-soft)"
       position="relative"
       overflow="hidden"
       className="revelar-secao"
@@ -200,10 +190,10 @@ export default function SecaoConvenios() {
       {/* Forma orgânica decorativa suave ao fundo */}
       <Box
         position="absolute"
-        top="-90px"
-        right="-110px"
-        w="340px"
-        h="340px"
+        top="calc(var(--space-16) * -1.5)"
+        right="calc(var(--space-16) * -1.75)"
+        w="var(--decor-lg)"
+        h="var(--decor-lg)"
         borderRadius="44% 56% 62% 38% / 42% 45% 55% 58%"
         bg="var(--color-primary-soft)"
         opacity={0.55}
@@ -211,23 +201,23 @@ export default function SecaoConvenios() {
         aria-hidden="true"
       />
 
-      <Container maxW="var(--container-max)" px={{ base: 4, md: 6 }} position="relative">
+      <Container maxW="var(--container-max)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} position="relative">
         <Grid
           templateColumns={{ base: "1fr", lg: "0.82fr 1.18fr" }}
-          gap={{ base: 8, lg: 12 }}
+          gap={{ base: "var(--space-8)", lg: "var(--space-12)" }}
           alignItems="center"
         >
           {/* Coluna esquerda: Chamada editorial + Filtro de convênio */}
-          <VStack align="flex-start" gap={4} minW="0">
+          <VStack align="flex-start" gap="var(--space-4)" minW="0">
             <Badge
-              px={3}
-              py={1}
+              px="var(--space-3)"
+              py="var(--space-1)"
               borderRadius="var(--radius-full)"
               bg="var(--color-primary-soft)"
               color="var(--color-primary)"
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize="0.76rem"
+              fontSize="var(--text-xs)"
             >
               Cobertura e transparência
             </Badge>
@@ -236,7 +226,7 @@ export default function SecaoConvenios() {
               as="h2"
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize={{ base: "1.55rem", md: "2rem" }}
+              fontSize={{ base: "var(--text-xl)", md: "var(--text-2xl)" }}
               lineHeight="var(--leading-tight)"
               color="var(--color-text)"
             >
@@ -248,7 +238,7 @@ export default function SecaoConvenios() {
 
             <Text
               fontFamily="var(--font-body)"
-              fontSize="0.86rem"
+              fontSize="var(--text-xs)"
               lineHeight="var(--leading-normal)"
               color="var(--color-text-muted)"
             >
@@ -256,13 +246,13 @@ export default function SecaoConvenios() {
             </Text>
 
             {/* Filtro por convênio selecionado no cadastro oficial da API */}
-            <Box as="form" onSubmit={aoEnviarConvenio} w="100%" maxW="420px" pt={1}>
+            <Box as="form" onSubmit={aoEnviarConvenio} w="100%" maxW="var(--width-text)" pt="var(--space-1)">
               <Flex
                 align="center"
                 bg="var(--color-bg)"
                 border="1.5px solid var(--color-border-soft)"
                 borderRadius="var(--radius-lg)"
-                p={1.5}
+                p="var(--space-2)"
                 _focusWithin={{
                   borderColor: "var(--color-primary)",
                   boxShadow: "0 0 0 3px var(--color-primary-soft)",
@@ -277,8 +267,8 @@ export default function SecaoConvenios() {
                   bg="transparent"
                   color="var(--color-text)"
                   fontFamily="var(--font-body)"
-                  fontSize="0.9rem"
-                  minH="42px"
+                  fontSize="var(--text-xs)"
+                  minH="var(--touch-target-min)"
                   minW="0"
                   flex="1"
                   _focusVisible={{ boxShadow: "none", outline: "none" }}
@@ -293,9 +283,9 @@ export default function SecaoConvenios() {
                   color="var(--color-text-on-primary)"
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  fontSize="0.88rem"
-                  minH="42px"
-                  px={5}
+                  fontSize="var(--text-xs)"
+                  minH="var(--touch-target-min)"
+                  px="var(--space-6)"
                   borderRadius="var(--radius-md)"
                   flexShrink={0}
                 >
@@ -304,7 +294,7 @@ export default function SecaoConvenios() {
               </Flex>
             </Box>
 
-            <Text fontFamily="var(--font-body)" fontSize="0.76rem" color="var(--color-text-muted)">
+            <Text fontFamily="var(--font-body)" fontSize="var(--text-xs)" color="var(--color-text-muted)">
               {erro || "A disponibilidade depende das ofertas publicadas por cada clínica."}
             </Text>
           </VStack>
@@ -312,8 +302,8 @@ export default function SecaoConvenios() {
           {/* Coluna direita: Mosaico desalinhado (staggered) com ícones grandes animados */}
           <SimpleGrid
             columns={{ base: 1, sm: 2 }}
-            gap={{ base: 3.5, md: 4 }}
-            pb={{ lg: 5 }}
+            gap={{ base: "var(--space-4)", md: "var(--space-4)" }}
+            pb={{ lg: "var(--space-6)" }}
           >
             {convenios.map((convenio, indice) => {
               const estilo = ESTILOS_CONVENIOS[indice % ESTILOS_CONVENIOS.length];
@@ -328,15 +318,15 @@ export default function SecaoConvenios() {
                   onClick={() => filtrarPorConvenio(convenio)}
                   className="cartao-convenio"
                   align="center"
-                  gap={4}
-                  p={4}
-                  minH="88px"
+                  gap="var(--space-4)"
+                  p="var(--space-4)"
+                  minH="var(--space-16)"
                   w="100%"
                   minW="0"
                   textAlign="left"
                   bg="var(--color-bg)"
-                  border="1px solid var(--color-border-soft)"
-                  borderRadius="20px"
+                  border="var(--border-width) solid var(--color-border-soft)"
+                  borderRadius="var(--radius-lg)"
                   boxShadow="var(--shadow-sm)"
                   cursor="pointer"
                   transform={{
@@ -355,11 +345,11 @@ export default function SecaoConvenios() {
                     direction="column"
                     align="center"
                     justify="center"
-                    boxSize="64px"
-                    borderRadius="18px"
+                    boxSize="var(--space-16)"
+                    borderRadius="var(--radius-lg)"
                     bg={estilo.fundoSuave}
                     color={estilo.corDestaque}
-                    border="1px solid"
+                    border="var(--border-width) solid"
                     borderColor="var(--color-border-soft)"
                     flexShrink={0}
                     style={{ animationDelay: estilo.atrasoAnimacao }}
@@ -368,9 +358,9 @@ export default function SecaoConvenios() {
                     <Text
                       fontFamily="var(--font-heading)"
                       fontWeight="var(--weight-bold)"
-                      fontSize="0.65rem"
-                      letterSpacing="0.06em"
-                      mt={0.5}
+                      fontSize="var(--text-xs)"
+                      letterSpacing="var(--tracking-wide)"
+                      mt="var(--space-1)"
                     >
                       {(convenio.nome ?? "").slice(0, 3).toUpperCase()}
                     </Text>
@@ -380,7 +370,7 @@ export default function SecaoConvenios() {
                     <Text
                       fontFamily="var(--font-heading)"
                       fontWeight="var(--weight-bold)"
-                      fontSize="1.05rem"
+                      fontSize="var(--text-sm)"
                       color="var(--color-text)"
                       truncate
                     >
@@ -388,9 +378,9 @@ export default function SecaoConvenios() {
                     </Text>
                     <Text
                       fontFamily="var(--font-body)"
-                      fontSize="0.75rem"
+                      fontSize="var(--text-xs)"
                       color="var(--color-text-muted)"
-                      mt={0.5}
+                      mt="var(--space-1)"
                       lineHeight="1.35"
                     >
                       {convenio.descricao || "Convênio cadastrado"}

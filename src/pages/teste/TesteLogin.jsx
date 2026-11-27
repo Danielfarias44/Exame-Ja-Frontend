@@ -76,7 +76,7 @@ export default function TesteLogin() {
   }
 
   return (
-    <Container maxW="820px" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
+    <Container maxW="var(--container-md)" px={{ base: "var(--space-4)", md: "var(--space-6)" }} py="var(--space-8)">
       <NavegacaoTeste />
       <PageHeader
         title="Entrar com uma conta de teste"

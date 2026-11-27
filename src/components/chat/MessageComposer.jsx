@@ -91,7 +91,7 @@ export default function MessageComposer({ destinatario, limite, onEnviar }) {
           borderRadius="var(--radius-md)"
           _focusVisible={{
             outline: "var(--border-width-strong) solid var(--color-focus)",
-            outlineOffset: "2px",
+            outlineOffset: "var(--focus-offset)",
             borderColor: "var(--color-focus)",
           }}
         />

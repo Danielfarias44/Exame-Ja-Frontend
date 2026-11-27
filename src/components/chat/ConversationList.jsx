@@ -34,7 +34,7 @@ export default function ConversationList({ conversas, conversaAtivaId, souClient
                 _hover={{ bg: "var(--color-primary-soft)" }}
                 _focusVisible={{
                   outline: "var(--border-width-strong) solid var(--color-focus)",
-                  outlineOffset: "-2px",
+                  outlineOffset: "calc(var(--focus-offset) * -1)",
                 }}
               >
                 <Flex justify="space-between" align="baseline" gap="var(--space-2)">

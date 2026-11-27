@@ -1,18 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Flex,
-  Grid,
-  Heading,
-  Image,
-  SimpleGrid,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Badge, Box, Container, Flex, Grid, Heading, Image, SimpleGrid, Text, VStack } from "@chakra-ui/react";
+import Button from "@/components/ui/Button";
 import IlustracaoInterativaHero from "@/components/landing/IlustracaoInterativaHero";
 import VitrineFuncionalidades from "@/components/landing/VitrineFuncionalidades";
 import SecaoConvenios from "@/components/landing/SecaoConvenios";
@@ -109,37 +98,37 @@ export default function PaginaInicial() {
   }
 
   return (
-    <Box ref={referenciaConteudo} pb={{ base: 14, md: 24 }} overflowX="clip">
+    <Box ref={referenciaConteudo} pb={{ base: "var(--space-16)", md: "var(--space-16)" }} overflowX="clip">
       {/* 1. HERO E BUSCA */}
       <Container
         maxW="var(--container-max)"
-        px={{ base: 4, md: 6 }}
-        pt={{ base: 6, md: 12 }}
+        px={{ base: "var(--space-4)", md: "var(--space-6)" }}
+        pt={{ base: "var(--space-6)", md: "var(--space-12)" }}
       >
         <Flex
           direction={{ base: "column", lg: "row" }}
           align="center"
           justify="space-between"
-          gap={{ base: 8, lg: 10 }}
+          gap={{ base: "var(--space-8)", lg: "var(--space-12)" }}
         >
           <VStack
             align={{ base: "center", lg: "flex-start" }}
             textAlign={{ base: "center", lg: "left" }}
-            maxW="560px"
-            gap={4}
+            maxW="var(--width-text)"
+            gap="var(--space-4)"
             w="100%"
             minW="0"
             className="animar-entrada"
           >
             <Badge
-              px={3}
-              py={1}
+              px="var(--space-3)"
+              py="var(--space-1)"
               borderRadius="var(--radius-full)"
               bg="var(--color-primary-soft)"
               color="var(--color-primary)"
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize="0.78rem"
+              fontSize="var(--text-xs)"
             >
               Gratuito para pacientes • Belém e região
             </Badge>
@@ -148,7 +137,7 @@ export default function PaginaInicial() {
               as="h1"
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize={{ base: "1.85rem", sm: "2.35rem", md: "var(--text-3xl)" }}
+              fontSize={{ base: "var(--text-2xl)", sm: "var(--text-3xl)", md: "var(--text-3xl)" }}
               lineHeight="var(--leading-tight)"
               color="var(--color-text)"
             >
@@ -161,7 +150,7 @@ export default function PaginaInicial() {
 
             <Text
               fontFamily="var(--font-body)"
-              fontSize={{ base: "0.9rem", md: "0.96rem" }}
+              fontSize={{ base: "var(--text-xs)", md: "var(--text-sm)" }}
               lineHeight="var(--leading-normal)"
               color="var(--color-text-muted)"
             >
@@ -176,7 +165,7 @@ export default function PaginaInicial() {
               , com ofertas e informações de localização disponíveis para consulta.
             </Text>
 
-            <Box w="100%" maxW="500px" pt={1}>
+            <Box w="100%" maxW="var(--width-text)" pt="var(--space-1)">
               <SearchBar
                 onSearch={executarBusca}
                 label="Qual exame você precisa fazer?"
@@ -185,7 +174,7 @@ export default function PaginaInicial() {
             </Box>
           </VStack>
 
-          <Box w="100%" maxW="460px" minW="0" className="animar-entrada animar-atraso-1">
+          <Box w="100%" maxW="var(--width-text)" minW="0" className="animar-entrada animar-atraso-1">
             <IlustracaoInterativaHero />
           </Box>
         </Flex>
@@ -193,18 +182,18 @@ export default function PaginaInicial() {
         {/* Indicadores rápidos */}
         <SimpleGrid
           columns={{ base: 1, md: 3 }}
-          gap={5}
-          mt={{ base: 10, md: 14 }}
-          pt={6}
-          borderTop="1px solid var(--color-border-soft)"
+          gap="var(--space-6)"
+          mt={{ base: "var(--space-12)", md: "var(--space-16)" }}
+          pt="var(--space-6)"
+          borderTop="var(--border-width) solid var(--color-border-soft)"
           className="animar-entrada animar-atraso-2"
         >
           {INDICADORES_CONFIANCA.map((item) => (
-            <Flex key={item.destaque} align="center" gap={3} minW="0">
+            <Flex key={item.destaque} align="center" gap="var(--space-3)" minW="0">
               <Flex
                 align="center"
                 justify="center"
-                boxSize="36px"
+                boxSize="var(--icon-md)"
                 borderRadius="var(--radius-md)"
                 bg="var(--color-success-soft)"
                 color="var(--color-success)"
@@ -215,10 +204,10 @@ export default function PaginaInicial() {
                 </svg>
               </Flex>
               <Box minW="0">
-                <Text fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize="0.98rem" color="var(--color-text)">
+                <Text fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize="var(--text-sm)" color="var(--color-text)">
                   {item.destaque}
                 </Text>
-                <Text fontFamily="var(--font-body)" fontSize="0.76rem" color="var(--color-text-muted)">
+                <Text fontFamily="var(--font-body)" fontSize="var(--text-xs)" color="var(--color-text-muted)">
                   {item.descricao}
                 </Text>
               </Box>
@@ -230,24 +219,24 @@ export default function PaginaInicial() {
       {/* 2. ESPECIALIDADES COM RITMO ESCALONADO */}
       <Container
         id="especialidades"
-        scrollMarginTop="90px"
+        scrollMarginTop="var(--header-offset)"
         maxW="var(--container-max)"
-        px={{ base: 4, md: 6 }}
-        mt={{ base: 14, md: 20 }}
+        px={{ base: "var(--space-4)", md: "var(--space-6)" }}
+        mt={{ base: "var(--space-16)", md: "var(--space-16)" }}
         className="revelar-secao"
       >
         <Flex
           direction={{ base: "column", sm: "row" }}
           justify="space-between"
           align={{ base: "flex-start", sm: "flex-end" }}
-          gap={3}
-          mb={7}
+          gap="var(--space-3)"
+          mb="var(--space-8)"
         >
           <Heading
             as="h2"
             fontFamily="var(--font-heading)"
             fontWeight="var(--weight-bold)"
-            fontSize={{ base: "1.45rem", md: "1.8rem" }}
+            fontSize={{ base: "var(--text-xl)", md: "var(--text-2xl)" }}
             color="var(--color-text)"
           >
             Principais exames e especialidades
@@ -259,14 +248,14 @@ export default function PaginaInicial() {
             color="var(--color-primary)"
             fontFamily="var(--font-heading)"
             fontWeight="var(--weight-bold)"
-            minH="40px"
-            px={2}
+            minH="var(--touch-target-min)"
+            px="var(--space-2)"
           >
             <RouterLink to="/busca">Ver catálogo completo →</RouterLink>
           </Button>
         </Flex>
 
-        <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4} pb={{ lg: 4 }}>
+        <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap="var(--space-4)" pb={{ lg: "var(--space-4)" }}>
           {CATEGORIAS_EXAMES.map((cat, idx) => (
             <Flex
               key={cat.titulo}
@@ -279,14 +268,14 @@ export default function PaginaInicial() {
               textAlign="left"
               w="100%"
               minW="0"
-              p={5}
+              p="var(--space-6)"
               className="landing-cartao"
               bg="var(--color-surface)"
-              border="1px solid var(--color-border-soft)"
+              border="var(--border-width) solid var(--color-border-soft)"
               borderRadius={cat.raioCard}
               boxShadow="var(--shadow-sm)"
               cursor="pointer"
-              gap={3.5}
+              gap="var(--space-4)"
               transform={{ base: "none", lg: idx % 2 === 1 ? "translateY(14px)" : "none" }}
               transition="all var(--duration-base) var(--ease-standard)"
               _hover={{
@@ -296,15 +285,15 @@ export default function PaginaInicial() {
             >
               <Box w="100%">
                 <Badge
-                  mb={2.5}
-                  px={2.5}
-                  py={0.5}
+                  mb="var(--space-3)"
+                  px="var(--space-3)"
+                  py="var(--space-1)"
                   borderRadius="var(--radius-full)"
                   bg="var(--color-primary-soft)"
                   color="var(--color-primary)"
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  fontSize="0.7rem"
+                  fontSize="var(--text-xs)"
                 >
                   {cat.tag}
                 </Badge>
@@ -313,19 +302,19 @@ export default function PaginaInicial() {
                   as="h3"
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  fontSize="1.1rem"
+                  fontSize="var(--text-base)"
                   color="var(--color-text)"
-                  mb={1.5}
+                  mb="var(--space-2)"
                 >
                   {cat.titulo}
                 </Heading>
 
-                <Text fontFamily="var(--font-body)" fontSize="0.78rem" color="var(--color-text-muted)">
+                <Text fontFamily="var(--font-body)" fontSize="var(--text-xs)" color="var(--color-text-muted)">
                   {cat.exemplos}
                 </Text>
               </Box>
 
-              <Text fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize="0.88rem" color="var(--color-text-highlight)">
+              <Text fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize="var(--text-xs)" color="var(--color-text-highlight)">
                 Explorar →
               </Text>
             </Flex>
@@ -342,30 +331,30 @@ export default function PaginaInicial() {
       {/* 5. COMO FUNCIONA EM TRILHA + COMPARATIVO ABERTO */}
       <Container
         id="como-funciona"
-        scrollMarginTop="90px"
+        scrollMarginTop="var(--header-offset)"
         maxW="var(--container-max)"
-        px={{ base: 4, md: 6 }}
-        mt={{ base: 14, md: 20 }}
+        px={{ base: "var(--space-4)", md: "var(--space-6)" }}
+        mt={{ base: "var(--space-16)", md: "var(--space-16)" }}
         className="revelar-secao"
       >
         <Flex
           direction={{ base: "column", md: "row" }}
           justify="space-between"
           align={{ base: "flex-start", md: "flex-end" }}
-          gap={3}
-          mb={8}
+          gap="var(--space-3)"
+          mb="var(--space-8)"
         >
           <Box>
             <Badge
-              mb={2}
-              px={3}
-              py={1}
+              mb="var(--space-2)"
+              px="var(--space-3)"
+              py="var(--space-1)"
               borderRadius="var(--radius-full)"
               bg="var(--color-primary-soft)"
               color="var(--color-primary)"
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize="0.76rem"
+              fontSize="var(--text-xs)"
             >
               Simples e rápido
             </Badge>
@@ -373,7 +362,7 @@ export default function PaginaInicial() {
               as="h2"
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize={{ base: "1.45rem", md: "1.8rem" }}
+              fontSize={{ base: "var(--text-xl)", md: "var(--text-2xl)" }}
               color="var(--color-text)"
             >
               Do pedido médico ao exame em 3 passos
@@ -381,36 +370,36 @@ export default function PaginaInicial() {
           </Box>
         </Flex>
 
-        <SimpleGrid columns={{ base: 1, md: 3 }} gap={6} mb={{ base: 10, md: 16 }}>
+        <SimpleGrid columns={{ base: 1, md: 3 }} gap="var(--space-6)" mb={{ base: "var(--space-12)", md: "var(--space-16)" }}>
           {ETAPAS_FUNCIONAMENTO.map((etapa, idx) => (
             <Box
               key={etapa.numero}
               minW="0"
-              p={5}
+              p="var(--space-6)"
               bg="var(--color-surface)"
-              border="1px solid var(--color-border-soft)"
-              borderRadius="20px"
+              border="var(--border-width) solid var(--color-border-soft)"
+              borderRadius="var(--radius-lg)"
               boxShadow="var(--shadow-sm)"
               mt={{ base: 0, md: `${idx * 16}px` }}
             >
-              <Flex align="center" gap={2.5} mb={2.5}>
+              <Flex align="center" gap="var(--space-3)" mb="var(--space-3)">
                 <Flex
                   align="center"
                   justify="center"
-                  boxSize="32px"
+                  boxSize="var(--icon-md)"
                   borderRadius="var(--radius-full)"
                   bg="var(--color-primary)"
                   color="var(--color-text-on-primary)"
                   fontFamily="var(--font-heading)"
                   fontWeight="var(--weight-bold)"
-                  fontSize="0.82rem"
+                  fontSize="var(--text-xs)"
                 >
                   {etapa.numero}
                 </Flex>
-                <Box flex="1" h="1px" bg="var(--color-border-soft)" />
+                <Box flex="1" h="var(--border-width)" bg="var(--color-border-soft)" />
               </Flex>
 
-              <Heading as="h3" fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize="1.15rem" color="var(--color-text)" mb={1.5}>
+              <Heading as="h3" fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize="var(--text-base)" color="var(--color-text)" mb="var(--space-2)">
                 {etapa.antesDestaque}
                 {etapa.destaque && (
                   <Box as="span" color="var(--color-text-highlight)">
@@ -419,21 +408,21 @@ export default function PaginaInicial() {
                 )}
               </Heading>
 
-              <Text fontFamily="var(--font-body)" fontSize="0.78rem" color="var(--color-text-muted)">
+              <Text fontFamily="var(--font-body)" fontSize="var(--text-xs)" color="var(--color-text-muted)">
                 {etapa.descricao}
               </Text>
             </Box>
           ))}
         </SimpleGrid>
 
-        <Grid templateColumns={{ base: "1fr", lg: "0.95fr 1.05fr" }} gap={6} alignItems="center">
+        <Grid templateColumns={{ base: "1fr", lg: "0.95fr 1.05fr" }} gap="var(--space-6)" alignItems="center">
           <Box
             position="relative"
-            borderRadius="24px"
+            borderRadius="var(--radius-lg)"
             overflow="hidden"
-            border="1px solid var(--color-border-soft)"
+            border="var(--border-width) solid var(--color-border-soft)"
             boxShadow="var(--shadow-md)"
-            minH={{ base: "220px", md: "270px" }}
+            minH={{ base: "var(--media-sm)", md: "var(--media-md)" }}
             bg="var(--color-surface)"
           >
             <Image
@@ -449,22 +438,22 @@ export default function PaginaInicial() {
               position="absolute"
               insetX="0"
               bottom="0"
-              p={4}
-              bg="linear-gradient(to top, rgb(15 23 34 / 0.85), transparent)"
-              color="#ffffff"
+              p="var(--space-4)"
+              bg="linear-gradient(to top, var(--color-overlay), transparent)"
+              color="var(--color-inverse-text)"
             >
-              <Text fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize="0.92rem">
+              <Text fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize="var(--text-sm)">
                 Unidades verificadas e sem surpresas na recepção
               </Text>
             </Box>
           </Box>
 
-          <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
-            <Box p={5} borderRadius="20px" bg="var(--color-surface)" border="1px solid var(--color-border-soft)">
-              <Badge mb={3} bg="var(--color-error-soft)" color="var(--color-error)" px={2.5} py={0.5} borderRadius="var(--radius-full)" fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)">
+          <SimpleGrid columns={{ base: 1, sm: 2 }} gap="var(--space-4)">
+            <Box p="var(--space-6)" borderRadius="var(--radius-lg)" bg="var(--color-surface)" border="var(--border-width) solid var(--color-border-soft)">
+              <Badge mb="var(--space-3)" bg="var(--color-error-soft)" color="var(--color-error)" px="var(--space-3)" py="var(--space-1)" borderRadius="var(--radius-full)" fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)">
                 Jeito tradicional
               </Badge>
-              <VStack align="stretch" gap={2} fontSize="0.78rem" color="var(--color-text-muted)">
+              <VStack align="stretch" gap="var(--space-2)" fontSize="var(--text-xs)" color="var(--color-text-muted)">
                 <Text>• Demora no telefone ou WhatsApp</Text>
                 <Text>• Preço descoberto só na hora</Text>
                 <Text>• Dificuldade para comparar opções</Text>
@@ -472,17 +461,17 @@ export default function PaginaInicial() {
             </Box>
 
             <Box
-              p={5}
-              borderRadius="20px"
+              p="var(--space-6)"
+              borderRadius="var(--radius-lg)"
               bg="var(--color-surface)"
-              border="2px solid var(--color-primary)"
+              border="var(--border-width-strong) solid var(--color-primary)"
               transform={{ base: "none", sm: "translateY(-10px)" }}
               boxShadow="var(--shadow-md)"
             >
-              <Badge mb={3} bg="var(--color-success-soft)" color="var(--color-success)" px={2.5} py={0.5} borderRadius="var(--radius-full)" fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)">
+              <Badge mb="var(--space-3)" bg="var(--color-success-soft)" color="var(--color-success)" px="var(--space-3)" py="var(--space-1)" borderRadius="var(--radius-full)" fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)">
                 Com o Exame Já
               </Badge>
-              <VStack align="stretch" gap={2} fontSize="0.78rem" color="var(--color-text)">
+              <VStack align="stretch" gap="var(--space-2)" fontSize="var(--text-xs)" color="var(--color-text)">
                 <Text>✓ Valores e distância das ofertas</Text>
                 <Text>✓ Filtro direto pelo convênio</Text>
                 <Text>✓ Busca por exame, convênio e localização</Text>
@@ -495,30 +484,30 @@ export default function PaginaInicial() {
       {/* 6. PARA CLÍNICAS E LABORATÓRIOS */}
       <Box
         id="para-clinicas"
-        scrollMarginTop="90px"
-        mt={{ base: 14, md: 20 }}
-        py={{ base: 10, md: 14 }}
+        scrollMarginTop="var(--header-offset)"
+        mt={{ base: "var(--space-16)", md: "var(--space-16)" }}
+        py={{ base: "var(--space-12)", md: "var(--space-16)" }}
         bg="var(--color-surface)"
-        borderTop="1px solid var(--color-border-soft)"
-        borderBottom="1px solid var(--color-border-soft)"
+        borderTop="var(--border-width) solid var(--color-border-soft)"
+        borderBottom="var(--border-width) solid var(--color-border-soft)"
         className="revelar-secao"
       >
-        <Container maxW="var(--container-max)" px={{ base: 4, md: 6 }}>
+        <Container maxW="var(--container-max)" px={{ base: "var(--space-4)", md: "var(--space-6)" }}>
           <Grid
             templateColumns={{ base: "1fr", lg: "1.15fr 0.85fr" }}
-            gap={{ base: 6, lg: 10 }}
+            gap={{ base: "var(--space-6)", lg: "var(--space-12)" }}
             alignItems="center"
           >
             <Flex direction="column" align="flex-start" minW="0">
-              <Badge mb={2.5} px={2.5} py={0.5} borderRadius="var(--radius-full)" bg="var(--color-accent-soft)" color="var(--color-accent)" fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize="0.74rem">
+              <Badge mb="var(--space-3)" px="var(--space-3)" py="var(--space-1)" borderRadius="var(--radius-full)" bg="var(--color-accent-soft)" color="var(--color-accent)" fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize="var(--text-xs)">
                 Parceiros de saúde
               </Badge>
 
-              <Heading as="h2" fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize={{ base: "1.4rem", md: "1.75rem" }} color="var(--color-text)" mb={2.5}>
+              <Heading as="h2" fontFamily="var(--font-heading)" fontWeight="var(--weight-bold)" fontSize={{ base: "var(--text-xl)", md: "var(--text-2xl)" }} color="var(--color-text)" mb="var(--space-3)">
                 Tem uma clínica ou laboratório? Receba pacientes todos os dias.
               </Heading>
 
-              <Text fontFamily="var(--font-body)" fontSize="0.82rem" color="var(--color-text-muted)" mb={5} maxW="520px">
+              <Text fontFamily="var(--font-body)" fontSize="var(--text-xs)" color="var(--color-text-muted)" mb="var(--space-6)" maxW="var(--width-text)">
                 Cadastre sua unidade, publique ofertas de exames e informe os convênios aceitos.
               </Text>
 
@@ -526,12 +515,12 @@ export default function PaginaInicial() {
                 asChild
                 bg="var(--color-accent)"
                 _hover={{ bg: "var(--color-accent-hover)" }}
-                color="#ffffff"
+                color="var(--color-text-on-accent)"
                 fontFamily="var(--font-heading)"
                 fontWeight="var(--weight-bold)"
-                fontSize="0.92rem"
-                px={6}
-                minH="46px"
+                fontSize="var(--text-sm)"
+                px="var(--space-6)"
+                minH="var(--touch-target-min)"
                 w={{ base: "100%", sm: "auto" }}
                 borderRadius="var(--radius-md)"
               >
@@ -541,11 +530,11 @@ export default function PaginaInicial() {
 
             <Box
               position="relative"
-              borderRadius="24px"
+              borderRadius="var(--radius-lg)"
               overflow="hidden"
-              border="1px solid var(--color-border-soft)"
+              border="var(--border-width) solid var(--color-border-soft)"
               boxShadow="var(--shadow-md)"
-              minH={{ base: "210px", lg: "260px" }}
+              minH={{ base: "var(--media-sm)", lg: "var(--media-md)" }}
               bg="var(--color-bg)"
             >
               <Image

@@ -4,17 +4,8 @@ import {
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Flex,
-  Heading,
-  Input,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Badge, Box, Container, Flex, Heading, Input, Text, VStack } from "@chakra-ui/react";
+import Button from "@/components/ui/Button";
 import LogoAutenticacao from "./LogoAutenticacao";
 import FeedbackErro from "@/components/ui/FeedbackErro";
 import { PERFIS, ROTA_INICIAL_PERFIL } from "@/constants/perfis";
@@ -115,29 +106,29 @@ export default function PaginaLogin() {
 
   return (
     <Container
-      maxW="480px"
-      px={{ base: 4, md: 6 }}
-      py={{ base: 6, md: 12 }}
+      maxW="var(--width-text)"
+      px={{ base: "var(--space-4)", md: "var(--space-6)" }}
+      py={{ base: "var(--space-6)", md: "var(--space-12)" }}
       className="animar-entrada"
     >
       <LogoAutenticacao />
 
       {/* Seletor de Perfil */}
       { !ehAdmin && <Flex
-        p={1.5}
-        mb={6}
+        p="var(--space-2)"
+        mb="var(--space-6)"
         bg="var(--color-surface)"
-        border="1px solid var(--color-border-soft)"
+        border="var(--border-width) solid var(--color-border-soft)"
         borderRadius="var(--radius-lg)"
         boxShadow="var(--shadow-sm)"
-        gap={1.5}
+        gap="var(--space-2)"
       >
         <Box
           as="button"
           type="button"
           flex="1"
-          minH="42px"
-          px={{ base: 2.5, sm: 3 }}
+          minH="var(--touch-target-min)"
+          px={{ base: "var(--space-3)", sm: "var(--space-3)" }}
           borderRadius="var(--radius-md)"
           bg={!ehClinica ? "var(--color-primary)" : "transparent"}
           color={
@@ -147,7 +138,7 @@ export default function PaginaLogin() {
           }
           fontFamily="var(--font-heading)"
           fontWeight="var(--weight-bold)"
-          fontSize={{ base: "0.84rem", sm: "0.92rem" }}
+          fontSize={{ base: "var(--text-xs)", sm: "var(--text-sm)" }}
           cursor="pointer"
           transition="all var(--duration-fast) var(--ease-standard)"
           onClick={() => alternarPerfil(PERFIS.PACIENTE)}
@@ -159,14 +150,14 @@ export default function PaginaLogin() {
           as="button"
           type="button"
           flex="1"
-          minH="42px"
-          px={{ base: 2.5, sm: 3 }}
+          minH="var(--touch-target-min)"
+          px={{ base: "var(--space-3)", sm: "var(--space-3)" }}
           borderRadius="var(--radius-md)"
           bg={ehClinica ? "var(--color-accent)" : "transparent"}
-          color={ehClinica ? "#ffffff" : "var(--color-text-muted)"}
+          color={ehClinica ? "var(--color-text-on-accent)" : "var(--color-text-muted)"}
           fontFamily="var(--font-heading)"
           fontWeight="var(--weight-bold)"
-          fontSize={{ base: "0.84rem", sm: "0.92rem" }}
+          fontSize={{ base: "var(--text-xs)", sm: "var(--text-sm)" }}
           cursor="pointer"
           transition="all var(--duration-fast) var(--ease-standard)"
           onClick={() => alternarPerfil(PERFIS.CLINICA)}
@@ -177,16 +168,16 @@ export default function PaginaLogin() {
 
       <Box
         bg="var(--color-surface)"
-        border="1px solid var(--color-border-soft)"
-        borderRadius="24px"
-        p={{ base: 5, sm: 8 }}
+        border="var(--border-width) solid var(--color-border-soft)"
+        borderRadius="var(--radius-lg)"
+        p={{ base: "var(--space-6)", sm: "var(--space-8)" }}
         boxShadow="var(--shadow-md)"
       >
-        <Box mb={6}>
+        <Box mb="var(--space-6)">
           <Badge
-            mb={2.5}
-            px={3}
-            py={1}
+            mb="var(--space-3)"
+            px="var(--space-3)"
+            py="var(--space-1)"
             borderRadius="var(--radius-full)"
             bg={
               ehClinica
@@ -196,7 +187,7 @@ export default function PaginaLogin() {
             color={ehClinica ? "var(--color-accent)" : "var(--color-primary)"}
             fontFamily="var(--font-heading)"
             fontWeight="var(--weight-bold)"
-            fontSize="0.75rem"
+            fontSize="var(--text-xs)"
           >
             {ehAdmin ? "Área Administrativa" : ehClinica ? "Área do Parceiro" : "Área do Paciente"}
           </Badge>
@@ -205,16 +196,16 @@ export default function PaginaLogin() {
             as="h1"
             fontFamily="var(--font-heading)"
             fontWeight="var(--weight-bold)"
-            fontSize={{ base: "1.45rem", md: "1.75rem" }}
+            fontSize={{ base: "var(--text-xl)", md: "var(--text-2xl)" }}
             color="var(--color-text)"
-            mb={1.5}
+            mb="var(--space-2)"
           >
             {ehAdmin ? "Acesso administrativo" : "Entrar na sua conta"}
           </Heading>
 
           <Text
             fontFamily="var(--font-body)"
-            fontSize="0.88rem"
+            fontSize="var(--text-xs)"
             color="var(--color-text-muted)"
           >
             {ehAdmin ? "Acesse com uma conta administrativa autorizada."
@@ -229,13 +220,13 @@ export default function PaginaLogin() {
           <FeedbackErro mensagem={erroVerificacao} titulo="Falha ao reenviar a verificação" />
         </Box>
         {mensagemVerificacao && (
-          <Text role="status" mb={4} fontSize="0.84rem" color="var(--color-text-muted)">
+          <Text role="status" mb="var(--space-4)" fontSize="var(--text-xs)" color="var(--color-text-muted)">
             {mensagemVerificacao}
           </Text>
         )}
 
         <Box as="form" onSubmit={lidarComLogin} noValidate>
-          <VStack align="stretch" gap={4}>
+          <VStack align="stretch" gap="var(--space-4)">
             <Box>
               <Box
                 as="label"
@@ -243,9 +234,9 @@ export default function PaginaLogin() {
                 display="block"
                 fontFamily="var(--font-heading)"
                 fontWeight={600}
-                fontSize="0.88rem"
+                fontSize="var(--text-xs)"
                 color="var(--color-text)"
-                mb={1.5}
+                mb="var(--space-2)"
               >
                 {ehClinica ? "E-mail corporativo" : "E-mail"}
               </Box>
@@ -257,7 +248,7 @@ export default function PaginaLogin() {
                 placeholder={
                   ehClinica ? "contato@clinica.com.br" : "voce@email.com"
                 }
-                minH="46px"
+                minH="var(--touch-target-min)"
                 bg="var(--color-bg)"
                 color="var(--color-text)"
                 borderColor="var(--color-border-soft)"
@@ -266,13 +257,13 @@ export default function PaginaLogin() {
             </Box>
 
             <Box>
-              <Flex justify="space-between" align="center" mb={1.5}>
+              <Flex justify="space-between" align="center" mb="var(--space-2)">
                 <Box
                   as="label"
                   htmlFor="senhaLogin"
                   fontFamily="var(--font-heading)"
                   fontWeight={600}
-                  fontSize="0.88rem"
+                  fontSize="var(--text-xs)"
                   color="var(--color-text)"
                 >
                   Senha
@@ -283,7 +274,7 @@ export default function PaginaLogin() {
                   onClick={() => setMostrarSenha((s) => !s)}
                   fontFamily="var(--font-heading)"
                   fontWeight={600}
-                  fontSize="0.78rem"
+                  fontSize="var(--text-xs)"
                   color="var(--color-primary)"
                   cursor="pointer"
                 >
@@ -297,20 +288,20 @@ export default function PaginaLogin() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="Digite sua senha"
-                minH="46px"
+                minH="var(--touch-target-min)"
                 bg="var(--color-bg)"
                 color="var(--color-text)"
                 borderColor="var(--color-border-soft)"
                 borderRadius="var(--radius-md)"
               />
 
-              <Flex justify="flex-end" mt={1.5}>
+              <Flex justify="flex-end" mt="var(--space-2)">
                 <RouterLink
                   to="/recuperar-acesso"
                   style={{
                     fontFamily: "var(--font-heading)",
                     fontWeight: 600,
-                    fontSize: "0.82rem",
+                    fontSize: "var(--text-xs)",
                     color: "var(--color-primary)",
                     textDecoration: "none",
                   }}
@@ -329,13 +320,13 @@ export default function PaginaLogin() {
                   ? "var(--color-accent-hover)"
                   : "var(--color-primary-hover)",
               }}
-              color={ehClinica ? "#ffffff" : "var(--color-text-on-primary)"}
+              color={ehClinica ? "var(--color-text-on-accent)" : "var(--color-text-on-primary)"}
               fontFamily="var(--font-heading)"
               fontWeight="var(--weight-bold)"
-              fontSize="1rem"
-              minH="48px"
+              fontSize="var(--text-sm)"
+              minH="var(--touch-target-min)"
               w="100%"
-              mt={1}
+              mt="var(--space-1)"
               borderRadius="var(--radius-md)"
               boxShadow="var(--shadow-sm)"
             >
@@ -351,12 +342,12 @@ export default function PaginaLogin() {
         </Box>
 
         <Text
-          mt={6}
-          pt={5}
-          borderTop="1px solid var(--color-border-soft)"
+          mt="var(--space-6)"
+          pt="var(--space-6)"
+          borderTop="var(--border-width) solid var(--color-border-soft)"
           textAlign="center"
           fontFamily="var(--font-body)"
-          fontSize="0.88rem"
+          fontSize="var(--text-xs)"
           color="var(--color-text-muted)"
         >
           Ainda não tem conta?{" "}

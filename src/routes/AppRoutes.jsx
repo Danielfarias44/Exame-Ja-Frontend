@@ -13,6 +13,7 @@ const PaginaLogin = lazy(() => import("@/pages/paciente_deslogado/PaginaLogin"))
 const RecuperacaoAcesso = lazy(() => import("@/pages/paciente_deslogado/RecuperacaoAcesso"));
 
 const SearchResults = lazy(() => import("@/pages/paciente_deslogado/SearchResults"));
+const MapaClinicas = lazy(() => import("@/pages/paciente_deslogado/MapaClinicas"));
 const EstablishmentDetails = lazy(() => import("@/pages/paciente_deslogado/EstablishmentDetails"));
 const Styleguide = lazy(() => import("@/pages/Styleguide"));
 
@@ -61,6 +62,7 @@ export default function AppRoutes() {
         {/* Área pública e autenticação */}
         <Route element={<BuscaLayout />}>
           <Route path="/busca" element={<SearchResults />} />
+          <Route path="/mapa" element={<MapaClinicas />} />
           <Route path="/estabelecimento/:id" element={<EstablishmentDetails />} />
         </Route>
         <Route element={<LayoutPublico />}>
@@ -96,7 +98,7 @@ export default function AppRoutes() {
           <Route path="avaliacao" element={<Avaliacao />} />
           <Route path="notificacoes" element={<Notificacoes />} />
           <Route path="chat" element={<Chat />} />
-          <Route path="mapa" element={<Navigate to="/busca" replace />} />
+          <Route path="mapa" element={<MapaClinicas />} />
           <Route path="estabelecimento/:id" element={<EstablishmentDetails />} />
           <Route path="*" element={<Navigate to="/paciente" replace />} />
         </Route>
