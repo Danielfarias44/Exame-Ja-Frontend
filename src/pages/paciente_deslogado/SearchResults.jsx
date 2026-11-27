@@ -18,7 +18,13 @@ const ordenacoes = [
   { value: "distancia", label: "Menor distância" },
   { value: "preco", label: "Menor preço" },
 ];
-const raios = [5, 10, 25, 50, 100].map((km) => ({ value: String(km), label: `Até ${km} km` }));
+const RAIOS_KM = [5, 10, 25, 50];
+const RAIO_PADRAO = "10";
+const raios = RAIOS_KM.map((km) => ({ value: String(km), label: `Até ${km} km` }));
+
+function raioValido(valor) {
+  return RAIOS_KM.includes(Number(valor)) ? String(Number(valor)) : RAIO_PADRAO;
+}
 const TAMANHO_PAGINA = 20;
 
 const estiloCampo = {
@@ -74,7 +80,7 @@ export default function SearchResults() {
   const [codigoExame, setCodigoExame] = useState(searchParams.get("codigoExame") || "");
   const [convenioId, setConvenioId] = useState(searchParams.get("convenioId") || "");
   const [ordenar, setOrdenar] = useState(searchParams.get("ordenar") || "distancia");
-  const [raioKm, setRaioKm] = useState(searchParams.get("raioKm") || "10");
+  const [raioKm, setRaioKm] = useState(() => raioValido(searchParams.get("raioKm")));
   const [precoMinimo, setPrecoMinimo] = useState(searchParams.get("precoMinimo") || "");
   const [precoMaximo, setPrecoMaximo] = useState(searchParams.get("precoMaximo") || "");
   const [endereco, setEndereco] = useState(searchParams.get("endereco") || "");
@@ -104,7 +110,7 @@ export default function SearchResults() {
   const codigoUrl = searchParams.get("codigoExame") || "";
   const convenioUrl = searchParams.get("convenioId") || "";
   const ordenarUrl = searchParams.get("ordenar") || "distancia";
-  const raioUrl = searchParams.get("raioKm") || "10";
+  const raioUrl = raioValido(searchParams.get("raioKm"));
   const latitudeUrl = searchParams.get("latitude");
   const longitudeUrl = searchParams.get("longitude");
   const precoMinimoUrl = searchParams.get("precoMinimo") || "";
