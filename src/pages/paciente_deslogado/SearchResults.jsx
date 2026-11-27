@@ -18,7 +18,7 @@ const ordenacoes = [
   { value: "distancia", label: "Menor distância" },
   { value: "preco", label: "Menor preço" },
 ];
-const raios = [5, 10, 20, 30, 50].map((km) => ({ value: String(km), label: `Até ${km} km` }));
+const raios = [5, 10, 25, 50, 100].map((km) => ({ value: String(km), label: `Até ${km} km` }));
 const TAMANHO_PAGINA = 20;
 
 const estiloCampo = {
@@ -66,7 +66,6 @@ export default function SearchResults() {
   const idPrecoMinimo = useId();
   const idPrecoMaximo = useId();
   const campoExameRef = useRef(null);
-  const botaoLocalizacaoRef = useRef(null);
   const campoPrecoMinimoRef = useRef(null);
   const convenioVeioDaUrl = useRef(Boolean(searchParams.get("convenioId")));
 
@@ -78,10 +77,11 @@ export default function SearchResults() {
   const [raioKm, setRaioKm] = useState(searchParams.get("raioKm") || "10");
   const [precoMinimo, setPrecoMinimo] = useState(searchParams.get("precoMinimo") || "");
   const [precoMaximo, setPrecoMaximo] = useState(searchParams.get("precoMaximo") || "");
-  const [endereco, setEndereco] = useState("");
-  const [localizacao, setLocalizacao] = useState(() => lerLocalizacaoDaUrl(searchParams));
-  const [rotuloLocalizacao, setRotuloLocalizacao] = useState(() => (lerLocalizacaoDaUrl(searchParams) ? "Local da última busca" : ""));
-  const [centroMapa, setCentroMapa] = useState(localizacao);
+  const [endereco, setEndereco] = useState(searchParams.get("endereco") || "");
+  const localizacaoUrl = lerLocalizacaoDaUrl(searchParams);
+  const [localizacao, setLocalizacao] = useState(localizacaoUrl);
+  const [rotuloLocalizacao, setRotuloLocalizacao] = useState(() => (localizacaoUrl ? "Local da última busca" : ""));
+  const [centroMapa, setCentroMapa] = useState(localizacaoUrl);
   const [ofertas, setOfertas] = useState([]);
   const [total, setTotal] = useState(0);
   const [clinicasSemCoordenadas, setClinicasSemCoordenadas] = useState(0);
@@ -93,13 +93,13 @@ export default function SearchResults() {
   const [status, setStatus] = useState(() => (searchParams.get("codigoExame") && lerLocalizacaoDaUrl(searchParams) ? "loading" : "idle"));
   const [carregandoCatalogo, setCarregandoCatalogo] = useState(true);
   const [localizando, setLocalizando] = useState(false);
-  const [geocodificando, setGeocodificando] = useState(false);
   const [paginaCatalogo, setPaginaCatalogo] = useState(1);
   const [temMaisExames, setTemMaisExames] = useState(false);
   const [carregandoMaisExames, setCarregandoMaisExames] = useState(false);
   const [proximoOffset, setProximoOffset] = useState(null);
   const [carregandoMaisResultados, setCarregandoMaisResultados] = useState(false);
   const [tentativaBusca, setTentativaBusca] = useState(0);
+  const [erroMaisResultados, setErroMaisResultados] = useState("");
 
   const codigoUrl = searchParams.get("codigoExame") || "";
   const convenioUrl = searchParams.get("convenioId") || "";
@@ -109,7 +109,8 @@ export default function SearchResults() {
   const longitudeUrl = searchParams.get("longitude");
   const precoMinimoUrl = searchParams.get("precoMinimo") || "";
   const precoMaximoUrl = searchParams.get("precoMaximo") || "";
-  const buscaAtiva = Boolean(codigoUrl && latitudeUrl && longitudeUrl);
+  const enderecoUrl = searchParams.get("endereco") || "";
+  const buscaAtiva = Boolean(codigoUrl && ((latitudeUrl && longitudeUrl) || enderecoUrl));
 
   useEffect(() => {
     let ativo = true;
@@ -146,8 +147,7 @@ export default function SearchResults() {
     let ativo = true;
     searchExamOffers({
       codigoExame: codigoUrl,
-      latitude: Number(latitudeUrl),
-      longitude: Number(longitudeUrl),
+      ...(latitudeUrl && longitudeUrl ? { latitude: Number(latitudeUrl), longitude: Number(longitudeUrl) } : { endereco: enderecoUrl }),
       convenioId: convenioUrl,
       ordenar: ordenarUrl,
       raioKm: raioUrl,
@@ -164,15 +164,20 @@ export default function SearchResults() {
       setProximoOffset(calcularProximoOffset(resultado));
       if (resultado.location) {
         setCentroMapa({ latitude: resultado.location.latitude, longitude: resultado.location.longitude });
+      } else if (Number.isFinite(resultado.offers[0]?.lat) && Number.isFinite(resultado.offers[0]?.lng)) {
+        setCentroMapa({ latitude: resultado.offers[0].lat, longitude: resultado.offers[0].lng });
       }
       setStatus("success");
     }).catch((falha) => {
       if (!ativo) return;
       setErroBusca(falha.message || "Não foi possível buscar clínicas.");
+      setOfertas([]);
+      setTotal(0);
+      setProximoOffset(null);
       setStatus("error");
     });
     return () => { ativo = false; };
-  }, [buscaAtiva, codigoUrl, convenioUrl, ordenarUrl, raioUrl, latitudeUrl, longitudeUrl, precoMinimoUrl, precoMaximoUrl, tentativaBusca]);
+  }, [buscaAtiva, codigoUrl, convenioUrl, ordenarUrl, raioUrl, latitudeUrl, longitudeUrl, enderecoUrl, precoMinimoUrl, precoMaximoUrl, tentativaBusca]);
 
   const clinicasNoMapa = useMemo(() => {
     const porClinica = new Map();
@@ -186,16 +191,20 @@ export default function SearchResults() {
   }, [ofertas]);
 
   function executarBusca(alteracoes = {}) {
-    const valores = { codigoExame, convenioId, ordenar, raioKm, precoMinimo, precoMaximo, localizacao, ...alteracoes };
+    const valores = { codigoExame, convenioId, ordenar, raioKm, precoMinimo, precoMaximo, localizacao, endereco, ...alteracoes };
     setErro("");
     if (!valores.codigoExame) {
       setErro("Selecione o exame que deseja encontrar.");
       campoExameRef.current?.focus();
       return;
     }
-    if (!valores.localizacao) {
-      setErroLocalizacao("Use sua localização ou informe um endereço antes de buscar.");
-      botaoLocalizacaoRef.current?.focus();
+    if ((valores.precoMinimo && Number(valores.precoMinimo) < 0) || (valores.precoMaximo && Number(valores.precoMaximo) < 0)) {
+      setErro("Os preços precisam ser iguais ou maiores que zero.");
+      campoPrecoMinimoRef.current?.focus();
+      return;
+    }
+    if (!valores.localizacao && !valores.endereco?.trim()) {
+      usarMinhaLocalizacao();
       return;
     }
     if (valores.precoMinimo && valores.precoMaximo && Number(valores.precoMinimo) > Number(valores.precoMaximo)) {
@@ -203,18 +212,22 @@ export default function SearchResults() {
       campoPrecoMinimoRef.current?.focus();
       return;
     }
-    const params = new URLSearchParams({
-      codigoExame: valores.codigoExame,
-      latitude: String(valores.localizacao.latitude),
-      longitude: String(valores.localizacao.longitude),
-      ordenar: valores.ordenar,
-      raioKm: valores.raioKm,
-    });
+    const params = new URLSearchParams({ codigoExame: valores.codigoExame, ordenar: valores.ordenar, raioKm: valores.raioKm });
+    if (valores.endereco?.trim() && !valores.localizacao) params.set("endereco", valores.endereco.trim());
+    else if (valores.localizacao) {
+      params.set("latitude", String(valores.localizacao.latitude));
+      params.set("longitude", String(valores.localizacao.longitude));
+    }
     if (valores.convenioId) params.set("convenioId", valores.convenioId);
     if (valores.precoMinimo) params.set("precoMinimo", valores.precoMinimo);
     if (valores.precoMaximo) params.set("precoMaximo", valores.precoMaximo);
     setErroBusca("");
+    setErroMaisResultados("");
     setStatus("loading");
+    setOfertas([]);
+    setTotal(0);
+    setProximoOffset(null);
+    setCentroMapa(valores.localizacao ?? centroMapa);
     setSearchParams(params);
     setTentativaBusca((atual) => atual + 1);
   }
@@ -223,7 +236,8 @@ export default function SearchResults() {
     return (evento) => {
       const valor = evento.target.value;
       definir(valor);
-      if (buscaAtiva && (chave !== "codigoExame" || valor)) executarBusca({ [chave]: valor });
+      if (buscaAtiva && chave === "codigoExame") return;
+      if (buscaAtiva) executarBusca({ [chave]: valor });
     };
   }
 
@@ -246,47 +260,50 @@ export default function SearchResults() {
     setLocalizacao(coordenadas);
     setCentroMapa(coordenadas);
     setRotuloLocalizacao(rotulo);
+    setEndereco("");
     setErroLocalizacao("");
-    if (codigoExame) executarBusca({ localizacao: coordenadas });
+    if (codigoExame) executarBusca({ localizacao: coordenadas, endereco: "" });
   }
 
   function usarMinhaLocalizacao() {
     if (!navigator.geolocation) {
       setErroLocalizacao("Este navegador não oferece acesso à localização. Informe um endereço.");
+      if (endereco.trim()) executarBusca({ endereco: endereco.trim(), localizacao: null });
       return;
     }
     setLocalizando(true);
     navigator.geolocation.getCurrentPosition(({ coords }) => {
-      setEndereco("");
       aplicarLocalizacao({ latitude: coords.latitude, longitude: coords.longitude }, "Sua localização atual");
       setLocalizando(false);
     }, () => {
       setErroLocalizacao("Não foi possível obter sua localização. Confira a permissão do navegador ou informe um endereço.");
+      if (endereco.trim()) executarBusca({ endereco: endereco.trim(), localizacao: null });
       setLocalizando(false);
     }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
   }
 
-  async function localizarEndereco(evento) {
+  function localizarEndereco(evento) {
     evento.preventDefault();
     if (!endereco.trim()) return;
-    setGeocodificando(true);
     setErroLocalizacao("");
-    try {
-      const resultado = await apiRequest(`/api/geocoding?endereco=${encodeURIComponent(`${endereco.trim()}, Brasil`)}`);
-      if (!resultado.encontrado) throw new Error("Não encontramos esse endereço. Tente incluir bairro e cidade.");
-      aplicarLocalizacao({ latitude: resultado.latitude, longitude: resultado.longitude }, resultado.enderecoFormatado || endereco.trim());
-    } catch (falha) { setErroLocalizacao(falha.message || "Não foi possível localizar esse endereço."); }
-    finally { setGeocodificando(false); }
+    setLocalizacao(null);
+    setRotuloLocalizacao(endereco.trim());
+    if (!codigoExame) {
+      setErro("Selecione o exame que deseja encontrar.");
+      campoExameRef.current?.focus();
+      return;
+    }
+    executarBusca({ endereco: endereco.trim(), localizacao: null });
   }
 
   async function carregarMaisResultados() {
     if (proximoOffset === null || carregandoMaisResultados) return;
+    setErroMaisResultados("");
     setCarregandoMaisResultados(true);
     try {
       const pagina = await searchExamOffers({
         codigoExame: codigoUrl,
-        latitude: Number(latitudeUrl),
-        longitude: Number(longitudeUrl),
+        ...(latitudeUrl && longitudeUrl ? { latitude: Number(latitudeUrl), longitude: Number(longitudeUrl) } : { endereco: enderecoUrl }),
         convenioId: convenioUrl,
         ordenar: ordenarUrl,
         raioKm: raioUrl,
@@ -303,7 +320,7 @@ export default function SearchResults() {
       });
       setClinicasSemCoordenadas((atual) => Number(pagina.raw?.clinicasSemCoordenadas) || atual);
       setProximoOffset(calcularProximoOffset(pagina));
-    } catch (falha) { setErro(falha.message || "Não foi possível carregar mais clínicas."); }
+    } catch (falha) { setErroMaisResultados(falha.message || "Não foi possível carregar mais clínicas."); }
     finally { setCarregandoMaisResultados(false); }
   }
 
@@ -335,15 +352,15 @@ export default function SearchResults() {
           <Box h="var(--border-width)" bg="var(--color-border-soft)" />
           <Stack gap="var(--space-2)">
             <Text fontWeight="var(--weight-bold)" fontSize="var(--text-sm)">Onde procurar?</Text>
-            <Button ref={botaoLocalizacaoRef} type="button" variant="outline" onClick={usarMinhaLocalizacao} disabled={localizando}>{localizando ? "Obtendo localização…" : "Usar minha localização"}</Button>
+            <Button type="button" variant="outline" onClick={usarMinhaLocalizacao} disabled={localizando}>{localizando ? "Obtendo localização…" : "Usar minha localização"}</Button>
             <Stack as="form" onSubmit={localizarEndereco} gap="var(--space-2)">
               <Text as="label" htmlFor={idEndereco} {...estiloRotulo}>Ou informe um endereço</Text>
               <Stack direction={{ base: "column", sm: "row" }} gap="var(--space-2)">
                 <Input id={idEndereco} {...estiloCampo} value={endereco} onChange={(evento) => setEndereco(evento.target.value)} placeholder="Rua, bairro, cidade ou CEP" autoComplete="street-address" />
-                <Button type="submit" variant="outline" disabled={geocodificando || !endereco.trim()}>{geocodificando ? "Localizando…" : "Usar endereço"}</Button>
+                <Button type="submit" variant="outline" disabled={!endereco.trim()}>Usar endereço</Button>
               </Stack>
             </Stack>
-            {localizacao && <Text fontSize="var(--text-sm)" color="var(--color-text)" aria-live="polite"><Text as="span" aria-hidden="true">✓ </Text>Buscando perto de: {rotuloLocalizacao || "local definido"}</Text>}
+            {(localizacao || endereco) && <Text fontSize="var(--text-sm)" color="var(--color-text)" aria-live="polite"><Text as="span" aria-hidden="true">✓ </Text>Buscando perto de: {rotuloLocalizacao || endereco}</Text>}
             {erroLocalizacao && <Text role="alert" fontSize="var(--text-sm)" color="var(--color-error)">{erroLocalizacao}</Text>}
           </Stack>
 
@@ -390,6 +407,7 @@ export default function SearchResults() {
           {statusVisivel === "error" && <ErrorState title="A busca não foi concluída" description={erroBusca} onRetry={() => executarBusca()} />}
           {statusVisivel === "success" && ofertas.length === 0 && <EmptyState title="Nenhuma oferta compatível encontrada" description={clinicasSemCoordenadas > 0 ? `${clinicasSemCoordenadas} clínicas não aparecem porque ainda não têm o endereço localizado. Também pode não haver ofertas publicadas para este exame e convênio; tente ampliar a distância ou alterar os filtros.` : "Não há ofertas publicadas para este exame e localização com os filtros escolhidos. Tente ampliar a distância, alterar o convênio ou buscar outro exame."} />}
           {statusVisivel === "success" && ofertas.map((oferta) => <EstablishmentCard key={oferta.id} establishment={oferta} actions={<OfferActions oferta={oferta} ehPaciente={paciente} estaLogado={estaLogado} />} />)}
+          {statusVisivel === "success" && erroMaisResultados && <ErrorState title="Não foi possível carregar mais clínicas" description={erroMaisResultados} onRetry={carregarMaisResultados} />}
           {statusVisivel === "success" && proximoOffset !== null && <Button type="button" variant="outline" onClick={carregarMaisResultados} disabled={carregandoMaisResultados}>{carregandoMaisResultados ? "Carregando clínicas…" : "Carregar mais clínicas"}</Button>}
         </Stack>
       </Grid>

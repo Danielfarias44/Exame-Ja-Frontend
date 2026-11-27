@@ -122,7 +122,7 @@ export default function EstablishmentDetails() {
         <Card>
           <Stack gap="var(--space-3)">
             {clinica.telefone && <Text>Telefone: {clinica.telefone}</Text>}
-            <RatingSummary rating={clinica.avaliacaoMedia || null} reviewsCount={clinica.quantidadeAvaliacoes} />
+            <RatingSummary rating={clinica.quantidadeAvaliacoes > 0 ? clinica.avaliacaoMedia : null} reviewsCount={clinica.quantidadeAvaliacoes} />
             <Text color="var(--color-text-muted)" fontSize="var(--text-sm)">
               {Number.isFinite(ofertas[0]?.distanceKm) ? `${ofertas[0].distanceKm.toLocaleString("pt-BR")} km de distância` : "Distância não informada"}
             </Text>
@@ -136,7 +136,7 @@ export default function EstablishmentDetails() {
             : <Text color="var(--color-text-muted)">A localização da unidade não está disponível no mapa.</Text>}
         </Stack>
         <Stack as="section" gap="var(--space-4)" aria-labelledby="titulo-ofertas">
-          <SectionTitle id="titulo-ofertas">Ofertas encontradas</SectionTitle>
+          <SectionTitle id="titulo-ofertas">Exames e preços publicados</SectionTitle>
           {ofertas.length === 0 && (
             <Text color="var(--color-text-muted)" fontSize="var(--text-sm)">
               Esta clínica ainda não publicou exames com preço.
