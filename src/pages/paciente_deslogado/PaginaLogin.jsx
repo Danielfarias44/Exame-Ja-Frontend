@@ -48,8 +48,9 @@ export default function PaginaLogin() {
     setPerfil(novoPerfil);
     setErro("");
     const proximos = new URLSearchParams(searchParams);
-    if (novoPerfil === PERFIS.CLINICA) proximos.set("perfil", PERFIS.CLINICA);
-    else proximos.delete("perfil");
+    if (novoPerfil === PERFIS.PACIENTE) proximos.delete("perfil");
+    else proximos.set("perfil", novoPerfil);
+    if (novoPerfil !== PERFIS.ADMIN && proximos.get("redirect")?.startsWith("/admin")) proximos.delete("redirect");
     setSearchParams(proximos, { replace: true });
   }
 
@@ -113,8 +114,9 @@ export default function PaginaLogin() {
     >
       <LogoAutenticacao />
 
-      {/* Seletor de Perfil */}
-      { !ehAdmin && <Flex
+      {!ehAdmin && <Flex
+        role="group"
+        aria-label="Tipo de conta"
         p="var(--space-2)"
         mb="var(--space-6)"
         bg="var(--color-surface)"
@@ -141,6 +143,7 @@ export default function PaginaLogin() {
           fontSize={{ base: "var(--text-xs)", sm: "var(--text-sm)" }}
           cursor="pointer"
           transition="all var(--duration-fast) var(--ease-standard)"
+          aria-pressed={!ehClinica}
           onClick={() => alternarPerfil(PERFIS.PACIENTE)}
         >
           Paciente
@@ -160,6 +163,7 @@ export default function PaginaLogin() {
           fontSize={{ base: "var(--text-xs)", sm: "var(--text-sm)" }}
           cursor="pointer"
           transition="all var(--duration-fast) var(--ease-standard)"
+          aria-pressed={ehClinica}
           onClick={() => alternarPerfil(PERFIS.CLINICA)}
         >
           Clínica / Laboratório
@@ -215,8 +219,8 @@ export default function PaginaLogin() {
           </Text>
         </Box>
 
-        <Box mb={erro ? 4 : 0}><FeedbackErro mensagem={erro} titulo="Não foi possível entrar" /></Box>
-        <Box mb={erroVerificacao ? 4 : 0}>
+        <Box mb={erro ? "var(--space-4)" : 0}><FeedbackErro mensagem={erro} titulo="Não foi possível entrar" /></Box>
+        <Box mb={erroVerificacao ? "var(--space-4)" : 0}>
           <FeedbackErro mensagem={erroVerificacao} titulo="Falha ao reenviar a verificação" />
         </Box>
         {mensagemVerificacao && (
@@ -233,7 +237,7 @@ export default function PaginaLogin() {
                 htmlFor="emailLogin"
                 display="block"
                 fontFamily="var(--font-heading)"
-                fontWeight={600}
+                fontWeight="var(--weight-semibold)"
                 fontSize="var(--text-xs)"
                 color="var(--color-text)"
                 mb="var(--space-2)"
@@ -262,7 +266,7 @@ export default function PaginaLogin() {
                   as="label"
                   htmlFor="senhaLogin"
                   fontFamily="var(--font-heading)"
-                  fontWeight={600}
+                  fontWeight="var(--weight-semibold)"
                   fontSize="var(--text-xs)"
                   color="var(--color-text)"
                 >
@@ -273,7 +277,7 @@ export default function PaginaLogin() {
                   type="button"
                   onClick={() => setMostrarSenha((s) => !s)}
                   fontFamily="var(--font-heading)"
-                  fontWeight={600}
+                  fontWeight="var(--weight-semibold)"
                   fontSize="var(--text-xs)"
                   color="var(--color-primary)"
                   cursor="pointer"
@@ -300,7 +304,7 @@ export default function PaginaLogin() {
                   to="/recuperar-acesso"
                   style={{
                     fontFamily: "var(--font-heading)",
-                    fontWeight: 600,
+                    fontWeight: "var(--weight-semibold)",
                     fontSize: "var(--text-xs)",
                     color: "var(--color-primary)",
                     textDecoration: "none",
@@ -341,30 +345,65 @@ export default function PaginaLogin() {
           </VStack>
         </Box>
 
-        <Text
-          mt="var(--space-6)"
-          pt="var(--space-6)"
-          borderTop="var(--border-width) solid var(--color-border-soft)"
-          textAlign="center"
-          fontFamily="var(--font-body)"
+        {ehAdmin ? (
+          <Text
+            mt="var(--space-6)"
+            pt="var(--space-6)"
+            borderTop="var(--border-width) solid var(--color-border-soft)"
+            textAlign="center"
+            fontFamily="var(--font-body)"
+            fontSize="var(--text-xs)"
+            color="var(--color-text-muted)"
+          >
+            Contas administrativas são criadas pela equipe do Exame Já.
+          </Text>
+        ) : (
+          <Text
+            mt="var(--space-6)"
+            pt="var(--space-6)"
+            borderTop="var(--border-width) solid var(--color-border-soft)"
+            textAlign="center"
+            fontFamily="var(--font-body)"
+            fontSize="var(--text-xs)"
+            color="var(--color-text-muted)"
+          >
+            Ainda não tem conta?{" "}
+            <RouterLink
+              to={ehClinica
+                ? `/cadastro?perfil=${PERFIS.CLINICA}${searchParams.get("redirect") ? `&redirect=${encodeURIComponent(searchParams.get("redirect"))}` : ""}`
+                : `/cadastro${searchParams.get("redirect") ? `?redirect=${encodeURIComponent(searchParams.get("redirect"))}` : ""}`}
+              style={{
+                color: "var(--color-primary)",
+                fontWeight: "var(--weight-bold)",
+                textDecoration: "none",
+              }}
+            >
+              {ehClinica ? "Cadastrar clínica" : "Criar conta gratuita"}
+            </RouterLink>
+          </Text>
+        )}
+      </Box>
+
+      <Flex justify="center" mt="var(--space-4)">
+        <Box
+          as="button"
+          type="button"
+          minH="var(--touch-target-min)"
+          px="var(--space-3)"
+          bg="transparent"
+          border="none"
+          fontFamily="var(--font-heading)"
+          fontWeight="var(--weight-semibold)"
           fontSize="var(--text-xs)"
           color="var(--color-text-muted)"
+          textDecoration="underline"
+          cursor="pointer"
+          _hover={{ color: "var(--color-primary)" }}
+          onClick={() => alternarPerfil(ehAdmin ? PERFIS.PACIENTE : PERFIS.ADMIN)}
         >
-          Ainda não tem conta?{" "}
-          <RouterLink
-            to={ehClinica
-              ? `/cadastro?perfil=${PERFIS.CLINICA}${searchParams.get("redirect") ? `&redirect=${encodeURIComponent(searchParams.get("redirect"))}` : ""}`
-              : `/cadastro${searchParams.get("redirect") ? `?redirect=${encodeURIComponent(searchParams.get("redirect"))}` : ""}`}
-            style={{
-              color: "var(--color-primary)",
-              fontWeight: 700,
-              textDecoration: "none",
-            }}
-          >
-            {ehClinica ? "Cadastrar clínica" : "Criar conta gratuita"}
-          </RouterLink>
-        </Text>
-      </Box>
+          {ehAdmin ? "Voltar ao login de paciente ou clínica" : "Sou administrador"}
+        </Box>
+      </Flex>
     </Container>
   );
 }
